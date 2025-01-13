@@ -2,7 +2,7 @@
 
 <details>
 
-<summary>## Jira 활용 Agile 방법론(Epic, Story, SubTask 생성, 스프린트 관리)</summary>
+<summary>Jira 활용 Agile 방법론</summary>
 
 ## 1. 에픽(Epic)
 
