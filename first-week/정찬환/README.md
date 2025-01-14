@@ -57,3 +57,39 @@
 </details>
 
 ---
+
+## 25.01.14
+
+<details>
+
+<summary>ERD 작성현황 및 계획</summary>
+
+## 1. ERD 작성 현황
+
+- **MySQL**과 **MongoDB** 기반의 데이터베이스 테이블 구조 설계 완료
+- **Primary Key** 설정 완료
+- **외래 키(Foreign Key)** 및 MySQL과 MongoDB 간 연계는 현재 미완성 상태이며, 추후 추가적으로 완료 예정
+
+## 2. MySQL 테이블 구성
+
+- **유저(user)**, **공지사항(notice)**, **QnA(qna, qna_answer)**, **게임 진행(game_progress, game_result)**, **상담 일정(consultation_schedule)**, **미팅(meeting_session_info, meeting_participants)**, **파일(profile_image_file, board_file)** 등 다양한 테이블 구성 완료
+
+## 3. MongoDB 테이블 구성
+
+- **게시판 내용(board_content)**, **아동 정보(child_info)**, **채팅(chat, chat_bot)**, **게임 통계(pentagon_statistic, bar_statistic)** 등 주요 테이블 구성 완료
+
+## 4. 게임 에셋 및 학습 에셋 관리 방안
+
+- **MongoDB**에 포함된 `game_asset`과 `study_asset`의 관리 방식은 아직 미정
+- 팀원들과의 추가 회의를 통해 **프론트엔드에서 관리할지**, **데이터베이스에 저장할지** 결정 예정
+
+## 5. 향후 계획
+
+- **외래 키(Foreign Key)** 추가 및 MySQL과 MongoDB 간의 데이터 연계 구축 예정
+- 게임 및 학습 에셋 관리 방안 결정 후 반영 예정
+- 현재까지의 ERD 작성 상황이며, 추가 사항은 팀원들과의 논의를 통해 반영 예정.
+- 추가 회의 후 ERD 작성 완료 후 요구사항 명세서 작성 예정.
+
+</details>
+
+---
