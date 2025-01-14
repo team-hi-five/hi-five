@@ -1,4 +1,5 @@
-# 25.01.13
+<details>
+<summary> 25.01.13 </summary>
 
 ## ERD 초안 테이블 구조 작성
 
@@ -373,3 +374,28 @@ MongoDB에서 컬렉션(Collection)은 RDBMS(관계형 데이터베이스)의 �
   ```
 
 ---
+</details>
+
+---
+
+<details>
+<summary> 25.01.14 </summary>
+
+# ERD 초안 수정
+
+## 기능 및 구조 변경으로 인한 수정
+
+### 1. user table
+login_id 컬럼 추가됨.
+### 2. chatting_session_info table
+host_user_id 컬럼: 새로 추가됨.
+### 3. 비정규 데이터 테이블
+![image](/uploads/1cb4cc2ce48e228a747dac76de5599c7/image.png){width=673 height=618}
+- 웹에디터를 이용한 글 내용 구체화
+- 아동 추가 정보 구체화
+- 채팅 테이블 구체화
+- 게임 통계 -> 오각형 그래프 통계 테이블로 변경
+- 학습 통계 -> 오각형 그래프 통계 테이블로 변경
+- 게임 에셋 -> 보류
+- 학습 에셋 -> 보류
+</details>
