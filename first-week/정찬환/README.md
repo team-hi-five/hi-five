@@ -93,3 +93,37 @@
 </details>
 
 ---
+
+## 25.01.15
+
+<details>
+
+<summary>프로젝트 진행 요약</summary>
+
+## 오늘의 작업 내용
+
+### 1. **데이터베이스 설계 및 구축**
+
+- MySQL Workbench를 활용하여 DB 스키마 및 테이블 생성
+- 주요 테이블: `user`, `board`, `board_file`, `chatting_session_info`, `consultation_schedule`, `game_progress`, `game_result`, `game_schedule`, `game_video_file`, `meeting_session_info`, `meeting_participants`, `qna_answer`
+- 테이블 간 외래 키(FK) 관계 설정 및 데이터 무결성 확보
+
+### 2. **요구사항 명세서 작성**
+
+![alt text](image/image.png)
+
+- 서비스별 기능 및 설명 정리
+- 입력 및 출력 데이터 정의
+- 우선순위와 비고란 추가로 상세화
+
+### 3. **추가 작업 계획 수립**
+
+- 계정 삭제 요청 테이블 및 상담 요청 관련 테이블 추가 예정
+- MongoDB 설계 진행 예정
+- 요구사항 명세서 지속 작성 예정
+
+---
+
+</details>
+
+---
