@@ -389,7 +389,7 @@ MongoDB에서 컬렉션(Collection)은 RDBMS(관계형 데이터베이스)의 �
 login_id 컬럼 추가됨.
 ### 2. chatting_session_info table
 host_user_id 컬럼: 새로 추가됨.
-### 3. 비정규 데이터 테이블
+### 3. 비정규 데이터 컬렉션
 ![image](/uploads/1cb4cc2ce48e228a747dac76de5599c7/image.png){width=673 height=618}
 - 웹에디터를 이용한 글 내용 구체화
 - 아동 추가 정보 구체화
@@ -398,4 +398,39 @@ host_user_id 컬럼: 새로 추가됨.
 - 학습 통계 -> 오각형 그래프 통계 테이블로 변경
 - 게임 에셋 -> 보류
 - 학습 에셋 -> 보류
+</details>
+
+---
+
+<details>
+<summary> 25.01.15 </summary>
+
+# ERD 초안 수정
+## 기능 및 구조 변경, 기능 구체화로 인한 수정 주요 변경 사항
+
+### 1. user table / child_info collection
+- user table의 age 컬럼 child_info collection의 컬렉션 키로 변경
+ 
+### 2. 프로필 이미지 파일 table 분리
+![image](/uploads/a0be92677b8af310630dce1df0493e36/image.png){width=286 height=125}
+
+### 3. 게시판 테이블 통합
+![image](/uploads/dee9a2fe89b75375e4e5a204e92a34a6/image.png){width=321 height=147}
+
+### 4. 상담사가 아동의 게임을 확인하는 일정 테이블 추가
+![image.png](./image.png)
+
+### 5. 정규 데이터 외래키 지정 (진행 중)
+![ㅇㄹㅋ](/uploads/4f00e74bcc0e9d44aeb82ac19fbe3d26/ㅇㄹㅋ.png)
+
+### 6. 비정규 데이터 컬렉션
+- 게임 에셋 -> 삭제
+- 학습 에셋 -> 삭제
+게임 및 학습에 대한 관리를 프론트에서 진행함으로 인해 삭제
+
+## 추가 진행 필요 사항
+
+### 1. 계정 삭제 요청 테이블, 상담 요청 관련 테이블 추가 필요
+
+### 2. 외래키 지정 마무리
 </details>
