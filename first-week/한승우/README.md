@@ -153,3 +153,102 @@ OpenAI Realtime API는 **웹소켓(WebSocket)** 방식으로 동작하며, 텍�
 </details>
 
 ---
+
+<details>
+
+<summary>Web-based Realtime API Study</summary>
+
+이 저장소(또는 프로젝트)는 **OpenAI Realtime API(베타)**를 **웹(WebSocket) 환경**에서 사용해 보는 간단한 예시입니다.  
+브라우저에서 마이크 녹음을 하고, **SpeechRecognition API**로 실시간 텍스트(STT)를 추출한 뒤 **WebSocket**을 통해 서버로 전송합니다.  
+서버는 **OpenAI Realtime API**와 연결하여 텍스트 답변을 스트리밍으로 받아, 다시 웹소켓을 통해 브라우저에 전송해 줍니다.
+
+---
+
+## 1. 주요 흐름
+
+1. **브라우저**  
+   - 마이크로부터 음성을 입력받음 (Web Speech API)  
+   - 음성을 실시간으로 텍스트(STT) 변환  
+   - 최종 텍스트를 **WebSocket**으로 서버에 전송  
+2. **서버(Starlette/FastAPI)**  
+   - WebSocket endpoint(`ws_endpoint`)에서 브라우저 메시지를 수신  
+   - OpenAI의 **Realtime API**(베타)를 사용해 GPT 모델에 질의 (모달리티: 텍스트)  
+   - 응답이 토큰 스트리밍으로 도착하면, **이벤트**(`response.text.delta`)를 WebSocket으로 브라우저에 푸시  
+3. **브라우저**  
+   - 웹소켓 메시지(`onmessage`) 이벤트로 모델 답변을 실시간 표시  
+
+---
+
+## 2. 폴더 구조 예시
+
+```
+my_web_project/
+  ├─ main.py          # Starlette/FastAPI 서버 (WebSocket + OpenAI Realtime API 연결)
+  ├─ requirements.txt # 의존성 목록
+  └─ static/
+      └─ index.html   # 웹 클라이언트 (마이크 녹음 → STT → 웹소켓 전송)
+```
+
+---
+
+## 3. 실행 방법
+
+1. **Reatime API 베타 권한**  
+   - OpenAI 계정에 Realtime API 권한이 있어야 합니다.  
+   - `pip install "openai[realtime]"`로 웹소켓 의존성 설치  
+
+2. **환경 변수 설정**  
+   ```bash
+   export OPENAI_API_KEY=sk-xxxxx  # 윈도우는 set OPENAI_API_KEY=...
+   ```
+
+3. **설치 & 실행**  
+   ```bash
+   pip install -r requirements.txt
+   uvicorn main:app --reload
+   ```
+   - `main.py`에 정의된 Starlette 앱이 8000번 포트에서 실행
+
+4. **브라우저 열기**  
+   - <http://127.0.0.1:8000/> 접속  
+   - 마이크 권한 허용 후, “Start Recording” 버튼을 누르고 말하면, **텍스트**를 서버로 전송  
+   - 서버는 GPT 모델 응답을 스트리밍으로 전송 → 브라우저 화면에 실시간 표시
+
+---
+
+## 4. 기술 스택
+
+- **Starlette** + **uvicorn**: ASGI 웹 서버 & WebSocket 라우팅  
+- **OpenAI Realtime API**: 텍스트 토큰을 스트리밍으로 주고받는 베타 API  
+- **WebSocket**: 브라우저 ↔ 서버 간 실시간 양방향 통신  
+- **Web Speech API**: 브라우저 상에서 음성 녹음 및 STT 구현 (Chrome 등 일부 브라우저만 지원)  
+- (옵션) Whisper API or TTS API를 추가해 음성 입력/출력 기능을 확장할 수도 있음
+
+---
+
+## 5. 확장 아이디어
+
+1. **오디오 응답**  
+   - Realtime API에서 오디오 모달리티(`['audio','text']`) 사용해 음성 출력을 생성, 브라우저에서 재생  
+2. **LangChain Tools 연동**  
+   - GPT가 계산, 검색, DB 접근 등 기능을 스스로 호출 가능  
+3. **멀티턴 대화**  
+   - 세션 스테이트를 저장해, 이전 대화를 기억하고 추가 질문에 답변  
+4. **음성 출력(TTS)**  
+   - 브라우저 측 `SpeechSynthesis` API를 사용하여 GPT 텍스트 응답을 음성으로 변환
+
+---
+
+## 6. 참고
+
+- [OpenAI Realtime API docs (beta)](https://platform.openai.com/docs/guides/realtime)  
+- [Starlette WebSocket docs](https://www.starlette.io/websockets/)  
+- [Web Speech API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)  
+
+본 예제는 **웹 환경**에서 **실시간 음성 → 텍스트 전송 → GPT 스트리밍 응답**을 최소한의 코드로 시연한 것입니다.  
+실제 프로젝트에서는 **오디오 응답 처리**, **멀티턴 대화**, **인증/보안**, **UI/UX**를 더 정교하게 구성하면 완성도 높은 음성 AI 웹 앱을 만들 수 있습니다.
+
+
+</details>
+
+---
