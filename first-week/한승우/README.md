@@ -154,6 +154,8 @@ OpenAI Realtime API는 **웹소켓(WebSocket)** 방식으로 동작하며, 텍�
 
 ---
 
+## 25.01.15
+
 <details>
 
 <summary>Web-based Realtime API Study</summary>
