@@ -434,3 +434,171 @@ host_user_id 컬럼: 새로 추가됨.
 
 ### 2. 외래키 지정 마무리
 </details>
+
+---
+
+
+<details>
+<summary> 25.01.16 </summary>
+
+# ERD 초안
+
+## 정형 데이터
+![image](/uploads/581bdbf38b1f9032f17bfab9775946e3/image.png){width=786 height=547}
+
+### 주요 작업 : 외래키 지정
+
+주어진 스키마에서는 여러 테이블 간의 관계를 정의하기 위해 **외래키**(Foreign Key)가 설정되어 있습니다. 각 외래키가 어떤 관계를 나타내는지 설명드리겠습니다.
+
+---
+
+### **`board` 테이블**
+- **외래키**: `user_id`
+  - 참조 테이블: `user`
+  - 참조 열: `user_id`
+  - 의미: `board` 테이블의 게시물은 게시글 작성자(`user_id`)가 작성한 것임을 나타냄.
+
+---
+
+### **`qna_answer` 테이블**
+- **외래키**: `board_id`
+  - 참조 테이블: `board`
+  - 참조 열: `board_id`
+  - 의미: `qna_answer` 테이블의 답변은 특정 게시물(`board_id`)에 속해 있음을 나타냄.
+
+---
+
+### **`game_progress` 테이블**
+- **외래키**: `user_id`
+  - 참조 테이블: `user`
+  - 참조 열: `user_id`
+  - 의미: `game_progress` 테이블의 진행 상황은 특정 아동 사용자(`user_id`)의 게임 데이터와 연결.
+
+---
+
+### **`consultation_schedule` 테이블**
+- **외래키**:
+  1. `consultant_user_id`
+     - 참조 테이블: `user`
+     - 참조 열: `user_id`
+     - 의미: 상담 일정의 상담사는 `user` 테이블의 특정 사용자입니다.
+  2. `parent_user_id`
+     - 참조 테이블: `user`
+     - 참조 열: `user_id`
+     - 의미: 상담 일정의 부모는 `user` 테이블의 특정 사용자입니다.
+  3. `child_user_id`
+     - 참조 테이블: `user`
+     - 참조 열: `user_id`
+     - 의미: 상담 일정의 자녀는 `user` 테이블의 특정 사용자입니다.
+
+---
+
+### **`game_result` 테이블**
+- **외래키**: `user_id`
+  - 참조 테이블: `user`
+  - 참조 열: `user_id`
+  - 의미: `game_result` 테이블의 결과는 특정 사용자(`user_id`)와 연결.
+
+---
+
+### **`meeting_participants` 테이블**
+- **외래키**:
+  1. `meeting_session_info_id`
+     - 참조 테이블: `meeting_session_info`
+     - 참조 열: `meeting_session_info_id`
+     - 의미: `meeting_participants`의 세션 정보는 특정 미팅 세션과 연결.
+  2. `user_id`
+     - 참조 테이블: `user`
+     - 참조 열: `user_id`
+     - 의미: 미팅 참여자는 특정 사용자입니다.
+
+---
+
+### **`profile_image_file` 테이블**
+- **외래키**: `user_id`
+  - 참조 테이블: `user`
+  - 참조 열: `user_id`
+  - 의미: 프로필 이미지 파일은 특정 사용자와 연결.
+
+---
+
+### **`chatting_session_info` 테이블**
+- **외래키**:
+  1. `host_user_id2`
+     - 참조 테이블: `user`
+     - 참조 열: `user_id`
+     - 의미: 채팅 세션의 호스트는 특정 사용자.
+  2. `meeting_session_info_id`
+     - 참조 테이블: `meeting_session_info`
+     - 참조 열: `meeting_session_info_id`
+     - 의미: 채팅 세션은 특정 미팅 세션과 연결.
+
+---
+
+### **`board_file` 테이블**
+- **외래키**: `board_id`
+  - 참조 테이블: `board`
+  - 참조 열: `board_id`
+  - 의미: 첨부 파일은 특정 게시물과 연결.
+
+---
+
+### **`game_video_file` 테이블**
+- **외래키**: `game_result_id`
+  - 참조 테이블: `game_result`
+  - 참조 열: `game_result_id`
+  - 의미: 게임 관련 비디오 파일은 특정 게임 결과와 연결.
+
+---
+
+### **`game_schedule` 테이블**
+- **외래키**:
+  1. `consultant_user_id`
+     - 참조 테이블: `user`
+     - 참조 열: `user_id`
+     - 의미: 게임 일정의 상담사는 특정 사용자.
+  2. `child_user_id`
+     - 참조 테이블: `user`
+     - 참조 열: `user_id`
+     - 의미: 게임 일정의 자녀는 특정 사용자.
+
+---
+
+### **`delete_user_request` 테이블**
+- **외래키**: `user_id`
+  - 참조 테이블: `user`
+  - 참조 열: `user_id`
+  - 의미: 삭제 요청은 특정 사용자와 연결.
+
+---
+
+## 비정형 데이터
+
+![image](/uploads/0bb9ac53baf99d2ba997a75ecc070be2/image.png){width=839 height=549}
+
+### 1. 게시판 글 내용
+ 웹 에디터 기반으로 작성된 글 내용을 저장
+
+### 2. 아동 추가 정보
+ 상담사가 알아야 할 정보, 추가로 메모/기입 할 비정형 데이터 관리
+
+### 3. 챗봇
+ 아동과 챗봇의 대화 내용 저장
+
+### 4. 채팅
+ 추후 추가 기능을 위한 채팅 내용 저장
+
+### 5. 오각형 통계
+ 데이터 분석 정보를 저장
+
+### 6. 막대 그래프 통계
+ 데이터 분석 정보를 저장
+
+---
+
+# 요구 사항 명세서(작성 중)
+
+### 화상 미팅에 관한 부분 등 추가 필요
+![image](/uploads/220b58e856ddd3183fddc8c8aa713246/image.png){width=1194 height=585}
+
+</details>
