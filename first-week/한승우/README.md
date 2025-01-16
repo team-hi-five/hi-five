@@ -254,3 +254,136 @@ my_web_project/
 </details>
 
 ---
+
+## 25.01.16
+
+<details>
+
+<summary>React Voice Agent Setup Guide</summary>
+
+## 목차
+
+1. [Prerequisites (필수 사항)](#prerequisites)
+2. [1. 프로젝트 클론하기](#1-프로젝트-클론하기)
+3. [2. 가상환경 설정 및 활성화](#2-가상환경-설정-및-활성화)
+4. [3. 의존성 설치](#3-의존성-설치)
+5. [4. 환경 변수 설정](#4-환경-변수-설정)
+6. [5. 서버 실행](#5-서버-실행)
+7. [6. 애플리케이션 접근](#6-애플리케이션-접근)
+
+---
+
+## Prerequisites (필수 사항)
+
+- **Python 3.10 이상**
+- **Git**
+- **Web Browser** (예: Chrome, Firefox)
+- **OpenAI API Key**
+- **Tavily API Key** (옵션: Tavily 도구를 사용하려면 필요)
+
+---
+
+## 1. 프로젝트 클론하기
+
+먼저 GitHub 리포지토리를 로컬 컴퓨터에 클론(clone)합니다.
+
+```bash
+git clone https://github.com/teddylee777/react-voice-agent.git
+cd react-voice-agent
+```
+
+---
+
+## 2. 가상환경 설정 및 활성화
+
+Python의 가상환경을 사용하면 프로젝트마다 독립된 패키지 관리를 할 수 있습니다.
+
+### Windows
+
+```cmd
+python -m venv venv
+venv\Scripts\activate
+```
+
+가상환경이 활성화되면 프롬프트에 `(venv)`가 표시됩니다.
+
+---
+
+## 3. 의존성 설치
+
+프로젝트의 의존성을 설치하기 위해 필요한 패키지들을 설치합니다. `pyproject.toml`이나 `setup.py` 파일이 없어 `pip install -e .` 명령어가 실패할 수 있습니다. 대신, 수동으로 필요한 패키지를 설치합니다.
+
+```bash
+pip install langchain-community>=0.3.1 langgraph>=0.2.32 starlette>=0.39.2 uvicorn[standard]>=0.31.0
+```
+
+**추가:** `pip`을 최신 버전으로 업데이트하는 것이 좋습니다.
+
+```bash
+python -m pip install --upgrade pip
+```
+
+---
+
+## 4. 환경 변수 설정
+
+프로젝트는 `OPENAI_API_KEY`와 `TAVILY_API_KEY`라는 두 개의 환경 변수를 필요로 합니다. 정확한 변수 이름을 사용해야 합니다.
+
+### Windows (CMD)
+
+```cmd
+set OPENAI_API_KEY=your_openai_api_key
+set TAVILY_API_KEY=your_tavily_api_key
+```
+
+### Windows (PowerShell)
+
+```powershell
+$env:OPENAI_API_KEY="your_openai_api_key"
+$env:TAVILY_API_KEY="your_tavily_api_key"
+```
+
+**주의:** 환경 변수를 설정할 때 오타가 없도록 주의하세요. 예를 들어, `TAVILY_API_KEY`가 아니라 `TTAVILY_API_KEY`로 설정하면 인식되지 않습니다.
+
+---
+
+## 5. 서버 실행
+
+환경 변수가 모두 설정되었으면, 서버를 실행합니다.
+
+```bash
+cd server
+uv run src/server/app.py
+```
+
+서버가 성공적으로 실행되면, 터미널에 다음과 유사한 메시지가 표시됩니다:
+
+```
+INFO:     Uvicorn running on http://0.0.0.0:3000 (Press CTRL+C to quit)
+```
+
+---
+
+## 6. 애플리케이션 접근
+
+`0.0.0.0`는 모든 네트워크 인터페이스에서 요청을 수신하도록 설정하는 특수한 IP 주소입니다. 로컬에서 접근하려면 `localhost` 또는 `127.0.0.1`을 사용해야 합니다.
+
+브라우저에서 다음 주소로 접속하세요:
+
+- [http://localhost:3000/](http://localhost:3000/)
+- 또는 [http://127.0.0.1:3000/](http://127.0.0.1:3000/)
+
+---
+
+## 요약
+
+1. **프로젝트 클론 및 가상환경 설정**: GitHub에서 리포지토리를 클론하고 Python 가상환경을 설정 및 활성화.
+2. **의존성 설치**: 필요한 패키지를 `pip`을 통해 수동으로 설치.
+3. **환경 변수 설정**: `OPENAI_API_KEY`와 정확한 `TAVILY_API_KEY` 설정.
+4. **서버 실행 및 접근**: Uvicorn을 통해 서버를 실행하고, `localhost` 또는 `127.0.0.1`을 통해 웹 애플리케이션에 접근.
+
+<img src="한승우 2025-01-16 IMAGE.png" width="800" height="600"/>
+
+</details>
+
+---
