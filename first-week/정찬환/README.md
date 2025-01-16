@@ -122,7 +122,44 @@
 - MongoDB 설계 진행 예정
 - 요구사항 명세서 지속 작성 예정
 
+</details>
+
 ---
+
+## 25.01.16
+
+<details>
+
+<summary>ERD 초안 완성, 요구사항 명세서 50% 완성</summary>
+
+### 1. **데이터베이스 설계 및 구축**
+
+- **MySQL**
+
+  - 주요 테이블 설계 및 생성: `user`, `board`, `board_file`, `chatting_session_info`, `consultation_schedule`, `game_progress`, `game_result`, `game_schedule`, `game_video_file`, `meeting_session_info`, `meeting_participants`, `qna_answer`, `delete_user_request`, `profile_image_file`
+  - 테이블 간 외래 키(FK) 관계 설정 및 데이터 무결성 확보
+
+  ![alt text](image/mysql.png)
+
+- **MongoDB**
+
+  - 주요 테이블 설계 및 생성: `board_content`, `child_info`, `chat`, `pentagon_statistic`, `bar_statistic`, `chat_bot`
+  - 데이터 저장 및 관리 구조 설계
+
+  ![alt text](image/mongodb.png)
+
+### 2. **요구사항 명세서 작성**
+
+- 서비스별 기능 및 설명 정리 (50% 작성 완료)
+- 입력 및 출력 데이터 정의
+- 우선순위 및 비고란 추가 작성
+
+![alt text](image/srs.png)
+
+### 3. **추가 작업 계획 수립**
+
+- 내일 (25.01.17) ERD 설계 피드백 후 DB 구조 최적화 예정
+- 요구사항 명세서 작성 마무리 예정
 
 </details>
 
