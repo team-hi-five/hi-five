@@ -1,5 +1,10 @@
 package com.h5.notice.service;
 
+import com.h5.consultant.entity.ConsultantUserEntity;
+import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.notice.dto.request.NoticeCreateRequestDto;
+import com.h5.notice.dto.request.NoticeDeleteRequestDto;
+import com.h5.notice.dto.request.NoticeUpdateRequestDto;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
 import com.h5.notice.entity.NoticeEntity;
@@ -18,6 +23,7 @@ import jakarta.transaction.Transactional;
 public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
+    private final ConsultantUserRepository ConsultantUserRepository;
 
     //전체 글 리스트
     @Override
@@ -88,6 +94,38 @@ public class NoticeServiceImpl implements NoticeService {
     // 조회수 증가
     @Override
     public void updateViewCnt(int id) {
+
         noticeRepository.updateViewCnt(id);
     }
+
+    @Override
+    public int createNotice(NoticeCreateRequestDto requestDto) {
+        ConsultantUserEntity consultantUser = ConsultantUserRepository.findByEmail(requestDto.getConsultantUserEmail())
+         .orElseThrow(() -> new RuntimeException("작성자 이메일에 해당하는 사용자를 찾을 수 없습니다."));
+
+        NoticeEntity noticeEntity = NoticeEntity.builder()
+                .title(requestDto.getTitle())
+                .content(requestDto.getContent())
+                .consultantUser(consultantUser)
+                .build();
+        noticeRepository.save(noticeEntity);
+
+        if(noticeEntity.getId() == null) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    @Override
+    public int deleteNotice(NoticeDeleteRequestDto requestDto) {
+        return 0;
+    }
+
+    @Override
+    public int updateNotice(NoticeUpdateRequestDto requestDto) {
+        return 0;
+    }
+
+
 }
