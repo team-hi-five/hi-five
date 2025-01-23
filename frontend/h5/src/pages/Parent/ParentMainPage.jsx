@@ -1,14 +1,24 @@
-import { Link } from "react-router-dom";
+import ParentHeader from "../../components/Parent/ParentHeader";
+import "primereact/resources/themes/lara-light-indigo/theme.css";
+import { Button } from 'primereact/button';
 
 function ParentMainPage() {
-    return (
-        <div>
-            <h1>학부모페이지</h1>
-            <Link to="/child">
-            <button>아동 페이지</button>
-        </Link>
-        </div>
-    )
+  const handleOpenChildPage = () => {
+    window.open(
+        '/child',
+        'ChildPage',
+        'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+      );
+  };
+
+  return (
+    <div>
+      <ParentHeader />
+      <h1>학부모페이지</h1>
+      <h1>학부모페이지</h1>
+      <Button onClick={handleOpenChildPage}>아동 페이지</Button>
+    </div>
+  );
 }
 
-export default ParentMainPage
+export default ParentMainPage;
