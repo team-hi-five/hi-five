@@ -94,7 +94,6 @@ public class NoticeServiceImpl implements NoticeService {
     // 조회수 증가
     @Override
     public void updateViewCnt(int id) {
-
         noticeRepository.updateViewCnt(id);
     }
 

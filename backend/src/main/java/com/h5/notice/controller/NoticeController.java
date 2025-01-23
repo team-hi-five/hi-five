@@ -26,53 +26,29 @@ public class NoticeController {
     //전체 글 리스트
     @PostMapping("/list")
     @Operation(summary = "공지 목록 조회", description = "삭제되지 않은 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAllByDeleteDttmIsNull(Pageable pageable) {
-        try{
-            Page<NoticeResponseDto> noticeResponseDto = noticeService.findAllByDeleteDttmIsNull(pageable);
-            return ResponseEntity.ok(noticeResponseDto);
-        } catch (Exception e) {
-            throw new RuntimeException("공지사항을 불러올 수 없습니다", e);
-        }
+    public Page<NoticeResponseDto> findAllByDeleteDttmIsNull(Pageable pageable) {
+        return noticeService.findAllByDeleteDttmIsNull(pageable);
     }
 
     //제목으로 검색
     @PostMapping("/search-by-title")
     @Operation(summary = "공지사항 제목 검색", description = "제목으로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitleAndDeleteDttmIsNull(@RequestParam("title") String title, Pageable pageable) {
-        try{
-            Page<NoticeResponseDto> noticeResponseDto =  noticeService.findByTitle(title, pageable);
-            return ResponseEntity.ok(noticeResponseDto);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-
-        }
+    public Page<NoticeResponseDto> findByTitleAndDeleteDttmIsNull(@RequestParam("title") String title, Pageable pageable) {
+        return noticeService.findByTitle(title, pageable);
     }
 
     //작성자로 검색
     @PostMapping("/search-by-writer")
     @Operation(summary = "공지사항 작성자로 검색", description = "작성자로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(@RequestParam("email") String email, Pageable pageable) {
-        try{
-            Page<NoticeResponseDto> noticeResponseDto = noticeService.findByEmail(email, pageable);
-            return ResponseEntity.ok(noticeResponseDto);
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+    public Page<NoticeResponseDto> findByEmail(@RequestParam("email") String email, Pageable pageable) {
+        return noticeService.findByEmail(email, pageable);
     }
 
     //상세글 보기
     @GetMapping("/{noticeId}")
-    @Operation(summary = "공지사항 글 상세", description = "공지사항 글 상세내용을 조회합니다.")
-    public ResponseEntity<?> findByNoticeId(@PathVariable int noticeId) {
-        try{
-            NoticeDetailResponseDto noticeDetailResponseDto = noticeService.findById(noticeId);
-            if(noticeDetailResponseDto == null) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(noticeDetailResponseDto);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Operation
+    public NoticeDetailResponseDto findByNoticeId(@PathVariable int noticeId) {
+        return noticeService.findById(noticeId);
     }
 
     @PostMapping("/write")
