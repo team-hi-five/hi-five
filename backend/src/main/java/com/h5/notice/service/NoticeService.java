@@ -1,5 +1,8 @@
 package com.h5.notice.service;
 
+import com.h5.notice.dto.request.NoticeCreateRequestDto;
+import com.h5.notice.dto.request.NoticeDeleteRequestDto;
+import com.h5.notice.dto.request.NoticeUpdateRequestDto;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
 import jakarta.validation.constraints.NotNull;
@@ -23,4 +26,14 @@ public interface NoticeService {
 
     // 조회수 증가
     void updateViewCnt(int noticeId);
+
+    //글 등록
+    int createNotice(NoticeCreateRequestDto requestDto);
+
+    //글 삭제
+    int deleteNotice(NoticeDeleteRequestDto requestDto);
+
+    //글 수정
+    int updateNotice(NoticeUpdateRequestDto requestDto);
+
 }
