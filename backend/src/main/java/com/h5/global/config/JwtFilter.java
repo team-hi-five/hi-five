@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +25,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ParentCustomUserDetailService parentCustomUserDetailService;
     private final RedisTemplate<Object, Object> redisTemplate;
 
+    @Autowired
     public JwtFilter(JwtUtil jwtUtil,
                      ConsultantCustomUserDetailService consultantCustomUserDetailService,
                      ParentCustomUserDetailService parentCustomUserDetailService,
