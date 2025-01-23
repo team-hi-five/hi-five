@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/jua": "^5.1.1",
+    "@fontsource/noto-sans-kr": "^5.1.1",
     "axios": "^1.7.9",
     "primeicons": "^7.0.0",
     "primereact": "^10.9.1",
