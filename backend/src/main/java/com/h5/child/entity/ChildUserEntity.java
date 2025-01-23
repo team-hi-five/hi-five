@@ -17,14 +17,12 @@ import java.time.LocalDate;
 @Builder
 @Table(name = "child_user")
 public class ChildUserEntity {
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "child_user_id", nullable = false)
     private Integer id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_user_id")
-    private ParentUserEntity parentUser;
 
     @NotNull
     @Lob
@@ -61,7 +59,12 @@ public class ChildUserEntity {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "parent_user_id", nullable = false)
+    private ParentUserEntity parentUser;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "consultant_user_id", nullable = false)
-    private ConsultantUserEntity consultantUserEntity;
+    private ConsultantUserEntity consultantUser;
 
 }

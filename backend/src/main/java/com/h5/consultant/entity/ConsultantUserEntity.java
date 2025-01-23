@@ -62,4 +62,8 @@ public class ConsultantUserEntity {
     @JoinColumn(name = "center_id", nullable = false)
     private Center center;
 
+    @Size(max = 45)
+    @Column(name = "tempPwd", length = 45)
+    private boolean tempPwd;
+
 }
