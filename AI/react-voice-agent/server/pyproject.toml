@@ -1,0 +1,24 @@
+[project]
+name = "server"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">= 3.10"
+dependencies = [
+    "langchain-community>=0.3.1",
+    "langgraph>=0.2.32",
+    "starlette>=0.39.2",
+    "uvicorn[standard]>=0.31.0",
+    "transformers>=4.30.0",  # <= 여기에 추가
+    "torch>=2.0.0",
+    "tiktoken",
+    "sentencepiece",
+    "protobuf"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+target-version = "py310"
