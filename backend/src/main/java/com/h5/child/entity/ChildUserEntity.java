@@ -31,11 +31,11 @@ public class ChildUserEntity {
 
     @NotNull
     @Column(name = "first_consult_dt", nullable = false)
-    private LocalDate firstConsultDt;
+    private String firstConsultDt;
 
     @NotNull
     @Column(name = "birth", nullable = false)
-    private LocalDate birth;
+    private String birth;
 
     @Lob
     @Column(name = "gender")
@@ -46,7 +46,7 @@ public class ChildUserEntity {
     private String additionalInfo;
 
     @Column(name = "clear_chapter")
-    private Byte clearChapter;
+    private Integer clearChapter;
 
     @Size(max = 10)
     @NotNull
@@ -60,11 +60,11 @@ public class ChildUserEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parent_user_id", nullable = false)
-    private ParentUserEntity parentUser;
+    private ParentUserEntity parentUserEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "consultant_user_id", nullable = false)
-    private ConsultantUserEntity consultantUser;
+    private ConsultantUserEntity consultantUserEntity;
 
 }

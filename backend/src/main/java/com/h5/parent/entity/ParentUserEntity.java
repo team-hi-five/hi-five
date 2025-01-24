@@ -49,14 +49,14 @@ public class ParentUserEntity {
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "create_dttm", nullable = false)
-    private Instant createDttm;
+    private String createDttm;
 
     @Column(name = "delete_dttm")
-    private Instant deleteDttm;
+    private String deleteDttm;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "update_dttm")
-    private Instant updateDttm;
+    private String updateDttm;
 
     @Size(max = 255)
     @Column(name = "refresh_token")
