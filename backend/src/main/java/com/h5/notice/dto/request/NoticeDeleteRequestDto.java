@@ -9,4 +9,5 @@ import lombok.*;
 @Builder
 public class NoticeDeleteRequestDto {
     private int Id;
+    private String accessToken;
 }

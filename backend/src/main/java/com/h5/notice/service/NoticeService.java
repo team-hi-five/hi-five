@@ -28,7 +28,7 @@ public interface NoticeService {
     void updateViewCnt(int noticeId);
 
     //글 등록
-    int createNotice(NoticeCreateRequestDto requestDto);
+    int createNotice(NoticeCreateRequestDto noticeCreateRequestDto);
 
     //글 삭제
     int deleteNotice(NoticeDeleteRequestDto requestDto);

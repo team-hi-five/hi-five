@@ -2,6 +2,7 @@ package com.h5.notice.service;
 
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.global.util.JwtUtil;
 import com.h5.notice.dto.request.NoticeCreateRequestDto;
 import com.h5.notice.dto.request.NoticeDeleteRequestDto;
 import com.h5.notice.dto.request.NoticeUpdateRequestDto;
@@ -23,7 +24,8 @@ import jakarta.transaction.Transactional;
 public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
-    private final ConsultantUserRepository ConsultantUserRepository;
+    private final ConsultantUserRepository consultantUserRepository;
+    private final JwtUtil jwtUtil;
 
     //전체 글 리스트
     @Override
@@ -98,22 +100,31 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public int createNotice(NoticeCreateRequestDto requestDto) {
-        ConsultantUserEntity consultantUser = ConsultantUserRepository.findByEmail(requestDto.getConsultantUserEmail())
-         .orElseThrow(() -> new RuntimeException("작성자 이메일에 해당하는 사용자를 찾을 수 없습니다."));
+    public int createNotice(NoticeCreateRequestDto noticeCreateRequestDto) {
+        try{
+            String accessToken = noticeCreateRequestDto.getAccessToken();
+            String email = jwtUtil.getEmailFromToken(accessToken);
 
-        NoticeEntity noticeEntity = NoticeEntity.builder()
-                .title(requestDto.getTitle())
-                .content(requestDto.getContent())
-                .consultantUser(consultantUser)
-                .build();
-        noticeRepository.save(noticeEntity);
+            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Can not find consultant user by email"));
 
-        if(noticeEntity.getId() == null) {
-            return 0;
+            NoticeEntity noticeEntity = NoticeEntity.builder()
+                    .title(noticeCreateRequestDto.getTitle())
+                    .content(noticeCreateRequestDto.getContent())
+                    .consultantUser(consultantUser)
+                    .build();
+            noticeRepository.save(noticeEntity);
+
+            if(noticeEntity.getId() == null) {
+                return 0;
+            }
+
+            return 1;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
-        return 1;
     }
 
     @Override

@@ -27,6 +27,7 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Integer> {
     Page<NoticeEntity> findByEmail(@Size(max = 30) @NotNull String consultantUserEmail, Pageable pageable);
 
     //상세 글 보기
+    @Query("SELECT n FROM NoticeEntity n WHERE n.id = :noticeId and n.deleteDttm is null" )
     NoticeEntity findById(int noticeId);
 
     //조회수 증가
