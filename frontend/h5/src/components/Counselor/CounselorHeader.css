@@ -1,4 +1,4 @@
-.navbar {
+.co_navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -12,12 +12,12 @@
     font-family: 'Noto Sans', sans-serif;
   }
   
-  .logo {
+  .co_logo {
     height: 40px;
     width: auto;
   }
   
-  .nav-list {
+  .co_nav-list {
     list-style: none;
     display: flex;
     gap: 30px;
@@ -26,14 +26,14 @@
     margin-left: auto;
   }
   
-  .nav-item {
+  .co_nav-item {
     cursor: pointer;
     font-weight: bold;
     color: #1A2A4D;
     position: relative;
   }
   
-  .nav-item::after {
+  .co_nav-item::after {
     content: '';
     position: absolute;
     left: 50%;
@@ -45,6 +45,6 @@
     transform: translateX(-50%);
    }
   
-  .nav-item:hover::after {
+  .co_nav-item:hover::after {
     width: 100%;
   }

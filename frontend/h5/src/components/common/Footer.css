@@ -1,0 +1,25 @@
+.footer {
+    background-color: #47637A;
+    padding: 10px;
+    color: white;
+  }
+  
+  .footer-links {
+    display: flex;
+    list-style: none;
+    gap: 15px;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 5px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 0.8rem;
+  }
+  
+  .footer-links li {
+    cursor: pointer;
+  }
+  
+  .copyright {
+    margin: 0;
+    font-size: 0.7rem;
+  }

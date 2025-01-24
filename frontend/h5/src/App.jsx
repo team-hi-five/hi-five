@@ -8,6 +8,10 @@ import ChildMainPage from "./pages/Child/ChildMainPage";
 import ParentMainPage from "./pages/Parent/ParentMainPage";
 import CounselorMainPage from "./pages/Counselor/CounselorMainPage";
 
+import AppChild from './routes/AppChild';
+import AppParent from './routes/AppParent';
+import AppCounselor from "./routes/AppCounselor"
+
 function App() {
 
   return (
@@ -17,12 +21,18 @@ function App() {
 
         {/* 아동 페이지 */}
         <Route path="/child" element={<ChildMainPage />} />
+        {/* 아동 하위 경로 */}
+        <Route path="/child/*" element={<AppChild />} />
 
         {/* 학부모 페이지 */}
         <Route path="/parent" element={<ParentMainPage />} />
+        {/* 학부모모 하위 경로 */}
+        <Route path="/parent/*" element={<AppParent />} />
 
         {/* 상담사 페이지 */}
-        <Route path="/counselor" element={<CounselorMainPage />} />
+        <Route path="/counselor" element={<CounselorMainPage />} /> 
+        {/* 상담사 하위 경로 */}
+        <Route path="/counselor/*" element={<AppCounselor />} />
 
       </Routes>
     </Router>
