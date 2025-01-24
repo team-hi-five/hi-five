@@ -5,11 +5,14 @@ import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.util.JwtUtil;
 import com.h5.notice.dto.request.NoticeCreateRequestDto;
 import com.h5.notice.dto.request.NoticeDeleteRequestDto;
+import com.h5.notice.dto.request.NoticeListRequestDto;
 import com.h5.notice.dto.request.NoticeUpdateRequestDto;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
 import com.h5.notice.entity.NoticeEntity;
 import com.h5.notice.repository.NoticeRepository;
+import com.h5.parent.entity.ParentUserEntity;
+import com.h5.parent.repository.ParentUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,14 +28,37 @@ public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final ConsultantUserRepository consultantUserRepository;
+    private final ParentUserRepository parentUserRepository;
     private final JwtUtil jwtUtil;
 
     //전체 글 리스트
     @Override
-    public Page<NoticeResponseDto> findAllByDeleteDttmIsNull(Pageable pageable) {
+    public Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto) {
+        // Access Token에서 email과 role 추출
+        String email = jwtUtil.getEmailFromToken(noticeListRequestDto.getAccessToken());
+        String role = jwtUtil.getRoleFromToken(noticeListRequestDto.getAccessToken());
 
-        Page<NoticeEntity> noticeEntityPage = noticeRepository.findAllByDeleteDttmIsNull(pageable);
+        // 역할에 따른 공지사항 조회
+        Page<NoticeEntity> noticeEntityPage;
 
+        switch (role) {
+            case "ROLE_CONSULTANT":
+                ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
+                noticeEntityPage = noticeRepository.findAll(consultantUser.getId(), null, noticeListRequestDto.getPageable());
+                break;
+
+            case "ROLE_PARENT":
+                ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Parent user not found with email: " + email));
+                noticeEntityPage = noticeRepository.findAll(null, parentUser.getId(), noticeListRequestDto.getPageable());
+                break;
+
+            default:
+                throw new RuntimeException("Invalid role: " + role);
+        }
+
+        // NoticeEntity -> NoticeResponseDto 변환
         return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
                 noticeEntity.getId(),
                 noticeEntity.getTitle(),
@@ -41,6 +67,8 @@ public class NoticeServiceImpl implements NoticeService {
                 noticeEntity.getCreateDttm()
         ));
     }
+
+
 
     //제목으로 검색
     @Override

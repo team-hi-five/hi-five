@@ -2,9 +2,11 @@ package com.h5.notice.service;
 
 import com.h5.notice.dto.request.NoticeCreateRequestDto;
 import com.h5.notice.dto.request.NoticeDeleteRequestDto;
+import com.h5.notice.dto.request.NoticeListRequestDto;
 import com.h5.notice.dto.request.NoticeUpdateRequestDto;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
+import com.h5.notice.entity.NoticeEntity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Page;
@@ -12,8 +14,8 @@ import org.springframework.data.domain.Pageable;
 
 public interface NoticeService {
 
-    //삭제안된 전체 글 + 페이징
-    Page<NoticeResponseDto> findAllByDeleteDttmIsNull(Pageable pageable);
+    //전체 글 + 페이징
+    Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto);
 
     //제목으로 검색 + 페이징
     Page<NoticeResponseDto> findByTitle(@NotNull String title, Pageable pageable);

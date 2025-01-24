@@ -1,6 +1,7 @@
 package com.h5.notice.controller;
 
 import com.h5.notice.dto.request.NoticeCreateRequestDto;
+import com.h5.notice.dto.request.NoticeListRequestDto;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
 import com.h5.notice.service.NoticeService;
@@ -25,25 +26,16 @@ public class NoticeController {
 
     @PostMapping("/list")
     @Operation(summary = "공지 목록 조회", description = "삭제되지 않은 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAllByDeleteDttmIsNull(Pageable pageable) {
-        try{
-            Page<NoticeResponseDto> noticeResponseDto = noticeService.findAllByDeleteDttmIsNull(pageable);
-            return ResponseEntity.ok(noticeResponseDto);
-        } catch (Exception e) {
-            throw new RuntimeException("공지사항을 불러올 수 없습니다", e);
-        }
+    public ResponseEntity<?> findAll(NoticeListRequestDto noticeListRequestDto) {
+        Page<NoticeResponseDto> noticeResponseDto = noticeService.findAll(noticeListRequestDto);
+        return ResponseEntity.ok(noticeResponseDto);
     }
 
     @PostMapping("/search-by-title")
     @Operation(summary = "공지사항 제목 검색", description = "제목으로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitleAndDeleteDttmIsNull(@RequestParam("title") String title, Pageable pageable) {
-        try{
-            Page<NoticeResponseDto> noticeResponseDto =  noticeService.findByTitle(title, pageable);
-            return ResponseEntity.ok(noticeResponseDto);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-
-        }
+    public ResponseEntity<?> findByTitle(@RequestParam("title") String title, Pageable pageable) {
+        Page<NoticeResponseDto> noticeResponseDto =  noticeService.findByTitle(title, pageable);
+        return ResponseEntity.ok(noticeResponseDto);
     }
 
     @PostMapping("/search-by-writer")
