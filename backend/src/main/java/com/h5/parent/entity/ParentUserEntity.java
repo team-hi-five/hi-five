@@ -70,6 +70,6 @@ public class ParentUserEntity {
     @OneToMany(mappedBy = "parentUser")
     private Set<ChildUserEntity> childUserEntities = new LinkedHashSet<>();
 
-    @Column(name = "tempPwd")
+    @Column(name = "temp_pwd")
     private boolean tempPwd;
 }
