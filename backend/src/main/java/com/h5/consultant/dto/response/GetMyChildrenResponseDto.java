@@ -9,6 +9,7 @@ import lombok.Setter;
 @Builder
 public class GetMyChildrenResponseDto {
     private int childUserID;
+    private String profileImgUrl;
     private String childName;
     private String birth;
     private int age;

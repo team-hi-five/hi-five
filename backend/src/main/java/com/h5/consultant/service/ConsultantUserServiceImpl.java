@@ -8,6 +8,8 @@ import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
 import com.h5.consultant.dto.response.MyProfileResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.file.entity.FileEntity;
+import com.h5.file.service.FileService;
 import com.h5.global.exception.ParentAccountRegistrationException;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.global.util.MailUtil;
@@ -15,7 +17,6 @@ import com.h5.global.util.PasswordUtil;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSendException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,6 +38,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     private final PasswordUtil passwordUtil;
     private final PasswordEncoder passwordEncoder;
     private final MailUtil mailUtil;
+    private final FileService fileService;
 
     @Autowired
     public ConsultantUserServiceImpl(ConsultantUserRepository consultantUserRepository,
@@ -44,13 +46,30 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                                      ChildUserRepository childUserRepository,
                                      PasswordUtil passwordUtil,
                                      PasswordEncoder passwordEncoder,
-                                     MailUtil mailUtil) {
+                                     MailUtil mailUtil,
+                                     FileService fileService) {
         this.consultantUserRepository = consultantUserRepository;
         this.parentUserRepository = parentUserRepository;
         this.childUserRepository = childUserRepository;
         this.passwordUtil = passwordUtil;
         this.passwordEncoder = passwordEncoder;
         this.mailUtil = mailUtil;
+        this.fileService = fileService;
+    }
+
+    private String getAuthenticatedEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
+    }
+
+    private int calculateAge(String birthDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate birthLocalDate = LocalDate.parse(birthDate, formatter);
+        return Period.between(birthLocalDate, LocalDate.now()).getYears();
+    }
+
+    private String getFileUrl(FileEntity.TblType tblType, int tblId) {
+        return fileService.getFileUrl(tblType, tblId).get(0).getUrl();
     }
 
     @Override
@@ -74,152 +93,126 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
 
     @Override
     public void updatePwd(String email, String oldPwd, String newPwd) {
-        ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email)
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + email));
 
-        if (!passwordEncoder.matches(oldPwd, consultantUserEntity.getPwd())) {
+        if (!passwordEncoder.matches(oldPwd, consultantUser.getPwd())) {
             throw new IllegalArgumentException("Old password does not match.");
         }
 
-        consultantUserEntity.setPwd(passwordEncoder.encode(newPwd));
-        consultantUserEntity.setTempPwd(false);
+        consultantUser.setPwd(passwordEncoder.encode(newPwd));
+        consultantUser.setTempPwd(false);
 
-        consultantUserRepository.save(consultantUserEntity);
+        consultantUserRepository.save(consultantUser);
     }
 
     @Override
     public boolean registerParentAccount(RegisterParentAccountDto registerParentAccountDto) {
+        String consultantEmail = getAuthenticatedEmail();
+
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException("Consultant user not found for Email: " + consultantEmail));
+
+        String initPwd = passwordUtil.generatePassword();
+        ParentUserEntity parentUser = ParentUserEntity.builder()
+                .name(registerParentAccountDto.getParentName())
+                .email(registerParentAccountDto.getParentEmail())
+                .pwd(passwordEncoder.encode(initPwd))
+                .phone(registerParentAccountDto.getParentPhone())
+                .tempPwd(true)
+                .consultantUserEntity(consultantUser)
+                .build();
+
+        parentUserRepository.save(parentUser);
+
+        ChildUserEntity childUser = ChildUserEntity.builder()
+                .name(registerParentAccountDto.getChildName())
+                .birth(registerParentAccountDto.getChildBirth())
+                .gender(registerParentAccountDto.getChildGender())
+                .firstConsultDt(registerParentAccountDto.getFirstConsultDt())
+                .interest(registerParentAccountDto.getChildInterest())
+                .additionalInfo(registerParentAccountDto.getChildAdditionalInfo())
+                .parentUserEntity(parentUser)
+                .consultantUserEntity(consultantUser)
+                .build();
+
+        childUserRepository.save(childUser);
+
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String consultantEmail = authentication.getName();
-
-            ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(consultantEmail)
-                    .orElseThrow(() -> new UserNotFoundException("Consultant user not found for Email: " + consultantEmail));
-
-            String initPwd = passwordUtil.generatePassword();
-            String encodedPwd = passwordEncoder.encode(initPwd);
-
-            ParentUserEntity parentUserEntity = ParentUserEntity.builder()
-                    .name(registerParentAccountDto.getParentName())
-                    .email(registerParentAccountDto.getParentEmail())
-                    .pwd(encodedPwd)
-                    .phone(registerParentAccountDto.getParentPhone())
-                    .tempPwd(true)
-                    .consultantUserEntity(consultantUserEntity)
-                    .build();
-
-            parentUserEntity = parentUserRepository.save(parentUserEntity);
-
-            ChildUserEntity childUserEntity = ChildUserEntity.builder()
-                    .name(registerParentAccountDto.getChildName())
-                    .birth(registerParentAccountDto.getChildBirth())
-                    .gender(registerParentAccountDto.getChildGender())
-                    .firstConsultDt(registerParentAccountDto.getFirstConsultDt())
-                    .interest(registerParentAccountDto.getChildInterest())
-                    .additionalInfo(registerParentAccountDto.getChildAdditionalInfo())
-                    .parentUserEntity(parentUserEntity)
-                    .consultantUserEntity(consultantUserEntity)
-                    .build();
-
-            childUserRepository.save(childUserEntity);
-
-            try {
-                mailUtil.sendRegistrationEmail(registerParentAccountDto.getParentEmail(), registerParentAccountDto.getParentEmail(), initPwd);
-            } catch (Exception e) {
-                throw new MailSendException("Failed to send registration email to: " + registerParentAccountDto.getParentEmail(), e);
-            }
-
-            return true;
-        } catch (UserNotFoundException | MailSendException e) {
-            throw e;
+            mailUtil.sendRegistrationEmail(registerParentAccountDto.getParentEmail(), registerParentAccountDto.getParentEmail(), initPwd);
         } catch (Exception e) {
-            throw new ParentAccountRegistrationException("Failed to register parent account", e);
+            throw new ParentAccountRegistrationException("Failed to send registration email", e);
         }
+
+        return true;
     }
 
     @Override
     public List<GetMyChildrenResponseDto> getChildrenForAuthenticatedConsultant() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String consultantEmail = authentication.getName();
+        String consultantEmail = getAuthenticatedEmail();
 
-        int consultantId = consultantUserRepository.findByEmail(consultantEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + consultantEmail)).getId();
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException("Consultant user not found for Email: " + consultantEmail));
 
-        List<ChildUserEntity> childUserEntities = childUserRepository.findByConsultantUserEntity_Id(consultantId)
+        List<ChildUserEntity> childUsers = childUserRepository.findByConsultantUserEntity_Id(consultantUser.getId())
                 .orElse(new ArrayList<>());
 
-        List<GetMyChildrenResponseDto> getMyChildrenResponseDtos = new ArrayList<>();
-        for (ChildUserEntity childUserEntity : childUserEntities) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate localDate = LocalDate.parse(childUserEntity.getBirth(), formatter);
-
-            LocalDate currentDate = LocalDate.now();
-
-            String parentName = parentUserRepository.findNameById(childUserEntity.getParentUserEntity().getId())
-                    .orElseThrow(() -> new UserNotFoundException("Parent user not found for child name: " + childUserEntity.getName()));
-
-            getMyChildrenResponseDtos.add(
+        List<GetMyChildrenResponseDto> responseDtos = new ArrayList<>();
+        for (ChildUserEntity child : childUsers) {
+            responseDtos.add(
                     GetMyChildrenResponseDto.builder()
-                            .childUserID(childUserEntity.getId())
-                            .childName(childUserEntity.getName())
-                            .birth(childUserEntity.getBirth())
-                            .age(Period.between(localDate, currentDate).getYears())
-                            .parentName(parentName)
+                            .childUserID(child.getId())
+                            .profileImgUrl(getFileUrl(FileEntity.TblType.P, child.getId()))
+                            .childName(child.getName())
+                            .birth(child.getBirth())
+                            .age(calculateAge(child.getBirth()))
+                            .parentName(child.getParentUserEntity().getName())
                             .build()
             );
         }
-
-        return getMyChildrenResponseDtos;
+        return responseDtos;
     }
 
     @Transactional
     @Override
     public GetChildResponseDto getChild(int childUserId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String consultantEmail = authentication.getName();
+        String consultantEmail = getAuthenticatedEmail();
 
-        int consultantId = consultantUserRepository.findByEmail(consultantEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + consultantEmail)).getId();
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException("Consultant user not found for Email: " + consultantEmail));
 
-        ChildUserEntity childUserEntity = childUserRepository.findByIdAndConsultantUserEntity_Id(childUserId, consultantId)
-                .orElseThrow(() -> new UserNotFoundException("Child user not found for childUserId: " + childUserId + " consuntant email: " + consultantEmail));
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate localDate = LocalDate.parse(childUserEntity.getBirth(), formatter);
-
-        LocalDate currentDate = LocalDate.now();
-
-        // TODO: 프로필 사진 해야함
+        ChildUserEntity childUser = childUserRepository.findByIdAndConsultantUserEntity_Id(childUserId, consultantUser.getId())
+                .orElseThrow(() -> new UserNotFoundException("Child user not found"));
 
         return GetChildResponseDto.builder()
-                .childUserId(childUserEntity.getId())
-                .profileImgUrl(null)
-                .childName(childUserEntity.getName())
-                .age(Period.between(localDate, currentDate).getYears())
-                .birth(childUserEntity.getBirth())
-                .firstConsultDate(childUserEntity.getFirstConsultDt())
-                .interest(childUserEntity.getInterest())
-                .additionalInfo(childUserEntity.getAdditionalInfo())
-                .parentName(childUserEntity.getParentUserEntity().getName())
-                .parentPhone(childUserEntity.getParentUserEntity().getPhone())
-                .parentEmail(childUserEntity.getParentUserEntity().getEmail())
+                .childUserId(childUser.getId())
+                .profileImgUrl(getFileUrl(FileEntity.TblType.P, childUser.getId()))
+                .childName(childUser.getName())
+                .age(calculateAge(childUser.getBirth()))
+                .birth(childUser.getBirth())
+                .firstConsultDate(childUser.getFirstConsultDt())
+                .interest(childUser.getInterest())
+                .additionalInfo(childUser.getAdditionalInfo())
+                .parentName(childUser.getParentUserEntity().getName())
+                .parentPhone(childUser.getParentUserEntity().getPhone())
+                .parentEmail(childUser.getParentUserEntity().getEmail())
                 .build();
     }
 
     @Override
     public MyProfileResponseDto getMyProfile() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String consultantEmail = authentication.getName();
+        String consultantEmail = getAuthenticatedEmail();
 
-        ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(consultantEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + consultantEmail));
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException("Consultant user not found for Email: " + consultantEmail));
 
         return MyProfileResponseDto.builder()
-                .name(consultantUserEntity.getName())
-                .email(consultantUserEntity.getEmail())
-                .phone(consultantUserEntity.getPhone())
-                .centerName(consultantUserEntity.getCenter().getCenterName())
-                .centerPhone(consultantUserEntity.getCenter().getCenterContact())
+                .profileImgUrl(getFileUrl(FileEntity.TblType.P, consultantUser.getId()))
+                .name(consultantUser.getName())
+                .email(consultantUser.getEmail())
+                .phone(consultantUser.getPhone())
+                .centerName(consultantUser.getCenter().getCenterName())
+                .centerPhone(consultantUser.getCenter().getCenterContact())
                 .build();
     }
 }

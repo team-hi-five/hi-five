@@ -9,8 +9,9 @@ import org.hibernate.annotations.ColumnDefault;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor
+@Table(name = "file")
 @Builder
 public class FileEntity {
 
