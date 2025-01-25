@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -14,6 +15,7 @@ public interface ConsultantUserRepository extends JpaRepository<ConsultantUserEn
     Optional<ConsultantUserEntity> findByEmail(String email);
 
     @Modifying
+    @Transactional
     @Query("UPDATE ConsultantUserEntity c SET c.refreshToken = :refreshToken WHERE c.email = :email")
     int updateRefreshTokenByEmail(@Param("email") String email, @Param("refreshToken") String refreshToken);
 }

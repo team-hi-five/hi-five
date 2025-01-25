@@ -66,7 +66,7 @@ public class ParentUserEntity {
     @JoinColumn(name = "consultant_user_id", nullable = false)
     private ConsultantUserEntity consultantUserEntity;
 
-    @OneToMany(mappedBy = "parentUser")
+    @OneToMany(mappedBy = "parentUserEntity")
     private Set<ChildUserEntity> childUserEntities = new LinkedHashSet<>();
 
     @Column(name = "temp_pwd")
