@@ -1,5 +1,6 @@
 package com.h5.consultant.service;
 
+import com.h5.consultant.dto.request.RegisterParentAccountDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
 
 public interface ConsultantUserService {
@@ -12,5 +13,7 @@ public interface ConsultantUserService {
 
     // 임시 비밀번호에서 입력한 비밀번호로 변경
     void updatePwd(String email, String oldPwd, String newPwd);
+
+    boolean registerParentAccount(RegisterParentAccountDto registerParentAccountDto);
 
 }

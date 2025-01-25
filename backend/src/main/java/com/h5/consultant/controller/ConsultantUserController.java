@@ -1,6 +1,7 @@
 package com.h5.consultant.controller;
 
 import com.h5.consultant.dto.request.FindEmailRequestDto;
+import com.h5.consultant.dto.request.RegisterParentAccountDto;
 import com.h5.consultant.dto.request.UpdatePwdRequestDto;
 import com.h5.consultant.dto.request.UpdateToTempPwdRequestDto;
 import com.h5.consultant.service.ConsultantUserService;
@@ -36,11 +37,16 @@ public class ConsultantUserController {
     }
 
     @PostMapping("/change-pwd")
-    public ResponseEntity<String> updatePwd(@Valid @RequestBody UpdatePwdRequestDto updatePwdRequestDto) {
+    public ResponseEntity<?> updatePwd(@Valid @RequestBody UpdatePwdRequestDto updatePwdRequestDto) {
         consultantUserService.updatePwd(updatePwdRequestDto.getEmail(),
                 updatePwdRequestDto.getOldPwd(),
                 updatePwdRequestDto.getNewPwd());
         return ResponseEntity.ok("Password changed successfully.");
+    }
+
+    @PostMapping("/register-parent-account")
+    public ResponseEntity<?> registerParentAccount(@Valid @RequestBody RegisterParentAccountDto registerParentAccountDto) {
+        return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto) ? "Success register parent user account" : "Fail register parent user account");
     }
 
 }
