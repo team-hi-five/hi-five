@@ -3,6 +3,8 @@ package com.h5.consultant.service;
 import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
+import com.h5.consultant.dto.response.GetChildResponseDto;
+import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.ParentAccountRegistrationException;
@@ -17,6 +19,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class ConsultantUserServiceImpl implements ConsultantUserService {
@@ -125,5 +133,73 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         } catch (Exception e) {
             throw new ParentAccountRegistrationException("Failed to register parent account", e);
         }
+    }
+
+    @Override
+    public List<GetMyChildrenResponseDto> getChildrenForAuthenticatedConsultant() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String consultantEmail = authentication.getName();
+
+        int consultantId = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + consultantEmail)).getId();
+
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByConsultantUserEntity_Id(consultantId)
+                .orElse(new ArrayList<>());
+
+        List<GetMyChildrenResponseDto> getMyChildrenResponseDtos = new ArrayList<>();
+        for (ChildUserEntity childUserEntity : childUserEntities) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate localDate = LocalDate.parse(childUserEntity.getBirth(), formatter);
+
+            LocalDate currentDate = LocalDate.now();
+
+            String parentName = parentUserRepository.findNameById(childUserEntity.getParentUserEntity().getId())
+                    .orElseThrow(() -> new UserNotFoundException("Parent user not found for child name: " + childUserEntity.getName()));
+
+            getMyChildrenResponseDtos.add(
+                    GetMyChildrenResponseDto.builder()
+                            .childUserID(childUserEntity.getId())
+                            .childName(childUserEntity.getName())
+                            .birth(childUserEntity.getBirth())
+                            .age(Period.between(localDate, currentDate).getYears())
+                            .parentName(parentName)
+                            .build()
+            );
+        }
+
+        return getMyChildrenResponseDtos;
+    }
+
+    @Override
+    public GetChildResponseDto getChild(int childUserId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String consultantEmail = authentication.getName();
+
+        int consultantId = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + consultantEmail)).getId();
+
+        ChildUserEntity childUserEntity = childUserRepository.findByIdAndConsultantUserIdWithParent(childUserId, consultantId)
+                .orElseThrow(() -> new UserNotFoundException("Child user not found for childUserId: " + childUserId + " consuntant email: " + consultantEmail));
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(childUserEntity.getBirth(), formatter);
+
+        LocalDate currentDate = LocalDate.now();
+
+        // TODO: 프로필 사진 해야함
+
+        return GetChildResponseDto.builder()
+                .childUserId(childUserEntity.getId())
+                .profileImgUrl(null)
+                .childName(childUserEntity.getName())
+                .age(Period.between(localDate, currentDate).getYears())
+                .birth(childUserEntity.getBirth())
+                .firstConsultDate(childUserEntity.getFirstConsultDt())
+                .interest(childUserEntity.getInterest())
+                .additionalInfo(childUserEntity.getAdditionalInfo())
+                .parentName(childUserEntity.getParentUserEntity().getName())
+                .parentPhone(childUserEntity.getParentUserEntity().getPhone())
+                .parentEmail(childUserEntity.getParentUserEntity().getEmail())
+                .build();
     }
 }

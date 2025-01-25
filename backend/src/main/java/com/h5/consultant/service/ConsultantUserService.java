@@ -1,7 +1,12 @@
 package com.h5.consultant.service;
 
+import com.h5.child.entity.ChildUserEntity;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
+import com.h5.consultant.dto.response.GetChildResponseDto;
+import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
+
+import java.util.List;
 
 public interface ConsultantUserService {
 
@@ -16,4 +21,7 @@ public interface ConsultantUserService {
 
     boolean registerParentAccount(RegisterParentAccountDto registerParentAccountDto);
 
+    List<GetMyChildrenResponseDto> getChildrenForAuthenticatedConsultant();
+
+    GetChildResponseDto getChild(int childUserid);
 }

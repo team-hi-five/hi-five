@@ -1,9 +1,6 @@
 package com.h5.consultant.controller;
 
-import com.h5.consultant.dto.request.FindEmailRequestDto;
-import com.h5.consultant.dto.request.RegisterParentAccountDto;
-import com.h5.consultant.dto.request.UpdatePwdRequestDto;
-import com.h5.consultant.dto.request.UpdateToTempPwdRequestDto;
+import com.h5.consultant.dto.request.*;
 import com.h5.consultant.service.ConsultantUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,4 +46,13 @@ public class ConsultantUserController {
         return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto) ? "Success register parent user account" : "Fail register parent user account");
     }
 
+    @PostMapping("/get-my-children")
+    public ResponseEntity<?> getMyChildren() {
+        return ResponseEntity.ok(consultantUserService.getChildrenForAuthenticatedConsultant());
+    }
+
+    @PostMapping("/get-child")
+    public ResponseEntity<?> getChild(@Valid @RequestBody GetChildRequestDto getChildRequestDto) {
+        return ResponseEntity.ok(consultantUserService.getChild(getChildRequestDto.getChildUserId()));
+    }
 }
