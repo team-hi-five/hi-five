@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll() // 로그인 API
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
-
+                        .requestMatchers("/user/consultant/find-id", "/user/consultant/temp-pwd").permitAll()
                         .anyRequest().authenticated()
                 );
 
