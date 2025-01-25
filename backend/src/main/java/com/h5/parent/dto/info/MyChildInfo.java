@@ -9,6 +9,7 @@ import lombok.Setter;
 @Builder
 public class MyChildInfo {
     private int childId;
+    private String profileImgUrl;
     private String name;
     private int age;
     private String gender;

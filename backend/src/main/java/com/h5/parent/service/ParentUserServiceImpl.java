@@ -4,6 +4,8 @@ import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.file.entity.FileEntity;
+import com.h5.file.service.FileService;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.global.util.MailUtil;
 import com.h5.global.util.PasswordUtil;
@@ -37,6 +39,7 @@ public class ParentUserServiceImpl implements ParentUserService {
     private final MailUtil mailUtil;
     private final PasswordEncoder passwordEncoder;
     private final PasswordUtil passwordUtil;
+    private final FileService fileService;
 
     @Autowired
     public ParentUserServiceImpl(ParentUserRepository parentUserRepository,
@@ -44,13 +47,14 @@ public class ParentUserServiceImpl implements ParentUserService {
                                  ChildUserRepository childUserRepository,
                                  MailUtil mailUtil,
                                  PasswordEncoder passwordEncoder,
-                                 PasswordUtil passwordUtil) {
+                                 PasswordUtil passwordUtil, FileService fileService) {
         this.parentUserRepository = parentUserRepository;
         this.consultantUserRepository = consultantUserRepository;
         this.childUserRepository = childUserRepository;
         this.mailUtil = mailUtil;
         this.passwordEncoder = passwordEncoder;
         this.passwordUtil = passwordUtil;
+        this.fileService = fileService;
     }
 
     @Transactional
@@ -96,6 +100,7 @@ public class ParentUserServiceImpl implements ParentUserService {
 
             myChildInfos.add(MyChildInfo.builder()
                     .childId(child.getId())
+                    .profileImgUrl(fileService.getFileUrl(FileEntity.TblType.P, child.getId()).get(0).getUrl())
                     .name(child.getName())
                     .age(age)
                     .gender(child.getGender())
