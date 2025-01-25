@@ -68,8 +68,8 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         return Period.between(birthLocalDate, LocalDate.now()).getYears();
     }
 
-    private String getFileUrl(FileEntity.TblType tblType, int tblId) {
-        return fileService.getFileUrl(tblType, tblId).get(0).getUrl();
+    private String getFileUrl(int tblId) {
+        return fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl();
     }
 
     @Override
@@ -162,7 +162,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
             responseDtos.add(
                     GetMyChildrenResponseDto.builder()
                             .childUserID(child.getId())
-                            .profileImgUrl(getFileUrl(FileEntity.TblType.P, child.getId()))
+                            .profileImgUrl(getFileUrl(child.getId()))
                             .childName(child.getName())
                             .birth(child.getBirth())
                             .age(calculateAge(child.getBirth()))
@@ -186,7 +186,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
 
         return GetChildResponseDto.builder()
                 .childUserId(childUser.getId())
-                .profileImgUrl(getFileUrl(FileEntity.TblType.P, childUser.getId()))
+                .profileImgUrl(getFileUrl(childUser.getId()))
                 .childName(childUser.getName())
                 .age(calculateAge(childUser.getBirth()))
                 .birth(childUser.getBirth())
@@ -207,7 +207,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .orElseThrow(() -> new UserNotFoundException("Consultant user not found for Email: " + consultantEmail));
 
         return MyProfileResponseDto.builder()
-                .profileImgUrl(getFileUrl(FileEntity.TblType.P, consultantUser.getId()))
+                .profileImgUrl(getFileUrl(consultantUser.getId()))
                 .name(consultantUser.getName())
                 .email(consultantUser.getEmail())
                 .phone(consultantUser.getPhone())
