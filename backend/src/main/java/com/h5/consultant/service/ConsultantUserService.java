@@ -1,6 +1,5 @@
 package com.h5.consultant.service;
 
-import com.h5.child.entity.ChildUserEntity;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
 import com.h5.consultant.dto.response.GetChildResponseDto;
 import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
