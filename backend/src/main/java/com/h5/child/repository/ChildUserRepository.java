@@ -13,4 +13,5 @@ public interface ChildUserRepository extends JpaRepository<ChildUserEntity, Inte
 
     Optional<ChildUserEntity> findByIdAndConsultantUserEntity_Id(int childUserId, int consultantId);
 
+    Optional<List<ChildUserEntity>> findByParentUserEntity_Id(Integer parentUserEntityId);
 }

@@ -1,5 +1,6 @@
 package com.h5.parent.repository;
 
+import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.parent.entity.ParentUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,4 +20,6 @@ public interface ParentUserRepository extends JpaRepository<ParentUserEntity, In
 
     @Query("SELECT c.name FROM ParentUserEntity c WHERE c.id = :id")
     Optional<String> findNameById(@Param("id") Integer id);
+
+    Optional<ParentUserEntity> findEmailByNameAndPhone(String name, String phone);
 }
