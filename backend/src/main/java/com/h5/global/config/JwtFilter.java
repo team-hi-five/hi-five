@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -24,6 +25,14 @@ public class JwtFilter extends OncePerRequestFilter {
     private final ConsultantCustomUserDetailService consultantCustomUserDetailService;
     private final ParentCustomUserDetailService parentCustomUserDetailService;
     private final RedisTemplate<Object, Object> redisTemplate;
+
+    // Swagger 경로를 제외할 리스트
+    private static final List<String> EXCLUDED_PATHS = List.of(
+            "/swagger-ui",
+            "/v3/api-docs",
+            "/swagger-resources",
+            "/webjars"
+    );
 
     @Autowired
     public JwtFilter(JwtUtil jwtUtil,
@@ -40,6 +49,15 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        String requestURI = request.getRequestURI();
+
+        // Swagger 경로 요청 필터 제외
+        if (EXCLUDED_PATHS.stream().anyMatch(requestURI::startsWith)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String email = null;
@@ -48,31 +66,37 @@ public class JwtFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
 
-            if (redisTemplate.hasKey(token)) {
+            // Redis에 토큰 존재 여부 확인
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(token))) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid token");
+                response.getWriter().write("Invalid or expired token");
                 return;
             }
 
-            if (jwtUtil.validateToken(token)) {
-                email = jwtUtil.getEmailFromToken(token);
-                role = jwtUtil.getRoleFromToken(token);
+            // JWT 유효성 검증
+            if (!jwtUtil.validateToken(token)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid JWT token");
+                return;
             }
+
+            // 토큰에서 이메일과 역할 추출
+            email = jwtUtil.getEmailFromToken(token);
+            role = jwtUtil.getRoleFromToken(token);
         }
 
+        // 인증 정보 설정
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = null;
-            if (role.equals("CONSULTANT")) {
+            UserDetails userDetails;
+            if ("ROLE_CONSULTANT".equals(role)) {
                 userDetails = consultantCustomUserDetailService.loadUserByUsername(email);
             } else {
                 userDetails = parentCustomUserDetailService.loadUserByUsername(email);
             }
 
-            if (jwtUtil.validateToken(token)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
         filterChain.doFilter(request, response);
