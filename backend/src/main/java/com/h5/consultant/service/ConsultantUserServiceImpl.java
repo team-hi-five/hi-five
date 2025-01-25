@@ -5,6 +5,7 @@ import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
 import com.h5.consultant.dto.response.GetChildResponseDto;
 import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
+import com.h5.consultant.dto.response.MyProfileResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.ParentAccountRegistrationException;
@@ -19,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -170,6 +172,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         return getMyChildrenResponseDtos;
     }
 
+    @Transactional
     @Override
     public GetChildResponseDto getChild(int childUserId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -178,7 +181,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         int consultantId = consultantUserRepository.findByEmail(consultantEmail)
                 .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + consultantEmail)).getId();
 
-        ChildUserEntity childUserEntity = childUserRepository.findByIdAndConsultantUserIdWithParent(childUserId, consultantId)
+        ChildUserEntity childUserEntity = childUserRepository.findByIdAndConsultantUserEntity_Id(childUserId, consultantId)
                 .orElseThrow(() -> new UserNotFoundException("Child user not found for childUserId: " + childUserId + " consuntant email: " + consultantEmail));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -200,6 +203,23 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .parentName(childUserEntity.getParentUserEntity().getName())
                 .parentPhone(childUserEntity.getParentUserEntity().getPhone())
                 .parentEmail(childUserEntity.getParentUserEntity().getEmail())
+                .build();
+    }
+
+    @Override
+    public MyProfileResponseDto getMyProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String consultantEmail = authentication.getName();
+
+        ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException("User not found for Email: " + consultantEmail));
+
+        return MyProfileResponseDto.builder()
+                .name(consultantUserEntity.getName())
+                .email(consultantUserEntity.getEmail())
+                .phone(consultantUserEntity.getPhone())
+                .centerName(consultantUserEntity.getCenter().getCenterName())
+                .centerPhone(consultantUserEntity.getCenter().getCenterContact())
                 .build();
     }
 }

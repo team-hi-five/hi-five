@@ -13,9 +13,6 @@ import java.util.Optional;
 public interface ChildUserRepository extends JpaRepository<ChildUserEntity, Integer> {
     Optional<List<ChildUserEntity>> findByConsultantUserEntity_Id(Integer consultantUserEntityId);
 
-    @Query("SELECT c FROM ChildUserEntity c " +
-            "JOIN FETCH c.parentUserEntity p " +
-            "WHERE c.id = :childUserId AND c.consultantUserEntity.id = :consultantId")
-    Optional<ChildUserEntity> findByIdAndConsultantUserIdWithParent(@Param("childUserId") int childUserId, @Param("consultantId") int consultantId);
+    Optional<ChildUserEntity> findByIdAndConsultantUserEntity_Id(int childUserId, int consultantId);
 
 }

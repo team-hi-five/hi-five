@@ -3,6 +3,7 @@ package com.h5.consultant.service;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
 import com.h5.consultant.dto.response.GetChildResponseDto;
 import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
+import com.h5.consultant.dto.response.MyProfileResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
 
 import java.util.List;
@@ -23,4 +24,6 @@ public interface ConsultantUserService {
     List<GetMyChildrenResponseDto> getChildrenForAuthenticatedConsultant();
 
     GetChildResponseDto getChild(int childUserid);
+
+    MyProfileResponseDto getMyProfile();
 }
