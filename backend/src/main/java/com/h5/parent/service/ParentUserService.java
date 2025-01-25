@@ -1,6 +1,5 @@
 package com.h5.parent.service;
 
-import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.parent.dto.response.MyPageResponseDto;
 import com.h5.parent.entity.ParentUserEntity;
 

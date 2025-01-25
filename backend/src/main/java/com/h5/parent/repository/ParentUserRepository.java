@@ -1,6 +1,5 @@
 package com.h5.parent.repository;
 
-import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.parent.entity.ParentUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
