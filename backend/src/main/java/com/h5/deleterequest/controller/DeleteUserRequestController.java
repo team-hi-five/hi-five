@@ -32,12 +32,12 @@ public class DeleteUserRequestController {
     // 탈퇴 거절
     @GetMapping("/reject/{deleteUserRequestId}")
     public ResponseEntity<?> reject(@Valid @PathVariable Integer deleteUserRequestId) {
-        return ResponseEntity.ok(deleteUserRequestService.deleteApprove(deleteUserRequestId));
+        return ResponseEntity.ok(deleteUserRequestService.deleteReject(deleteUserRequestId));
     }
 
     // 내 탈퇴 요청 리스트
     @PostMapping("/get-my-delete")
     public ResponseEntity<?> getMyDelete() {
-        return null;
+        return ResponseEntity.ok(deleteUserRequestService.getMyDelete());
     }
 }

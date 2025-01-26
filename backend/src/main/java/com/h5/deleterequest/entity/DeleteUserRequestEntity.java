@@ -7,8 +7,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
-
 @Entity
 @Getter
 @Setter
