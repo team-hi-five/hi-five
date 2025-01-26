@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 @Entity
@@ -64,5 +66,8 @@ public class ChildUserEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "consultant_user_id", nullable = false)
     private ConsultantUserEntity consultantUserEntity;
+
+    @Column(name = "delete_dttm")
+    private String deleteDttm;
 
 }
