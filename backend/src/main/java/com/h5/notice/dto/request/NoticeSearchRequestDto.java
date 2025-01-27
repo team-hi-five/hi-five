@@ -1,7 +1,6 @@
 package com.h5.notice.dto.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -9,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class NoticeListRequestDto {
+public class NoticeSearchRequestDto {
+    private String keyword;
     private Pageable pageable;
 }

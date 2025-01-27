@@ -9,5 +9,4 @@ import lombok.*;
 public class NoticeCreateRequestDto {
     private String title;
     private String content;
-    private String accessToken;
 }

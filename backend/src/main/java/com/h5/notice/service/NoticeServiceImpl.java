@@ -3,10 +3,7 @@ package com.h5.notice.service;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.util.JwtUtil;
-import com.h5.notice.dto.request.NoticeCreateRequestDto;
-import com.h5.notice.dto.request.NoticeDeleteRequestDto;
-import com.h5.notice.dto.request.NoticeListRequestDto;
-import com.h5.notice.dto.request.NoticeUpdateRequestDto;
+import com.h5.notice.dto.request.*;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
 import com.h5.notice.entity.NoticeEntity;
@@ -15,10 +12,11 @@ import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -33,12 +31,11 @@ public class NoticeServiceImpl implements NoticeService {
 
     //전체 글 리스트
     @Override
-    public Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto) {
-        // Access Token에서 email과 role 추출
-        String email = jwtUtil.getEmailFromToken(noticeListRequestDto.getAccessToken());
-        String role = jwtUtil.getRoleFromToken(noticeListRequestDto.getAccessToken());
+    public Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto, String authorizationHeader) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        String email = jwtUtil.getEmailFromToken(accessToken);
+        String role = jwtUtil.getRoleFromToken(accessToken);
 
-        // 역할에 따른 공지사항 조회
         Page<NoticeEntity> noticeEntityPage;
 
         switch (role) {
@@ -58,7 +55,6 @@ public class NoticeServiceImpl implements NoticeService {
                 throw new RuntimeException("Invalid role: " + role);
         }
 
-        // NoticeEntity -> NoticeResponseDto 변환
         return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
                 noticeEntity.getId(),
                 noticeEntity.getTitle(),
@@ -72,8 +68,39 @@ public class NoticeServiceImpl implements NoticeService {
 
     //제목으로 검색
     @Override
-    public Page<NoticeResponseDto> findByTitle(String title, Pageable pageable) {
-        Page<NoticeEntity> noticeEntityPage = noticeRepository.findByTitle(title, pageable);
+    public Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        String email = jwtUtil.getEmailFromToken(accessToken);
+        String role = jwtUtil.getRoleFromToken(accessToken);
+
+        Page<NoticeEntity> noticeEntityPage;
+
+        switch (role) {
+            case "ROLE_CONSULTANT":
+                ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
+                noticeEntityPage = noticeRepository.findByTitle(
+                        noticeSearchRequestDto.getKeyword(),
+                        consultantUser.getId(),
+                        null,
+                        noticeSearchRequestDto.getPageable()
+                );
+                break;
+
+            case "ROLE_PARENT":
+                ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                        .orElseThrow(() -> new RuntimeException("Parent user not found with email: " + email));
+                noticeEntityPage = noticeRepository.findByTitle(
+                        noticeSearchRequestDto.getKeyword(),
+                        null,
+                        parentUser.getId(),
+                        noticeSearchRequestDto.getPageable()
+                );
+                break;
+
+            default:
+                throw new RuntimeException("Invalid role: " + role);
+        }
 
         return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
                 noticeEntity.getId(),
@@ -84,10 +111,20 @@ public class NoticeServiceImpl implements NoticeService {
         ));
     }
 
+
     //작성자 이메일로 검색
     @Override
-    public Page<NoticeResponseDto> findByEmail(String consultantUserEmail, Pageable pageable) {
-        Page<NoticeEntity> noticeEntityPage = noticeRepository.findByEmail(consultantUserEmail, pageable);
+    public Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        String email = jwtUtil.getEmailFromToken(accessToken);
+
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
+
+        Page<NoticeEntity> noticeEntityPage = noticeRepository.findByEmail(
+                consultantUser.getId(),
+                noticeSearchRequestDto.getPageable()
+        );
 
         return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
                 noticeEntity.getId(),
@@ -124,46 +161,68 @@ public class NoticeServiceImpl implements NoticeService {
     // 조회수 증가
     @Override
     public void updateViewCnt(int id) {
-
         noticeRepository.updateViewCnt(id);
     }
 
     @Override
-    public int createNotice(NoticeCreateRequestDto noticeCreateRequestDto) {
-        try{
-            String accessToken = noticeCreateRequestDto.getAccessToken();
-            String email = jwtUtil.getEmailFromToken(accessToken);
+    public void createNotice(NoticeCreateRequestDto noticeCreateRequestDto, String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        String email = jwtUtil.getEmailFromToken(token);
 
-            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Can not find consultant user by email"));
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
 
-            NoticeEntity noticeEntity = NoticeEntity.builder()
-                    .title(noticeCreateRequestDto.getTitle())
-                    .content(noticeCreateRequestDto.getContent())
-                    .consultantUser(consultantUser)
-                    .build();
-            noticeRepository.save(noticeEntity);
+        NoticeEntity noticeEntity = NoticeEntity.builder()
+                .title(noticeCreateRequestDto.getTitle())
+                .content(noticeCreateRequestDto.getContent())
+                .consultantUser(consultantUser)
+                .build();
 
-            if(noticeEntity.getId() == null) {
-                return 0;
-            }
+        noticeRepository.save(noticeEntity);
+    }
 
-            return 1;
+    @Override
+    public void deleteNotice(int noticeId, String authorizationHeader) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        String email = jwtUtil.getEmailFromToken(accessToken);
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Can not find loginUser"));
+
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeId);
+        if(noticeEntity == null) {
+            throw new RuntimeException("can not find notice by id");
         }
 
+        if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
+            throw new RuntimeException("Only Writer can be delete");
+        }
+        noticeRepository.deleteById(noticeId);
     }
 
     @Override
-    public int deleteNotice(NoticeDeleteRequestDto requestDto) {
-        return 0;
-    }
+    public int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto, String authorizationHeader) {
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+        String email = jwtUtil.getEmailFromToken(accessToken);
 
-    @Override
-    public int updateNotice(NoticeUpdateRequestDto requestDto) {
-        return 0;
+        ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Can not find loginUser"));
+
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeUpdateRequestDto.getId());
+        if(noticeEntity == null) {
+            throw new RuntimeException("can not find notice");
+        }
+
+        if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
+            throw new RuntimeException("Only Writer can be update");
+        }
+
+        noticeEntity.setTitle(noticeUpdateRequestDto.getTitle());
+        noticeEntity.setContent(noticeUpdateRequestDto.getContent());
+
+        noticeRepository.save(noticeEntity);
+
+        return noticeEntity.getId();
     }
 
 
