@@ -65,8 +65,6 @@ public class NoticeServiceImpl implements NoticeService {
         ));
     }
 
-
-
     //제목으로 검색
     @Override
     public Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
@@ -112,7 +110,6 @@ public class NoticeServiceImpl implements NoticeService {
         ));
     }
 
-
     //작성자 이메일로 검색
     @Override
     public Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
@@ -135,7 +132,6 @@ public class NoticeServiceImpl implements NoticeService {
                 noticeEntity.getCreateDttm()
         ));
     }
-
 
     //글 상세 보기
     @Override
@@ -169,9 +165,14 @@ public class NoticeServiceImpl implements NoticeService {
     public void createNotice(NoticeCreateRequestDto noticeCreateRequestDto, String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         String email = jwtUtil.getEmailFromToken(token);
+        String role = jwtUtil.getRoleFromToken(token);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
+
+        if(!role.equals("ROLE_CONSULTANT")) {
+            throw new BoardAccessDeniedException("notice");
+        }
 
         NoticeEntity noticeEntity = NoticeEntity.builder()
                 .title(noticeCreateRequestDto.getTitle())
