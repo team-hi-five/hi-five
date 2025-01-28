@@ -9,6 +9,7 @@ import com.h5.faq.dto.response.FaqDetailResponseDto;
 import com.h5.faq.dto.response.FaqResponseDto;
 import com.h5.faq.entity.FaqEntity;
 import com.h5.faq.repository.FaqRepository;
+import com.h5.global.exception.*;
 import com.h5.global.util.JwtUtil;
 import com.h5.parent.repository.ParentUserRepository;
 import jakarta.transaction.Transactional;
@@ -37,10 +38,10 @@ public class FaqServiceImpl implements FaqService {
         String role = jwtUtil.getRoleFromToken(accessToken);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(()->new RuntimeException("Can not find ConsultantUser"));
+                .orElseThrow(()-> new UserNotFoundException());
 
         if(!role.equals("ROLE_CONSULTANT")) {
-            throw new RuntimeException("Only ROLE_CONSULTANT can be create faq");
+            throw new BoardAccessDeniedException("faq");
         }
 
         FaqEntity faqEntity = FaqEntity.builder()
@@ -67,13 +68,13 @@ public class FaqServiceImpl implements FaqService {
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid parent user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
         if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid consultant user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
@@ -102,13 +103,13 @@ public class FaqServiceImpl implements FaqService {
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid parent user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
         if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid consultant user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
@@ -137,13 +138,13 @@ public class FaqServiceImpl implements FaqService {
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid parent user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
         if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid consultant user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
@@ -161,7 +162,7 @@ public class FaqServiceImpl implements FaqService {
     @Override
     public FaqDetailResponseDto findById(int id) {
         FaqEntity faqEntity = faqRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Can not find FaqEntity"));
+                .orElseThrow(() -> new BoardNotFoundException("faq"));
 
         return FaqDetailResponseDto.builder()
                 .id(faqEntity.getId())
@@ -180,12 +181,12 @@ public class FaqServiceImpl implements FaqService {
         String email = jwtUtil.getEmailFromToken(accessToken);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Can not find ConsultantUser"));
+                .orElseThrow(() -> new UserNotFoundException());
         FaqEntity faqEntity = faqRepository.findById(faqUpdateRequestDto.getFaqId())
-                .orElseThrow(() -> new RuntimeException("Can not find FaqEntity"));
+                .orElseThrow(() -> new BoardNotFoundException("faq"));
 
         if(!Objects.equals(consultantUser.getId(), faqEntity.getConsultantUser().getId())) {
-            throw new RuntimeException("Only Writer Can Update Faq");
+            throw new BoardAccessDeniedException("faq");
         }
 
         faqEntity.setTitle(faqUpdateRequestDto.getFaqTitle());
@@ -203,12 +204,12 @@ public class FaqServiceImpl implements FaqService {
         String email = jwtUtil.getEmailFromToken(accessToken);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Can not find ConsultantUser"));
+                .orElseThrow(() -> new UserNotFoundException());
         FaqEntity faqEntity = faqRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Can not find FaqEntity"));
+                .orElseThrow(() -> new BoardNotFoundException("faq"));
 
         if(!Objects.equals(consultantUser.getId(), faqEntity.getConsultantUser().getId())) {
-            throw new RuntimeException("Only Writer Can Delete Faq");
+            throw new BoardAccessDeniedException("faq");
         }
 
         faqRepository.deleteById(id);

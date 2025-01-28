@@ -2,6 +2,7 @@ package com.h5.notice.service;
 
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.global.exception.*;
 import com.h5.global.util.JwtUtil;
 import com.h5.notice.dto.request.*;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
@@ -41,13 +42,13 @@ public class NoticeServiceImpl implements NoticeService {
         switch (role) {
             case "ROLE_CONSULTANT":
                 ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
+                        .orElseThrow(() -> new UserNotFoundException());
                 noticeEntityPage = noticeRepository.findAll(consultantUser.getId(), null, noticeListRequestDto.getPageable());
                 break;
 
             case "ROLE_PARENT":
                 ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Parent user not found with email: " + email));
+                        .orElseThrow(() -> new UserNotFoundException());
                 noticeEntityPage = noticeRepository.findAll(null, parentUser.getId(), noticeListRequestDto.getPageable());
                 break;
 
@@ -78,7 +79,7 @@ public class NoticeServiceImpl implements NoticeService {
         switch (role) {
             case "ROLE_CONSULTANT":
                 ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
+                        .orElseThrow(() -> new UserNotFoundException());
                 noticeEntityPage = noticeRepository.findByTitle(
                         noticeSearchRequestDto.getKeyword(),
                         consultantUser.getId(),
@@ -89,7 +90,7 @@ public class NoticeServiceImpl implements NoticeService {
 
             case "ROLE_PARENT":
                 ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new RuntimeException("Parent user not found with email: " + email));
+                        .orElseThrow(() -> new UserNotFoundException());
                 noticeEntityPage = noticeRepository.findByTitle(
                         noticeSearchRequestDto.getKeyword(),
                         null,
@@ -99,7 +100,7 @@ public class NoticeServiceImpl implements NoticeService {
                 break;
 
             default:
-                throw new RuntimeException("Invalid role: " + role);
+                throw new UserNotFoundException();
         }
 
         return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
@@ -119,7 +120,7 @@ public class NoticeServiceImpl implements NoticeService {
         String email = jwtUtil.getEmailFromToken(accessToken);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
+                .orElseThrow(() -> new UserNotFoundException());
 
         Page<NoticeEntity> noticeEntityPage = noticeRepository.findByEmail(
                 consultantUser.getId(),
@@ -142,7 +143,7 @@ public class NoticeServiceImpl implements NoticeService {
         NoticeEntity noticeEntity = noticeRepository.findById(noticeId);
 
         if (noticeEntity == null) {
-            throw new RuntimeException("공지사항을 찾을 수 없습니다.");
+            throw new BoardNotFoundException("notice");
         }
 
         updateViewCnt(noticeId); //조회수 증가
@@ -170,7 +171,7 @@ public class NoticeServiceImpl implements NoticeService {
         String email = jwtUtil.getEmailFromToken(token);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Consultant user not found with email: " + email));
+                .orElseThrow(() -> new UserNotFoundException());
 
         NoticeEntity noticeEntity = NoticeEntity.builder()
                 .title(noticeCreateRequestDto.getTitle())
@@ -187,15 +188,15 @@ public class NoticeServiceImpl implements NoticeService {
         String email = jwtUtil.getEmailFromToken(accessToken);
 
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Can not find loginUser"));
+                .orElseThrow(() -> new UserNotFoundException());
 
         NoticeEntity noticeEntity = noticeRepository.findById(noticeId);
         if(noticeEntity == null) {
-            throw new RuntimeException("can not find notice by id");
+            throw new BoardNotFoundException("notice");
         }
 
         if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
-            throw new RuntimeException("Only Writer can be delete");
+            throw new BoardAccessDeniedException("notice");
         }
         noticeRepository.deleteById(noticeId);
     }
@@ -206,15 +207,15 @@ public class NoticeServiceImpl implements NoticeService {
         String email = jwtUtil.getEmailFromToken(accessToken);
 
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Can not find loginUser"));
+                .orElseThrow(() -> new UserNotFoundException());
 
         NoticeEntity noticeEntity = noticeRepository.findById(noticeUpdateRequestDto.getId());
         if(noticeEntity == null) {
-            throw new RuntimeException("can not find notice");
+            throw new BoardNotFoundException("notice");
         }
 
         if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
-            throw new RuntimeException("Only Writer can be update");
+            throw new BoardAccessDeniedException("notice");
         }
 
         noticeEntity.setTitle(noticeUpdateRequestDto.getTitle());

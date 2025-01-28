@@ -1,6 +1,9 @@
 package com.h5.qna.service;
 
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.global.exception.BoardAccessDeniedException;
+import com.h5.global.exception.BoardNotFoundException;
+import com.h5.global.exception.UserNotFoundException;
 import com.h5.global.util.JwtUtil;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
@@ -39,10 +42,10 @@ public class QnaServiceImpl implements QnaService {
         String role = jwtUtil.getRoleFromToken(accessToken);
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(()->new RuntimeException("Can not find parentUser"));
+                .orElseThrow(()-> new UserNotFoundException());
 
         if(!role.equals("ROLE_PARENT")){
-            throw new RuntimeException("Only ROLE_PARENT can create QNA");
+            throw new BoardAccessDeniedException("qna");
         }
 
         QnaEntity qnaEntity = QnaEntity.builder()
@@ -67,13 +70,13 @@ public class QnaServiceImpl implements QnaService {
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid parent user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
         if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid consultant user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
@@ -103,13 +106,13 @@ public class QnaServiceImpl implements QnaService {
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid parent user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
         if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid consultant user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
@@ -138,13 +141,13 @@ public class QnaServiceImpl implements QnaService {
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid parent user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
         if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid consultant user"))
+                    .orElseThrow(() -> new UserNotFoundException())
                     .getId();
         }
 
@@ -163,7 +166,7 @@ public class QnaServiceImpl implements QnaService {
     @Override
     public QnaDetailResponseDto findById(int qnaId) {
         QnaEntity qnaEntity = qnaRepository.findById(qnaId)
-                .orElseThrow(() -> new IllegalArgumentException("QnA not found"));
+                .orElseThrow(() -> new BoardNotFoundException("qna"));
 
         QnaAnswerEntity qnaAnswerEntity = qnaAnswerRepository.findByBoardId(qnaId)
                         .orElse(null);
@@ -203,12 +206,12 @@ public class QnaServiceImpl implements QnaService {
         String email = jwtUtil.getEmailFromToken(accessToken);
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid parent user"));
+                .orElseThrow(() -> new UserNotFoundException());
         QnaEntity qnaEntity = qnaRepository.findById(qnaUpdateRequestDto.getId())
-                .orElseThrow(() -> new RuntimeException("QnA not found"));
+                .orElseThrow(() -> new BoardNotFoundException("qna"));
 
         if(!Objects.equals(parentUser.getId(), qnaEntity.getParentUser().getId())) {
-            throw new RuntimeException("Only Writer Can Update Qna");
+            throw new BoardAccessDeniedException("qna");
         }
 
         qnaEntity.setTitle(qnaUpdateRequestDto.getTitle());
@@ -224,13 +227,13 @@ public class QnaServiceImpl implements QnaService {
         String email = jwtUtil.getEmailFromToken(accessToken);
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid parent user"));
+                .orElseThrow(() -> new UserNotFoundException());
 
         QnaEntity qnaEntity = qnaRepository.findById(qnaId)
-                .orElseThrow(() -> new RuntimeException("QnA not found"));
+                .orElseThrow(() -> new BoardNotFoundException("qna"));
 
         if( !Objects.equals(parentUser.getId(), qnaEntity.getParentUser().getId())) {
-            throw new RuntimeException("Only Writer can delete QnA");
+            throw new BoardAccessDeniedException("qna");
         }
 
         qnaRepository.delete(qnaEntity);
