@@ -17,4 +17,6 @@ public interface ChildUserRepository extends JpaRepository<ChildUserEntity, Inte
     Optional<List<ChildUserEntity>> findByParentUserEntity_Id(Integer parentUserEntityId);
 
     void updateDeleteDttmForChildUsers(Set<Integer> childUserIds, String deleteDttm);
+
+    Optional<ChildUserEntity> findNameById(Integer childUserId);
 }
