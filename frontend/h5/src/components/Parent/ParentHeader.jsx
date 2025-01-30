@@ -1,12 +1,11 @@
 // ParentHeader.jsx
 import { Link } from "react-router-dom";
-import './ParentHeader.css';
+import '/src/components/Parent/ParentCss/ParentHeader.css';
 
 function ParentHeader() {
   return (
     <nav className="pa-navbar">
       <div>
-        {/* 로고 클릭 시, 학부모 메인 페이지로 이동 */}
         <Link to="/parent">
           <img src="/logo.png" alt="로고" className="pa-logo" />
         </Link>

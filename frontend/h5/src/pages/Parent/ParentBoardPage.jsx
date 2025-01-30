@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ParentHeader from "../../components/Parent/ParentHeader";
-import "./ParentBoardPage.css";
+import "/src/pages/Parent/ParentCss/ParentBoardPage.css";
 
 /* 샘플 게시글 데이터 */
 const noticeData = [

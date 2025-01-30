@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Chart } from "primereact/chart";
 import ParentHeader from "/src/components/Parent/ParentHeader";
-import "./ParentChildPage.css";
+import "/src/pages/Parent/ParentCss/ParentChildPage.css";
 
 function ParentChildPage() {
   const [selectedChild, setSelectedChild] = useState("박성원");

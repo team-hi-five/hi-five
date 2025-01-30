@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import ParentHeader from "/src/components/Parent/ParentHeader";
-import "./ParentBoardDetailPage.css";
+import "/src/pages/Parent/ParentCss/ParentBoardDetailPage.css";
 
 // 샘플 데이터
 const noticeData = [
