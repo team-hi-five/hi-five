@@ -1,0 +1,106 @@
+.delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .delete-modal-content {
+    background-color: white;
+    padding: 30px 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .delete-modal-header {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    position: relative;
+    margin-bottom: 40px;
+  }
+  
+  .delete-modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .delete-close-button {
+    position: absolute;
+    right: 0;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+  }
+  
+  .delete-modal-body {
+    background-color: #EBF3FA;
+    border-radius: 15px;
+    padding: 30px 10px;
+  }
+  
+  .delete-requests-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    padding: 5px;
+  }
+  
+  .delete-request-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 컨텐츠 중앙 정렬 */
+    gap: 5px;
+  }
+  
+  .delete-photo-box {
+    /* background-color: white; */
+    border-radius: 50%; /* 원형으로 변경 */
+    width: 100px; /* 고정된 너비 */
+    height: 100px; /* 고정된 높이 - 정원을 만들기 위해 너비와 동일하게 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0 auto; /* 가운데 정렬을 위해 추가 */
+  }
+  
+  .delete-photo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%; /* 이미지도 원형으로 */
+  }
+  
+  .delete-info-box {
+    background-color: white;
+    border-radius: 20px;
+    padding: 5px 20px;
+    text-align: center;
+    line-height: 1.5;
+    margin: 0 0 10px 0;
+  }
+
+  .no-requests-message {
+    text-align: center;
+    padding: 40px 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1A2A4D;
+    border-radius: 15px;
+  }
