@@ -1,13 +1,12 @@
-package com.h5.notice.dto.request;
+package com.h5.qna.dto.request;
 
 import lombok.*;
 
 @Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NoticeCreateRequestDto {
+public class QnaCreateRequestDto {
     private String title;
     private String content;
 }
