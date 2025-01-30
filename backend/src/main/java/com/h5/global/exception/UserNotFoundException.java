@@ -1,12 +1,15 @@
 package com.h5.global.exception;
 
-public class UserNotFoundException extends RuntimeException{
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
-    public UserNotFoundException(String message) {
-        super(message);
+@Getter
+public class UserNotFoundException extends RuntimeException {
+    private final HttpStatus status;
+
+    public UserNotFoundException() {
+        super("User not found");
+        this.status = HttpStatus.NOT_FOUND;
     }
 
-    public UserNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

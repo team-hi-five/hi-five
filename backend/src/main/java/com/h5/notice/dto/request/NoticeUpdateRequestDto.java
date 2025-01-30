@@ -11,5 +11,4 @@ public class NoticeUpdateRequestDto {
     private int Id;
     private String title;
     private String content;
-    private String accessToken;
 }

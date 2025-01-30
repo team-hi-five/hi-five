@@ -1,25 +1,20 @@
 package com.h5.notice.service;
 
-import com.h5.notice.dto.request.NoticeCreateRequestDto;
-import com.h5.notice.dto.request.NoticeDeleteRequestDto;
-import com.h5.notice.dto.request.NoticeUpdateRequestDto;
+import com.h5.notice.dto.request.*;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface NoticeService {
 
-    //삭제안된 전체 글 + 페이징
-    Page<NoticeResponseDto> findAllByDeleteDttmIsNull(Pageable pageable);
+    //전체 글 + 페이징
+    Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto, String authorizationHeader);
 
     //제목으로 검색 + 페이징
-    Page<NoticeResponseDto> findByTitle(@NotNull String title, Pageable pageable);
+    Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader);
 
     //작성자로 검색 + 페이징
-    Page<NoticeResponseDto> findByEmail(@Size(max = 30) @NotNull String consultantUserEmail, Pageable pageable);
+    Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader);
 
     //상세글 보기
     NoticeDetailResponseDto findById(int noticeId);
@@ -28,12 +23,12 @@ public interface NoticeService {
     void updateViewCnt(int noticeId);
 
     //글 등록
-    int createNotice(NoticeCreateRequestDto noticeCreateRequestDto);
+    void createNotice(NoticeCreateRequestDto noticeCreateRequestDto, String authorizationHeader);
 
     //글 삭제
-    int deleteNotice(NoticeDeleteRequestDto requestDto);
+    void deleteNotice(int noticeId, String authorizationHeader);
 
     //글 수정
-    int updateNotice(NoticeUpdateRequestDto requestDto);
+    int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto, String authorizationHeader);
 
 }

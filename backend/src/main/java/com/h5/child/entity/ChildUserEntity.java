@@ -65,4 +65,7 @@ public class ChildUserEntity {
     @JoinColumn(name = "consultant_user_id", nullable = false)
     private ConsultantUserEntity consultantUserEntity;
 
+    @Column(name = "delete_dttm")
+    private String deleteDttm;
+
 }

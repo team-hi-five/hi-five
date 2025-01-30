@@ -5,8 +5,11 @@ import com.h5.auth.dto.response.LoginResponseDto;
 import com.h5.auth.dto.response.RefreshAccessTokenResponseDto;
 import com.h5.auth.model.ConsultantCustomUserDetails;
 import com.h5.auth.model.ParentCustomUserDetails;
+import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.global.exception.UserNotFoundException;
 import com.h5.global.util.JwtUtil;
+import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -64,7 +67,10 @@ public class AuthServiceImpl implements AuthService {
         updateRefreshTokenInRepository(email, refreshToken, role);
         boolean pwdChanged = isTemporaryPassword(userDetails, role);
 
+        String userName = loadUserName(email, role);
+
         return LoginResponseDto.builder()
+                .name(userName)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .pwdChanged(pwdChanged)
@@ -76,6 +82,18 @@ public class AuthServiceImpl implements AuthService {
             return consultantCustomUserDetailService.loadUserByUsername(email);
         } else {
             return parentCustomUserDetailService.loadUserByUsername(email);
+        }
+    }
+
+    private String loadUserName(String email, String role) {
+        if ("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUserEntity =  consultantUserRepository.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("No user found with email " + email));
+            return consultantUserEntity.getName();
+        } else {
+            ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("No user found with email " + email));
+            return parentUserEntity.getName();
         }
     }
 
