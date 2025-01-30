@@ -45,16 +45,15 @@ public class ParentUserEntity {
     @Column(name = "phone", nullable = false, length = 13)
     private String phone;
 
-    @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "create_dttm", nullable = false)
+    @Column(name = "create_dttm", insertable = false, updatable = false)
     private String createDttm;
 
     @Column(name = "delete_dttm")
     private String deleteDttm;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "update_dttm")
+    @Column(name = "update_dttm", insertable = false, updatable = false)
     private String updateDttm;
 
     @Size(max = 255)
@@ -66,9 +65,10 @@ public class ParentUserEntity {
     @JoinColumn(name = "consultant_user_id", nullable = false)
     private ConsultantUserEntity consultantUserEntity;
 
-    @OneToMany(mappedBy = "parentUser")
+    @OneToMany(mappedBy = "parentUserEntity")
     private Set<ChildUserEntity> childUserEntities = new LinkedHashSet<>();
 
-    @Column(name = "tempPwd")
+    @Column(name = "temp_pwd")
     private boolean tempPwd;
+
 }

@@ -61,7 +61,7 @@ public class ConsultantUserEntity {
     private Center center;
 
     @Size(max = 45)
-    @Column(name = "tempPwd", length = 45)
+    @Column(name = "temp_pwd", length = 45)
     private boolean tempPwd;
 
 }
