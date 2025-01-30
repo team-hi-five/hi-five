@@ -32,6 +32,6 @@ public class Center {
     private String centerContact;
 
     @OneToMany(mappedBy = "center")
-    private Set<ConsultantUserEntity> consultantUsers = new LinkedHashSet<>();
+    private Set<ConsultantUserEntity> consultantUserEntities = new LinkedHashSet<>();
 
 }

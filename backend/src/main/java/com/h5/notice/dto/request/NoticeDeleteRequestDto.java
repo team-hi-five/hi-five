@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NoticeCreateRequestDto {
-    private String title;
-    private String content;
+public class NoticeDeleteRequestDto {
+    private int Id;
+    private String accessToken;
 }
