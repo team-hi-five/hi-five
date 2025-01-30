@@ -1,9 +1,9 @@
-import CounselorHeader from "../../components/Counselor/CounselorHeader";
-import Footer from "../../components/common/footer";
-import CoChildCard from "../../components/Counselor/CoChildCard";
-import ChildRegistrationModal from "../../components/modals/ChildRegistrationModal"
-import './CounselorChildrenPage.css'
-import DeleteChildModal from "../../components/modals/DeleteChildModal";
+import CounselorHeader from "../../../components/Counselor/CounselorHeader";
+import Footer from "../../../components/common/footer";
+import CoChildCard from "../../../components/Counselor/CoChildCard"
+import ChildRegistrationModal from "../../../components/modals/ChildRegistrationModal"
+import '../Css/CounselorChildrenPage.css'
+import DeleteChildModal from "../../../components/modals/DeleteChildModal"
 import { InputText } from "primereact/inputtext";
 import { useState } from "react";
 import { Dropdown } from 'primereact/dropdown';

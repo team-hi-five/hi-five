@@ -30,9 +30,9 @@ const LoginPage = () => {
       </div>
       <div className="login-container">
         <div className="characters-container">
-          <img src="/emotion1.png" alt="Blue character" className="character" style={{ transform: 'translateY(45px)' }}/>
-          <img src="/emotion2.png" alt="Yellow character" className="character" style={{ transform: 'translateY(45px)' }}/>
-          <img src="/emotion3.png" alt="Gray character" className="character" style={{ transform: 'translateY(38px)' }}/>
+          <img src="test\놀라미.png" alt="Blue character" className="character" style={{ transform: 'translateY(45px)' }}/>
+          <img src="test\기쁘미.PNG" alt="Yellow character" className="character" style={{ transform: 'translateY(45px)' }}/>
+          <img src="test\화나미.PNG" alt="Gray character" className="character" style={{ transform: 'translateY(38px)' }}/>
         </div>
         
         <div className="login-box">

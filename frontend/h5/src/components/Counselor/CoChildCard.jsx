@@ -1,6 +1,6 @@
 import { Card } from 'primereact/card';
 import { useState } from 'react';
-import './CoChildCard.css';
+import '../Counselor/Css/CoChildCard.css';
 import ChildDetailModal from '../modals/ChildDetailModal';
 
 const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDate, parentPhone, parentEmail, treatmentPeriod, firstConsultDate, interests, notes, onDelete, onUpdate }) => {

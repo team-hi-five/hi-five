@@ -1,8 +1,8 @@
-import CounselorHeader from "../../components/Counselor/CounselorHeader";
-import Footer from "../../components/common/footer";
+import CounselorHeader from "../../../components/Counselor/CounselorHeader";
+import Footer from "../../../components/common/footer";
 import { useState } from 'react';
-import PasswordChangeModal from "../../components/modals/PasswordChangeModal";
-import './CounselorMyPage.css';
+import PasswordChangeModal from "../../../components/modals/PasswordChangeModal";
+import '../Css/CounselorMyPage.css';
 
 function CounselorMyPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);

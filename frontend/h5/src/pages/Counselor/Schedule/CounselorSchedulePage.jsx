@@ -1,14 +1,14 @@
-import CounselorHeader from "../../components/Counselor/CounselorHeader";
-import Footer from "../../components/common/footer";
-import MeetingCreateModal from "../../components/modals/MeetingCreateModal";
-import DoubleButtonAlert from "../../components/common/DoubleButtonAlert";
-import SingleButtonAlert from "../../components/common/SingleButtonAlert";
+import CounselorHeader from "../../../components/Counselor/CounselorHeader";
+import Footer from "../../../components/common/footer";
+import MeetingCreateModal from "../../../components/modals/MeetingCreateModal";
+import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert"
+import SingleButtonAlert from "../../../components/common/SingleButtonAlert";
 import { Calendar } from 'primereact/calendar';
 import { useState } from 'react';
 import { addLocale } from 'primereact/api';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
-import './CounselorSchedulePage.css';
+import '../Css/CounselorSchedulePage.css';
 
 addLocale('ko', {
     firstDayOfWeek: 0,
