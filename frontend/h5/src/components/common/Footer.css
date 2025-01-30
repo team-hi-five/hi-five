@@ -1,0 +1,42 @@
+.footer {
+    background-color: #47637A;
+    padding: 10px;
+    color: white;
+  }
+
+  .co_footer_logo {
+    height: 25px;
+    width: auto;
+  }
+  
+  .footer-links {
+    display: flex;
+    list-style: none;
+    gap: 15px;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 15px;
+    margin-top: 5px;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 0.8rem;
+  }
+  
+  .footer-links li {
+    cursor: pointer;
+  }
+  
+  .copyright {
+    margin: 0;
+    font-size: 0.7rem;
+    text-align: center;
+  }
+
+  hr {
+    border: none;
+    border-bottom: 0.5px solid #ccc;
+  }
+
+  .footer_container {
+    display: flex;
+    gap: 15px;
+  }

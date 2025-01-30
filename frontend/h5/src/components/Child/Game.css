@@ -1,0 +1,33 @@
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100vh;
+    padding: 0 8.33%; 
+}
+
+.box {
+    /* 12개의 그리드로 칸을 구분하기 위해서는 퍼센트로 입력력 */
+    width: 45%; 
+    height: 800px;
+    background-color: #ccc;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        padding: 0 20px; 
+    }
+
+    .box {
+        width: 100%; /* 작은 화면에서 박스가 전체 폭을 차지하도록 */
+        margin-bottom: 20px; /* 박스 간 간격 추가 */
+    }
+}
