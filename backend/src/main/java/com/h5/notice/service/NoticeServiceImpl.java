@@ -3,7 +3,6 @@ package com.h5.notice.service;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.*;
-import com.h5.global.util.JwtUtil;
 import com.h5.notice.dto.request.*;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeResponseDto;
@@ -13,6 +12,8 @@ import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -28,15 +29,13 @@ public class NoticeServiceImpl implements NoticeService {
     private final NoticeRepository noticeRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ParentUserRepository parentUserRepository;
-    private final JwtUtil jwtUtil;
 
     //전체 글 리스트
     @Override
-    public Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
-
+    public Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
         Page<NoticeEntity> noticeEntityPage;
 
         switch (role) {
@@ -67,10 +66,10 @@ public class NoticeServiceImpl implements NoticeService {
 
     //제목으로 검색
     @Override
-    public Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         Page<NoticeEntity> noticeEntityPage;
 
@@ -112,9 +111,9 @@ public class NoticeServiceImpl implements NoticeService {
 
     //작성자 이메일로 검색
     @Override
-    public Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
@@ -162,10 +161,10 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void createNotice(NoticeCreateRequestDto noticeCreateRequestDto, String authorizationHeader) {
-        String token = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(token);
-        String role = jwtUtil.getRoleFromToken(token);
+    public void createNotice(NoticeCreateRequestDto noticeCreateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
@@ -184,9 +183,9 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void deleteNotice(int noticeId, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public void deleteNotice(int noticeId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
@@ -203,9 +202,9 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
