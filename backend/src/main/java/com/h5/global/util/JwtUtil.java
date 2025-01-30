@@ -1,18 +1,22 @@
 package com.h5.global.util;
 
+import com.h5.global.exception.InvalidJwtTokenException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    private static final String SECRET_KEY = "kjz5rge2asuqqetm8ihgl8g7r3cezu";
+    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 60; // 1 hour
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 14; // 14 days
     private static final long NEAR_EXPIRY_BUFFER_TIME = 1000 * 60 * 10; // 10 minutes
@@ -55,12 +59,18 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            getClaimsFromToken(token);
+            Claims claims = getClaimsFromToken(token);
+            if (claims.getExpiration().before(new Date())) {
+                throw new ExpiredJwtException(null, claims, "JWT token is expired");
+            }
             return true;
+        } catch (ExpiredJwtException e) {
+            throw new InvalidJwtTokenException("JWT token is expired", e);
         } catch (Exception e) {
-            return false;
+            throw new InvalidJwtTokenException("JWT token validation failed", e);
         }
     }
+
 
     public long getExpiration(String token) {
         return getClaimsFromToken(token).getExpiration().getTime();
