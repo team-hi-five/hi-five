@@ -1,0 +1,61 @@
+@import 'primereact/resources/themes/lara-light-indigo/theme.css';  /* 테마 */
+@import 'primereact/resources/primereact.min.css';                  /* 코어 css */
+@import 'primeicons/primeicons.css';                               /* 아이콘 */
+@import 'primeflex/primeflex.css';                                 /* flexbox & grid */
+
+
+/* 로그인상태 스타일 */
+.ch-login-state{
+    display: flex;
+    justify-content: center;
+    border-radius: 20px !important;
+    margin: auto;
+    margin-bottom: 30px;
+    background: #ffffff !important;
+    position: relative;
+    max-width: 600px;
+}
+
+.ch-login-state .p-card-body {
+    text-align: center;
+    padding: 20px 40px;
+}
+
+/* 각 기능으로 이동하는 페이지 스타일일 */
+.ch-menu-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2열 그리드 */
+    gap: 20px; /* 카드 사이 간격 */
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.ch-class, .ch-review, .ch-cardmain, .ch-chatbot {
+    background-color: #E6F3FF !important;
+    border-radius: 15px !important;
+    padding: 20px !important;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+/* 카드 호버 효과 */
+.ch-class:hover, .ch-review:hover, .ch-cardmain:hover, .ch-chatbot:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+} 
+
+/* 제목 */
+.ch-class h1, .ch-review h1, .ch-cardmain h1, .ch-chatbot h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+/* 부제목 */
+.ch-class p, .ch-review p, .ch-cardmain p, .ch-chatbot p {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+}
+
