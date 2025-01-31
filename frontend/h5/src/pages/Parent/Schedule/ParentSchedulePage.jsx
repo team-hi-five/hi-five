@@ -1,4 +1,4 @@
-import ParentHeader from "../../components/Parent/ParentHeader";
+import ParentHeader from "../../../components/Parent/ParentHeader";
 
 function ParentSchedulePage() {
 

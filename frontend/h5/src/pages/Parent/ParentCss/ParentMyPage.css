@@ -1,6 +1,6 @@
 /* 마이페이지 전체 스타일 */
 .mypage {
-    background-color: #f5f5f5;
+    background-color: #eef5fc;
     min-height: 100vh;
     padding-top: 130px; /* 내용을 더 아래로 내림 */
     display: flex;

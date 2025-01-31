@@ -1,10 +1,10 @@
 import { Route, Routes } from "react-router-dom"
-import ParentChildPage from "/src/pages/Parent/ParentChildPage"
-import ParentSchedulePage from "/src/pages/Parent/ParentSchedulePage"
-import ParentBoardPage from "/src/pages/Parent/ParentBoardPage"
-import ParentMyPage from "/src/pages/Parent/ParentMyPage"
-import ParentBoardDetailPage from "/src/pages/Parent/ParentBoardDetailPage"
-import ParentBoardWritePage from "/src/pages/Parent/ParentBoardWritePage"
+import ParentChildPage from "/src/pages/Parent/Child/ParentChildPage"
+import ParentSchedulePage from "/src/pages/Parent/Schedule/ParentSchedulePage"
+import ParentBoardPage from "/src/pages/Parent/Board/ParentBoardPage"
+import ParentMyPage from "/src/pages/Parent/My/ParentMyPage"
+import ParentBoardDetailPage from "/src/pages/Parent/Board/ParentBoardDetailPage"
+import ParentBoardWritePage from "/src/pages/Parent/Board/ParentBoardWritePage"
 
 
 function AppParent(){
@@ -15,6 +15,10 @@ function AppParent(){
             <Route path="/schedule" element={<ParentSchedulePage />} />
             <Route path="/board" element={<ParentBoardPage />} />
             <Route path="/my" element={<ParentMyPage />} />
+
+            {/* ParertChild에서 이동가능한 페이지지 */}
+            <Route path="/child/video/single" element={<ParentBoardDetailPage />} />
+            <Route path="child/video/multiple" element={<ParentBoardWritePage />} />
 
             {/* BoardPage에서 이동가능한 페이지지 */}
             <Route path="/board/:type/:no" element={<ParentBoardDetailPage />} />

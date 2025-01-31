@@ -21,7 +21,7 @@ function ParentHeader() {
           <Link to="/parent/board">게시판</Link>
         </li>
         <li className="pa-nav-item">
-          <Link to="/parent/my">마이페이지지</Link>
+          <Link to="/parent/my">마이페이지</Link>
         </li>
         <li className="pa-nav-item">
           <Link to="/">로그아웃</Link>
