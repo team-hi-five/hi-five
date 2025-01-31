@@ -1,21 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 import './ChildCss/ChildMainPage.css'
 import { Card } from 'primereact/card';
-import Header from '../../components/Child/ChildLayout';
 import ChildMainBackground from '../../components/Child/ChildMainBackground';
 // import { Outlet } from 'react-router-dom';
 
-export default function BasicDemo() {
+function ChildMainPage() {
 
     const navigate = useNavigate();
-
+    console.log("childmainpage")
+    
     return (
         <div className='ch-main-container' >
             {/* <ChildMainBackground /> */}
             {/* <Outlet/> */}
         <ChildMainBackground />
             <div className='ch-main-foreground'>
-                <Header/>
                     <Card className='ch-login-state'>
                         안녕! 000아 오늘은 어떤 감정을 만나볼까?
                     </Card>
@@ -46,3 +45,4 @@ export default function BasicDemo() {
     );
 }
         
+export default ChildMainPage
