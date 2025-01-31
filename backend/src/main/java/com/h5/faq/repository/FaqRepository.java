@@ -8,8 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
 public interface FaqRepository extends JpaRepository<FaqEntity, Integer> {
     //전체 목록
@@ -56,7 +54,5 @@ public interface FaqRepository extends JpaRepository<FaqEntity, Integer> {
             Pageable pageable
     );
 
-    //상세 조회
-    Optional<FaqEntity> findById(Integer faqId);
 
 }
