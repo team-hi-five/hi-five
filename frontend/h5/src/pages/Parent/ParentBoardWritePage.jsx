@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Editor } from "primereact/editor"; // PrimeReact Editor import
 import ParentHeader from "/src/components/Parent/ParentHeader";
-import "./ParentBoardWritePage.css";
+import "/src/pages/Parent/ParentCss/ParentBoardWritePage.css";
 
 function ParentBoardWritePage() {
   const [title, setTitle] = useState(""); // 제목 상태 관리
