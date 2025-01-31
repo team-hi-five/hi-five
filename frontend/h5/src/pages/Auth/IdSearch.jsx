@@ -41,7 +41,7 @@ function IdSearch() {
           <div className="button-container">
             <Button label="취소" className="cancel-button" onClick={() => navigate('/')} />
             <Link 
-              to="/counselor/get-id" 
+              to="/login/idfind" 
               className="find-button"
               >
               아이디 찾기

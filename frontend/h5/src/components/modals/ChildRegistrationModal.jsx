@@ -122,7 +122,7 @@ const handleFileButtonClick = () => {
           {/* 아동 정보 섹션 */}
           <section className="info-section">
             <h3 className="section-title">아동 정보</h3>
-            <div className="child-info">
+            <div className="cchild-info">
               <div className="photo-upload">
                 <div className="photo-circle">
                     {previewUrl ? (

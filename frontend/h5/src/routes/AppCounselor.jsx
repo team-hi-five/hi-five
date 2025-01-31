@@ -1,10 +1,6 @@
 import { Route, Routes } from "react-router-dom"
 import CounselorChildrenPage from "../pages/Counselor/Children/CounselorChildrenPage"
 import CounselorChildrenDataPage from "../pages/Counselor/Children/CounselorChildrenDataPage"
-import IdSearch from '../pages/Auth/IdSearch'
-import PasswordSearch from "../pages/Auth/PasswordSearch"
-import IdFind from "../pages/Auth/IdFind"
-import PasswordFind from "../pages/Auth/PasswordFind"
 import CounselorSchedulePage from "../pages/Counselor/Schedule/CounselorSchedulePage"
 import CounselorMyPage from "../pages/Counselor/Profile/CounselorMyPage"
 
@@ -28,11 +24,6 @@ function AppCounselor(){
             <Route path="/faq/datail" element={<CounselorFaqDetailPage />} />
             <Route path="/qna" element={<CounselorQnaPage />} />
             <Route path="/qna/detail" element={<CounselorQnaDetailPage />} /> */}
-            <Route path="/find-id" element={<IdSearch />} />
-            <Route path="/find-password" element={<PasswordSearch />} />
-            <Route path="/get-id" element={<IdFind />} />
-            <Route path="/get-password" element={<PasswordFind />} />
-
         </Routes>
     
     )
