@@ -85,7 +85,7 @@ const LoginPage = () => {
             
             <div className="register-link">
               <span>
-                <Link to="/counselor/find-id">아이디</Link> | <Link to="/counselor/find-password">비밀번호 찾기</Link>
+                <Link to="/login/idsearch">아이디</Link> | <Link to="/login/passwordsearch">비밀번호 찾기</Link>
               </span>
             </div>
           </div>

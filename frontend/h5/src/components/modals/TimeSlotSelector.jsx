@@ -10,21 +10,22 @@ const TimeSlotSelector = ({ selectedDate, onTimeSelect, bookedSlots = [], value 
     for (let hour = 9; hour < 18; hour++) {
       const startTime = `${String(hour).padStart(2, '0')}:00`;
       const endTime = `${String(hour + 1).padStart(2, '0')}:00`;
+      const timeSlot = `${startTime} ~ ${endTime}`; // 형식 맞추기
       const isBooked = bookedSlots.some(slot => 
         slot.date === selectedDate && slot.time === startTime
       );
       
       if (!isBooked) {
         slots.push({
-          value: startTime,
-          label: `${startTime}-${endTime}`,
+          value: timeSlot, // 전체 시간 범위를 value로 저장
+          label: timeSlot,
         });
       }
     }
     setAvailableSlots(slots);
   }, [selectedDate, bookedSlots]);
 
-  // Update selectedSlot when value prop changes
+  // value prop이 변경될 때 selectedSlot 업데이트
   useEffect(() => {
     setSelectedSlot(value || '');
   }, [value]);

@@ -48,12 +48,6 @@
     min-height: 436px;
 }
 
-.co-schedule-title {
-    font-size: 22px;
-    margin-bottom: 15px;
-    color: #333;
-    text-align: center;
-}
 
 .co-schedule-list {
     display: flex;
@@ -153,11 +147,37 @@
 }
 
 .co-search-container {
+    width: 160px;
     position: relative;
-    width: 150px;
 }
 
-.co-search-input {
+.co-schedule-title {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: #333;
+    text-align: center;
+}
+
+.p-input-icon-left {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.p-input-icon-left i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    color: #6B7280;
+    z-index: 1;
+}
+
+.p-input-icon-left input.co-search-sinput {
+    padding-left: 35px; /* 아이콘을 위한 왼쪽 여백 */
+    width: 100%;
+}
+
+.co-search-sinput {
     width: 100%;
     padding: 8px 10px;
     border: 1px solid #e2e8f0;
@@ -167,7 +187,7 @@
     transition: all 0.3s ease;
 }
 
-.co-search-input:focus {
+.co-search-sinput:focus {
     outline: none;
     border-color: #1A2A4D;
 }

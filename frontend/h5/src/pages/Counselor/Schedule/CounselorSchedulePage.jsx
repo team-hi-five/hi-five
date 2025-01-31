@@ -25,6 +25,7 @@ addLocale('ko', {
 
 function CounselorSchedulePage() {
     const [showModal, setShowModal] = useState(false);
+    const [editingSchedule, setEditingSchedule] = useState(null);
     const [date, setDate] = useState(new Date());
     const [searchTerm, setSearchTerm] = useState('');
     const [currentMonth, setCurrentMonth] = useState(new Date()); // 현재 선택된 월을 추적
@@ -138,17 +139,17 @@ function CounselorSchedulePage() {
                    && isSameMonth;
         }
         
-        // 검색어가 없을 때는 선택된 날짜의 상담만 보여줌
-        const selectedDate = formatDateToString(date);
-        return schedule.date === selectedDate;
-    }).sort((a, b) => {
-        // 날짜순으로 정렬 후, 같은 날짜는 시간순으로 정렬
-        if (a.date !== b.date) {
-            return new Date(a.date) - new Date(b.date);
-        }
-        const timeA = a.time.split('~')[0].trim();
-        const timeB = b.time.split('~')[0].trim();
-        return timeA.localeCompare(timeB);
+            // 검색어가 없을 때는 선택된 날짜의 상담만 보여줌
+            const selectedDate = formatDateToString(date);
+            return schedule.date === selectedDate;
+            }).sort((a, b) => {
+                // 날짜순으로 정렬 후, 같은 날짜는 시간순으로 정렬
+                if (a.date !== b.date) {
+                    return new Date(a.date) - new Date(b.date);
+                }
+                const timeA = a.time.split('~')[0].trim();
+                const timeB = b.time.split('~')[0].trim();
+                return timeA.localeCompare(timeB);
     });
 
     // 날짜 표시 포맷 함수 (M/DD)
@@ -158,39 +159,51 @@ function CounselorSchedulePage() {
     };
 
 
-    const handleDelete = async (index) => {
+    const handleDelete = async (scheduleToDelete) => {
         try {
-          const result = await DoubleButtonAlert('상담을 삭제 하시겠습니까?');
-          
-          if (result.isConfirmed) {
-            setSchedules(prevSchedules => prevSchedules.map((schedule, idx) => 
-              idx === index ? { ...schedule, isLoading: true } : schedule
-            ));
-      
-            try {
-              // API 호출을 시뮬레이션하기 위한 딜레이
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              
-              // 성공적으로 삭제된 경우 화면에서도 제거
-              setSchedules(prevSchedules => prevSchedules.filter((_, idx) => idx !== index));
-      
-              // 성공 알림
-              await SingleButtonAlert('성공적으로 삭제되었습니다.');
-            } catch (error) {
-              console.error('삭제 중 오류 발생:', error);
-              // 실패 알림
-              await SingleButtonAlert('상담 삭제 중 오류가 발생했습니다.');
-              setSchedules(prevSchedules => prevSchedules.map((schedule, idx) => 
-                idx === index ? { ...schedule, isLoading: false } : schedule
-              ));
+            const result = await DoubleButtonAlert('상담을 삭제 하시겠습니까?');
+            
+            if (result.isConfirmed) {
+                // 해당 스케줄의 인덱스를 전체 schedules 배열에서 찾기
+                const scheduleIndex = schedules.findIndex(schedule => 
+                    schedule.date === scheduleToDelete.date &&
+                    schedule.time === scheduleToDelete.time &&
+                    schedule.counsultation_target === scheduleToDelete.counsultation_target
+                );
+    
+                if (scheduleIndex !== -1) {
+                    // 로딩 상태 설정
+                    setSchedules(prevSchedules => prevSchedules.map((schedule, idx) => 
+                        idx === scheduleIndex ? { ...schedule, isLoading: true } : schedule
+                    ));
+    
+                    try {
+                        // API 호출을 시뮬레이션하기 위한 딜레이
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // 성공적으로 삭제된 경우 화면에서도 제거
+                        setSchedules(prevSchedules => 
+                            prevSchedules.filter((_, idx) => idx !== scheduleIndex)
+                        );
+    
+                        // 성공 알림
+                        await SingleButtonAlert('성공적으로 삭제되었습니다.');
+                    } catch (error) {
+                        console.error('삭제 중 오류 발생:', error);
+                        // 실패 알림
+                        await SingleButtonAlert('상담 삭제 중 오류가 발생했습니다.');
+                        setSchedules(prevSchedules => prevSchedules.map((schedule, idx) => 
+                            idx === scheduleIndex ? { ...schedule, isLoading: false } : schedule
+                        ));
+                    }
+                }
             }
-          }
         } catch (error) {
-          console.error('삭제 중 오류 발생:', error);
+            console.error('삭제 중 오류 발생:', error);
         }
-      };
+    };
 
-      const handleJoin = (index) => {
+    const handleJoin = (index) => {
         const targetSchedule = filteredSchedules[index];
         setSchedules(prevSchedules => prevSchedules.map(schedule => 
             schedule.date === targetSchedule.date && 
@@ -199,6 +212,29 @@ function CounselorSchedulePage() {
                 ? { ...schedule, isCompleted: true }
                 : schedule
         ));
+    };
+
+    const handleModalClose = () => {
+        setShowModal(false);
+        setEditingSchedule(null);
+    };
+
+    const handleEditClick = (schedule) => {
+        setEditingSchedule(schedule);
+        setShowModal(true);
+    };
+
+    const handleScheduleUpdate = (updatedSchedule, originalSchedule) => {
+        setSchedules(prevSchedules => prevSchedules.map(schedule => {
+            if (
+                schedule.date === originalSchedule.date &&
+                schedule.time === originalSchedule.time &&
+                schedule.counsultation_target === originalSchedule.counsultation_target
+            ) {
+                return updatedSchedule;
+            }
+            return schedule;
+        }));
     };
 
     return (
@@ -241,13 +277,16 @@ function CounselorSchedulePage() {
                                     )}
                                 </h2>
                                 <div className="co-search-container">
-                                    <input
-                                        type="text"
-                                        placeholder="아동 이름으로 검색"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="co-search-input"
-                                    />
+                                    <span className="p-input-icon-left">
+                                        <i className="pi pi-search" />
+                                        <input
+                                            type="text"
+                                            placeholder="아동 이름으로 검색"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="co-search-sinput"
+                                        />
+                                    </span>
                                 </div>
                             </div>
                             <div className="co-schedule-list">
@@ -275,10 +314,10 @@ function CounselorSchedulePage() {
                                                         >
                                                             참여
                                                         </button>
-                                                        <button className="co-btn co-btn-modify">수정</button>
+                                                        <button className="co-btn co-btn-modify" onClick={() => handleEditClick(schedule)}>수정</button>
                                                         <button 
                                                             className="co-btn co-btn-delete"
-                                                            onClick={() => handleDelete(index)}
+                                                            onClick={() => handleDelete(schedule)}
                                                             disabled={schedule.isLoading}
                                                         >
                                                             {schedule.isLoading ? '삭제 중...' : '삭제'}
@@ -301,10 +340,24 @@ function CounselorSchedulePage() {
                                 )}
                             </div>
                         </div>
-                        <button className="co-schedule-create-btn" onClick={() => setShowModal(true)}>
+                        <button 
+                            className="co-schedule-create-btn" 
+                            onClick={() => {
+                                setEditingSchedule(null);  // 생성 시에는 editingSchedule을 null로
+                                setShowModal(true);
+                            }}
+                        >
                             상담 생성
                         </button>
-                        {showModal && <MeetingCreateModal onClose={() => setShowModal(false)} />}
+                        {showModal && (
+                            <MeetingCreateModal 
+                                onClose={handleModalClose}
+                                isEdit={!!editingSchedule}
+                                editData={editingSchedule}
+                                onScheduleUpdate={handleScheduleUpdate}
+                                bookedSlots={schedules}
+                            />
+                        )}
                     </div>
                 </div>
                 <Footer />

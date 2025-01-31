@@ -9,7 +9,7 @@ function CounselorMyPage() {
 
     return (
         <>
-            <main className="co-schedule-container" >
+            <main className="co-my-container" >
                 <CounselorHeader />
                 <div className="co_blankdefault" style={{marginTop: '64.49px'}}></div>
                 <div className="co-mypage-container">
@@ -18,7 +18,7 @@ function CounselorMyPage() {
                             <div className="co-profile-left">
                                 <div className="co-profile-image-container">
                                     <img 
-                                        src="/testlong.png" 
+                                        src="/test/kid2.png" 
                                         alt="상담사 프로필" 
                                         className="co-profile-image"
                                     />

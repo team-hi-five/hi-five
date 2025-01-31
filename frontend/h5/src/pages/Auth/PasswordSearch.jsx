@@ -17,10 +17,10 @@ function PasswordSearch() {
   const navigate = useNavigate();
   return (
     <div className="app-container">
-      <div className="logo-container">
+      <div className="logo-container2">
         <img src={logo} alt="Logo" className="auth_2_logo" />
       </div>
-      <Card className="p_card-container">
+      <Card className="p_card-container3">
         <h1><strong>비밀번호 찾기</strong></h1>
         <div className="input-container">
           <p>회원유형</p>
@@ -36,7 +36,7 @@ function PasswordSearch() {
         </div>
         <div className="p_button-container">
           <Button label="취소" className="cancel-button" onClick={() => navigate('/')}/>
-          <Button label="비밀번호 찾기" className="find-button" onClick={() => navigate('/counselor/get-password')}/>
+          <Button label="비밀번호 찾기" className="find-button" onClick={() => navigate('/login/passwordfind')}/>
         </div>
       </Card>
     </div>

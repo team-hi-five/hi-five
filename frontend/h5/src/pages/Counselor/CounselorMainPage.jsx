@@ -104,12 +104,12 @@ const CounselorMainPage = () => {
           <div className="co_inner_left">
             <div className="co_hero_content">
               <h1 className="co_service_title">
-                <span>HI</span> 서비스
+                안녕하세요.
               </h1>
-              <p className="co_service_subtitle">감정을 놀이로 소통을 성장으로</p>
               <h2 className="co_counselor_intro">
-                <span className="co_highlight">박성원</span> 상담사님 반갑습니다.
+                <span className="co_highlight">박성원</span> 상담사님.
               </h2>
+              <p className="co_service_subtitle">감정을 놀이로 전달하는 <span>HI 서비스</span> 입니다.</p>
               <Button label="상담일정 보러가기" className="co_schedule_btn" />
             </div>
           </div>
