@@ -58,12 +58,12 @@ public class StatisticEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "emotion_id", nullable = false)
-    private EmotionEntity emotion;
+    private EmotionEntity emotionEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
-    private ChildUserEntity childUser;
+    private ChildUserEntity childUserEntity;
 
     @NotNull
     @Column(name = "stage_try_cnt_1", nullable = false)

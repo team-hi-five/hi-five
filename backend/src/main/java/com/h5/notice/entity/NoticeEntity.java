@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "notice")
@@ -48,7 +50,7 @@ public class NoticeEntity {
     private String updateDttm;
 
     @Column(name = "delete_dttm")
-    private String deleteDttm;
+    private LocalDateTime deleteDttm;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

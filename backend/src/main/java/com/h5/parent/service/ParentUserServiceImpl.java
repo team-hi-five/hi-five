@@ -77,7 +77,7 @@ public class ParentUserServiceImpl implements ParentUserService {
 
     private ParentUserEntity findParentByEmail(String email) {
         return parentUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Parent user not found for email: " + email));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     private MyInfo buildMyInfo(ParentUserEntity parentUserEntity) {
@@ -91,12 +91,11 @@ public class ParentUserServiceImpl implements ParentUserService {
 
     private List<MyChildInfo> buildMyChildInfos(int parentId) {
         List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentId)
-                .orElseThrow(() -> new UserNotFoundException("Children not found for parent ID: " + parentId));
+                .orElseThrow(UserNotFoundException::new);
 
         List<MyChildInfo> myChildInfos = new ArrayList<>();
         for (ChildUserEntity child : childUserEntities) {
-            LocalDate childBirthDate = LocalDate.parse(child.getBirth(), DATE_FORMATTER);
-            int age = Period.between(childBirthDate, LocalDate.now()).getYears();
+            int age = Period.between(child.getBirth(), LocalDate.now()).getYears();
 
             myChildInfos.add(MyChildInfo.builder()
                     .childId(child.getId())
@@ -111,7 +110,7 @@ public class ParentUserServiceImpl implements ParentUserService {
 
     private ConsultantInfo buildConsultantInfo(ParentUserEntity parentUserEntity) {
         ConsultantUserEntity consultant = consultantUserRepository.findById(parentUserEntity.getConsultantUserEntity().getId())
-                .orElseThrow(() -> new UserNotFoundException("Consultant not found for parent ID: " + parentUserEntity.getId()));
+                .orElseThrow(UserNotFoundException::new);
 
         return ConsultantInfo.builder()
                 .consultantId(consultant.getId())
@@ -125,7 +124,7 @@ public class ParentUserServiceImpl implements ParentUserService {
     @Override
     public ParentUserEntity findId(String name, String phone) {
         return parentUserRepository.findEmailByNameAndPhone(name, phone)
-                .orElseThrow(() -> new UserNotFoundException("User not found for Name: " + name + ", Phone: " + phone));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Override

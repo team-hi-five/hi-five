@@ -10,5 +10,5 @@ import java.util.Optional;
 
 @Repository
 public interface GameLogRepository extends JpaRepository<GameLogEntity, Integer> {
-    Optional<List<GameLogEntity>> findAllByChildUser_IdAndGameStage_IdAndSubmitDttmBetween(int childUserId, int stageId, LocalDateTime startDate, LocalDateTime endDate);
+    Optional<List<GameLogEntity>> findAllByChildUserEntity_IdAndGameStageEntity_IdAndSubmitDttmBetween(int childUserId, int stageId, LocalDateTime startDate, LocalDateTime endDate);
 }

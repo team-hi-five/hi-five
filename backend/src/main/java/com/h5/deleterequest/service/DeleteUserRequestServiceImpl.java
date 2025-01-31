@@ -47,7 +47,7 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
     public DeleteUserRequestEntity deleteRequest() {
         String parentEmail = getAuthenticatedUserEmail();
         ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(parentEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found for email: " + parentEmail));
+                .orElseThrow(UserNotFoundException::new);
 
         return deleteUserRequestRepository.save(
                 DeleteUserRequestEntity.builder()
@@ -62,7 +62,7 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
     @Override
     public DeleteUserRequestEntity deleteApprove(int deleteUserRequestId) {
         DeleteUserRequestEntity deleteUserRequestEntity = deleteUserRequestRepository.findById(deleteUserRequestId)
-                .orElseThrow(() -> new UserNotFoundException("Delete request not found for delete_user_request_id: " + deleteUserRequestId));
+                .orElseThrow(UserNotFoundException::new);
 
         String deleteDttm = getDatetimeStr();
 
@@ -88,7 +88,7 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
     @Override
     public DeleteUserRequestEntity deleteReject(int deleteUserRequestId) {
         DeleteUserRequestEntity deleteUserRequestEntity = deleteUserRequestRepository.findById(deleteUserRequestId)
-                .orElseThrow(() -> new UserNotFoundException("Delete request not found for delete_user_request_id: " + deleteUserRequestId));
+                .orElseThrow(UserNotFoundException::new);
 
         deleteUserRequestEntity.setDeleteConfirmDttm(getDatetimeStr());
         deleteUserRequestEntity.setStatus(DeleteUserRequestEntity.Status.R);
@@ -109,7 +109,7 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
                             .map(childUserEntity -> GetMyDeleteChildResponseDto.builder()
                                     .child_user_id(childUserEntity.getId())
                                     .child_name(childUserEntity.getName())
-                                    .child_age(getAge(childUserEntity.getBirth()))
+                                    .child_age(getAge(String.valueOf(childUserEntity.getBirth())))
                                     .gender(childUserEntity.getGender())
                                     .build())
                             .collect(Collectors.toSet());

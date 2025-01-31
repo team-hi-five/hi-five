@@ -20,13 +20,13 @@ public class ChildStudyStageEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_stage_id")
-    private GameStageEntity gameStage;
+    private GameStageEntity gameStageEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "child_game_chapter_id")
-    private ChildStudyChapterEntity childGameChapter;
+    private ChildStudyChapterEntity childStudyChapterEntity;
 
-    @OneToMany(mappedBy = "childStudyStage")
+    @OneToMany(mappedBy = "childStudyStageEntity")
     private Set<StudyLogEntity> studyLogEntities = new LinkedHashSet<>();
 
 }

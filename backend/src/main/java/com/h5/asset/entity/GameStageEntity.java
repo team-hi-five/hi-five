@@ -44,16 +44,16 @@ public class GameStageEntity {
     @OneToOne(mappedBy = "gameStageEntity")
     private CardAssetEntity cardAssetEntity;
 
-    @OneToMany(mappedBy = "gameStage")
+    @OneToMany(mappedBy = "gameStageEntity")
     private Set<ChildGameStageEntity> childGameStageEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "gameStage")
+    @OneToMany(mappedBy = "gameStageEntity")
     private Set<ChildStudyStageEntity> childStudyStageEntities = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "gameStageEntity")
     private GameAssetEntity gameAssetEntity;
 
-    @OneToMany(mappedBy = "gameStage")
+    @OneToMany(mappedBy = "gameStageEntity")
     private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 
 }

@@ -57,8 +57,8 @@ public class SecurityConfig {
         // 필터 설정 및 경로별 권한 설정
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login").permitAll() // 로그인 API
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
+                        .requestMatchers("/auth/login").permitAll() // 로그인 API
                         .requestMatchers("/user/consultant/find-id", "/user/consultant/temp-pwd").permitAll()
                         .anyRequest().authenticated()
                 );
