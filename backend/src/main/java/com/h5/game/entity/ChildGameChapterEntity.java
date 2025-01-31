@@ -18,19 +18,21 @@ import java.util.Set;
 @NoArgsConstructor
 @Table(name = "child_game_chapter")
 public class ChildGameChapterEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "child_game_chapter_id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "emotion_id")
-    private GameChapterEntity emotion;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
     private ChildUserEntity childUserEntity;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_chapter_id", nullable = false)
+    private GameChapterEntity gameChapterEntity;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")

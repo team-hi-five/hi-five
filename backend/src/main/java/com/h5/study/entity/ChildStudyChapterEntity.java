@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -22,22 +22,23 @@ public class ChildStudyChapterEntity {
     @Column(name = "child_game_chapter_id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "emotion_id")
-    private GameChapterEntity emotion;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
-    private ChildUserEntity childUser;
+    private ChildUserEntity childUserEntity;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_chapter_id", nullable = false)
+    private GameChapterEntity gameChapterEntity;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "start_dttm", nullable = false)
-    private Instant startDttm;
+    private LocalDateTime startDttm;
 
     @Column(name = "end_dttm")
-    private Instant endDttm;
+    private LocalDateTime endDttm;
 
     @OneToMany(mappedBy = "childGameChapter")
     private Set<ChildStudyStageEntity> childStudyStages = new LinkedHashSet<>();

@@ -9,17 +9,17 @@ import org.springframework.data.domain.Page;
 
 public interface QnaService {
     //c
-    void createQna(QnaCreateRequestDto qnaCreateRequestDto, String authorizationHeader);
+    void createQna(QnaCreateRequestDto qnaCreateRequestDto);
 
     //r
     //전체 글
-    Page<QnaResponseDto> findAll(QnaRequestDto qnaRequestDto, String authorizationHeader);
+    Page<QnaResponseDto> findAll(QnaRequestDto qnaRequestDto);
 
     //제목으로
-    Page<QnaResponseDto> findByTitle(QnaRequestDto qnaRequestDto, String authorizationHeader);
+    Page<QnaResponseDto> findByTitle(QnaRequestDto qnaRequestDto);
 
     //작성자로
-    Page<QnaResponseDto> findByEmail(QnaRequestDto qnaRequestDto, String authorizationHeader);
+    Page<QnaResponseDto> findByEmail(QnaRequestDto qnaRequestDto);
 
     //상세
     QnaDetailResponseDto findById(int qnaId);
@@ -27,8 +27,8 @@ public interface QnaService {
     //u
     void updateViewCnt(int qnaId);
 
-    void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto, String authorizationHeader);
+    void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
 
     //d
-    void deleteQna(int qnaId, String authorizationHeader);
+    void deleteQna(int qnaId);
 }

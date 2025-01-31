@@ -25,25 +25,22 @@ public class FaqController {
 
     @PostMapping("/list")
     @Operation(summary = "FAQ 목록 조회", description = "삭제되지 않은 FAQ 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAll(@RequestBody FaqSearchRequestDto faqSearchRequestDto,
-                                     @RequestHeader("Authorization") String authorizationHeader) {
-        Page<FaqResponseDto> faqResponseDto = faqService.findAll(faqSearchRequestDto, authorizationHeader);
+    public ResponseEntity<?> findAll(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
+        Page<FaqResponseDto> faqResponseDto = faqService.findAll(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
     @PostMapping("/search-by-title")
     @Operation(summary = "FAQ 제목 검색", description = "제목으로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitle(@RequestBody FaqSearchRequestDto faqSearchRequestDto,
-                                         @RequestHeader("Authorization") String authorizationHeader) {
-        Page<FaqResponseDto> faqResponseDto = faqService.findByTitle(faqSearchRequestDto, authorizationHeader);
+    public ResponseEntity<?> findByTitle(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
+        Page<FaqResponseDto> faqResponseDto = faqService.findByTitle(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
     @PostMapping("/search-by-writer")
     @Operation(summary = "FAQ 작성자로 검색", description = "작성자로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(@RequestBody FaqSearchRequestDto faqSearchRequestDto,
-                                         @RequestHeader("Authorization") String authorizationHeader) {
-        Page<FaqResponseDto> faqResponseDto = faqService.findByEmail(faqSearchRequestDto, authorizationHeader);
+    public ResponseEntity<?> findByEmail(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
+        Page<FaqResponseDto> faqResponseDto = faqService.findByEmail(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
@@ -56,25 +53,22 @@ public class FaqController {
 
     @PostMapping("/write")
     @Operation(summary = "FAQ 작성", description = "새로운 FAQ를 생성합니다.")
-    public ResponseEntity<?> createFaq(@RequestBody FaqCreateRequestDto faqCreateRequestDto,
-                                       @RequestHeader("Authorization") String authorizationHeader) {
-        faqService.createFaq(faqCreateRequestDto, authorizationHeader);
+    public ResponseEntity<?> createFaq(@RequestBody FaqCreateRequestDto faqCreateRequestDto) {
+        faqService.createFaq(faqCreateRequestDto);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/delete/{faqId}")
     @Operation(summary = "FAQ 삭제", description = "특정 FAQ 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteFaq(@PathVariable int faqId,
-                                          @RequestHeader("Authorization") String authorizationHeader) {
-        faqService.deleteFaq(faqId, authorizationHeader);
+    public ResponseEntity<Void> deleteFaq(@PathVariable int faqId) {
+        faqService.deleteFaq(faqId);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/update")
     @Operation(summary = "FAQ 업데이트", description = "기존 FAQ를 수정합니다.")
-    public ResponseEntity<String> updateFaq(@RequestBody FaqUpdateRequestDto faqUpdateRequestDto,
-                                            @RequestHeader("Authorization") String authorizationHeader) {
-        faqService.updateFaq(faqUpdateRequestDto, authorizationHeader);
+    public ResponseEntity<String> updateFaq(@RequestBody FaqUpdateRequestDto faqUpdateRequestDto) {
+        faqService.updateFaq(faqUpdateRequestDto);
         return ResponseEntity.ok("FAQ updated successfully with ID: " + faqUpdateRequestDto.getFaqId());
     }
 }

@@ -4,7 +4,6 @@ import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.BoardAccessDeniedException;
 import com.h5.global.exception.BoardNotFoundException;
 import com.h5.global.exception.UserNotFoundException;
-import com.h5.global.util.JwtUtil;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import com.h5.qna.dto.request.QnaCreateRequestDto;
@@ -21,6 +20,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -33,13 +34,12 @@ public class QnaServiceImpl implements QnaService {
     private final QnaAnswerRepository qnaAnswerRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ParentUserRepository parentUserRepository;
-    private final JwtUtil jwtUtil;
 
     @Override
-    public void createQna(QnaCreateRequestDto qnaCreateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public void createQna(QnaCreateRequestDto qnaCreateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                 .orElseThrow(()-> new UserNotFoundException());
@@ -59,10 +59,10 @@ public class QnaServiceImpl implements QnaService {
 
     // 전체 리스트 조회
     @Override
-    public Page<QnaResponseDto> findAll(QnaRequestDto qnaRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public Page<QnaResponseDto> findAll(QnaRequestDto qnaRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         Pageable pageable = qnaRequestDto.getPageable();
         Integer parentUserId = null;
@@ -94,10 +94,10 @@ public class QnaServiceImpl implements QnaService {
 
     // 제목 검색
     @Override
-    public Page<QnaResponseDto> findByTitle(QnaRequestDto qnaRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public Page<QnaResponseDto> findByTitle(QnaRequestDto qnaRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         Pageable pageable = qnaRequestDto.getPageable();
         String title = qnaRequestDto.getKeyword();
@@ -129,10 +129,10 @@ public class QnaServiceImpl implements QnaService {
 
     // 작성자 검색
     @Override
-    public Page<QnaResponseDto> findByEmail(QnaRequestDto qnaRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public Page<QnaResponseDto> findByEmail(QnaRequestDto qnaRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         Pageable pageable = qnaRequestDto.getPageable();
         String searchEmail = qnaRequestDto.getKeyword();
@@ -201,9 +201,9 @@ public class QnaServiceImpl implements QnaService {
 
     //업데이트
     @Override
-    public void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
@@ -222,9 +222,9 @@ public class QnaServiceImpl implements QnaService {
 
     //글 삭제
     @Override
-    public void deleteQna(int qnaId, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public void deleteQna(int qnaId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());

@@ -10,12 +10,13 @@ import com.h5.faq.dto.response.FaqResponseDto;
 import com.h5.faq.entity.FaqEntity;
 import com.h5.faq.repository.FaqRepository;
 import com.h5.global.exception.*;
-import com.h5.global.util.JwtUtil;
 import com.h5.parent.repository.ParentUserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -27,15 +28,14 @@ public class FaqServiceImpl implements FaqService {
     private final FaqRepository faqRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ParentUserRepository parentUserRepository;
-    private final JwtUtil jwtUtil;
 
     //c
     //글 등록
     @Override
-    public void createFaq(FaqCreateRequestDto faqCreateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public void createFaq(FaqCreateRequestDto faqCreateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(()-> new UserNotFoundException());
@@ -57,10 +57,10 @@ public class FaqServiceImpl implements FaqService {
     //r
     //전체 목록
     @Override
-    public Page<FaqResponseDto> findAll(FaqSearchRequestDto faqSearchRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public Page<FaqResponseDto> findAll(FaqSearchRequestDto faqSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
         Pageable pageable = faqSearchRequestDto.getPageable();
 
         Integer parentUserId = null;
@@ -90,10 +90,10 @@ public class FaqServiceImpl implements FaqService {
 
     //제목으로 검색
     @Override
-    public Page<FaqResponseDto> findByTitle(FaqSearchRequestDto faqSearchRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public Page<FaqResponseDto> findByTitle(FaqSearchRequestDto faqSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         String searchTitle = faqSearchRequestDto.getKeyword();
         Pageable pageable = faqSearchRequestDto.getPageable();
@@ -125,10 +125,10 @@ public class FaqServiceImpl implements FaqService {
 
     //이메일로 검색
     @Override
-    public Page<FaqResponseDto> findByEmail(FaqSearchRequestDto faqSearchRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public Page<FaqResponseDto> findByEmail(FaqSearchRequestDto faqSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().toString();
 
         String searchEmail = faqSearchRequestDto.getKeyword();
         Pageable pageable = faqSearchRequestDto.getPageable();
@@ -176,9 +176,9 @@ public class FaqServiceImpl implements FaqService {
     //u
     //글수정
     @Override
-    public void updateFaq(FaqUpdateRequestDto faqUpdateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public void updateFaq(FaqUpdateRequestDto faqUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
@@ -199,9 +199,9 @@ public class FaqServiceImpl implements FaqService {
     //d
     //글삭제
     @Override
-    public void deleteFaq(int id, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public void deleteFaq(int id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
