@@ -33,7 +33,7 @@ public class ScheduleController {
     @Operation(summary = "아동 상담 날짜 조회", description = "특정 아동의 상담이 있는 날짜를 조회합니다.")
     public ResponseEntity<List<String>> getScheduleDatesByChildId(
             @RequestBody ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto) {
-        List<String> dates = scheduleService.getScheduleDatesByChildId(scheduleSearchByChildRequestDto);
+        List<String> dates = scheduleService.getScheduleDatesByChildUserId(scheduleSearchByChildRequestDto);
         return ResponseEntity.ok(dates);
     }
 
@@ -41,7 +41,7 @@ public class ScheduleController {
     @Operation(summary = "아동 이름으로 상담 스케줄 조회", description = "특정 아동의 상담 및 게임 일정을 조회합니다.")
     public ResponseEntity<List<ScheduleResponseDto>> getSchedulesByChildId(
             @RequestBody ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto) {
-        List<ScheduleResponseDto> schedules = scheduleService.getSchedulesByChildId(scheduleSearchByChildRequestDto);
+        List<ScheduleResponseDto> schedules = scheduleService.getSchedulesByChildUserId(scheduleSearchByChildRequestDto);
         return ResponseEntity.ok(schedules);
     }
 
@@ -79,14 +79,14 @@ public class ScheduleController {
     @Operation(summary = "내 아동 스케줄 조회", description = "학부모가 자신의 아동의 상담 일정을 조회합니다.")
     public ResponseEntity<List<ScheduleResponseDto>> getSchedulesByParentId(
             @RequestBody ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto) {
-        List<ScheduleResponseDto> schedules = scheduleService.getSchedulesByParentId(scheduleSearchByParentRequestDto);
+        List<ScheduleResponseDto> schedules = scheduleService.getSchedulesByParentUserId(scheduleSearchByParentRequestDto);
         return ResponseEntity.ok(schedules);
     }
 
     @GetMapping("/dates-by-parent")
     @Operation(summary = "내 아동 일정이 있는 날짜 조회", description = "학부모가 자신의 아동 일정이 있는 날짜 목록을 조회합니다.")
     public ResponseEntity<List<String>> getScheduleDatesByParentId() {
-        List<String> dates = scheduleService.getScheduleDatesByParentId();
+        List<String> dates = scheduleService.getScheduleDatesByParentUserId();
         return ResponseEntity.ok(dates);
     }
 

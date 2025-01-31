@@ -57,11 +57,11 @@ public class ConsultMeetingScheduleEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parent_user_id", nullable = false)
-    private ParentUserEntity parentUser;
+    private ParentUserEntity parentUserEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
-    private ChildUserEntity childUser;
+    private ChildUserEntity childUserEntity;
 
 }

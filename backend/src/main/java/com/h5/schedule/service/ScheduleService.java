@@ -9,10 +9,10 @@ public interface ScheduleService {
     List<ScheduleResponseDto> getSchedulesByDate(ScheduleSearchByDateRequestDto scheduleSearchByDateRequestDto);
 
     /** 아동 이름으로 해당 아동의 상담이 있는 날짜 가져오기 */
-    List<String> getScheduleDatesByChildId(ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto);
+    List<String> getScheduleDatesByChildUserId(ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto);
 
     /** 아동 이름으로 해당 아동의 상담 스케줄 조회 */
-    List<ScheduleResponseDto> getSchedulesByChildId(ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto);
+    List<ScheduleResponseDto> getSchedulesByChildUserId(ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto);
 
     /** 날짜 별 비어있는 시간대 조회 */
     List<String> getAvailableTimes(ScheduleAvailableTimeRequestDto scheduleAvailableTimeRequestDto);
@@ -27,8 +27,8 @@ public interface ScheduleService {
     void deleteSchedule(ScheduleDeleteRequestDto scheduleDeleteRequestDto );
 
     /** 학부모가 자신의 아동의 상담 일정을 조회 */
-    List<ScheduleResponseDto> getSchedulesByParentId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto);
+    List<ScheduleResponseDto> getSchedulesByParentUserId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto);
 
     /** 학부모가 자신의 아동이 있는 날짜 가져오기 */
-    List<String> getScheduleDatesByParentId();
+    List<String> getScheduleDatesByParentUserId();
 }

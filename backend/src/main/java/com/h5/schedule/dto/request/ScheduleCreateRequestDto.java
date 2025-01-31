@@ -8,7 +8,7 @@ import lombok.Getter;
 public class ScheduleCreateRequestDto {
     private Integer scheduleId;
     private Integer childId;
-    private Integer parentId;
+    private Integer parentUserId;
     private String schdlDttm;
     private String type;
 }
