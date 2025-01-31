@@ -3,8 +3,6 @@ package com.h5.auth.service;
 import com.h5.auth.dto.request.LoginRequestDto;
 import com.h5.auth.dto.response.LoginResponseDto;
 import com.h5.auth.dto.response.RefreshAccessTokenResponseDto;
-import com.h5.auth.model.ConsultantCustomUserDetails;
-import com.h5.auth.model.ParentCustomUserDetails;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.UserNotFoundException;
@@ -15,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -50,70 +48,59 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponseDto authenticateAndGenerateToken(LoginRequestDto loginRequestDto) {
-        authenticateUser(loginRequestDto.getEmail(), loginRequestDto.getPwd());
-        return generateLoginResponse(loginRequestDto.getEmail(), loginRequestDto.getRole());
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequestDto.getEmail(),
+                        loginRequestDto.getPwd()
+                )
+        );
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        return "ROLE_CONSULTANT".equals(loginRequestDto.getRole()) ?
+                processConsultantLogin(loginRequestDto, userDetails) :
+                processParentLogin(loginRequestDto, userDetails);
     }
 
-    private void authenticateUser(String email, String password) {
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(email, password);
-        authenticationManager.authenticate(token);
+    private LoginResponseDto processConsultantLogin(LoginRequestDto loginRequestDto, UserDetails userDetails) {
+        ConsultantUserEntity consultantUser = getConsultantUser(loginRequestDto.getEmail());
+        return generateLoginResponse(consultantUser.getName(), userDetails, consultantUser.isTempPwd());
     }
 
-    private LoginResponseDto generateLoginResponse(String email, String role) {
-        UserDetails userDetails = loadUserByRole(email, role);
+    private LoginResponseDto processParentLogin(LoginRequestDto loginRequestDto, UserDetails userDetails) {
+        ParentUserEntity parentUser = getParentUser(loginRequestDto.getEmail());
+        return generateLoginResponse(parentUser.getName(), userDetails, parentUser.isTempPwd());
+    }
+
+    private ConsultantUserEntity getConsultantUser(String email) {
+        return consultantUserRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    private ParentUserEntity getParentUser(String email) {
+        return parentUserRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+    }
+
+    private LoginResponseDto generateLoginResponse(String name, UserDetails userDetails, boolean isTempPwd) {
         String accessToken = jwtUtil.generateAccessToken(userDetails);
         String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-
-        updateRefreshTokenInRepository(email, refreshToken, role);
-        boolean pwdChanged = isTemporaryPassword(userDetails, role);
-
-        String userName = loadUserName(email, role);
-
+        updateRefreshToken(userDetails.getUsername(), refreshToken);
         return LoginResponseDto.builder()
-                .name(userName)
+                .name(name)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .pwdChanged(pwdChanged)
+                .pwdChanged(isTempPwd)
                 .build();
     }
 
-    private UserDetails loadUserByRole(String email, String role) {
-        if ("ROLE_CONSULTANT".equals(role)) {
-            return consultantCustomUserDetailService.loadUserByUsername(email);
+    private void updateRefreshToken(String email, String refreshToken) {
+        if (consultantUserRepository.existsByEmail(email)) {
+            consultantUserRepository.updateRefreshTokenByEmail(email, refreshToken);
+        } else if (parentUserRepository.existsByEmail(email)) {
+            parentUserRepository.updateRefreshTokenByEmail(email, refreshToken);
         } else {
-            return parentCustomUserDetailService.loadUserByUsername(email);
-        }
-    }
-
-    private String loadUserName(String email, String role) {
-        if ("ROLE_CONSULTANT".equals(role)) {
-            ConsultantUserEntity consultantUserEntity =  consultantUserRepository.findByEmail(email)
-                    .orElseThrow(UserNotFoundException::new);
-            return consultantUserEntity.getName();
-        } else {
-            ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email)
-                    .orElseThrow(UserNotFoundException::new);
-            return parentUserEntity.getName();
-        }
-    }
-
-    private void updateRefreshTokenInRepository(String email, String refreshToken, String role) {
-        int result;
-        if ("ROLE_CONSULTANT".equals(role)) {
-            result = consultantUserRepository.updateRefreshTokenByEmail(email, refreshToken);
-        } else {
-            result = parentUserRepository.updateRefreshTokenByEmail(email, refreshToken);
-        }
-        if (result == 0) {
-            throw new IllegalArgumentException("No user found with email " + email);
-        }
-    }
-
-    private boolean isTemporaryPassword(UserDetails userDetails, String role) {
-        if ("ROLE_CONSULTANT".equals(role)) {
-            return ((ConsultantCustomUserDetails) userDetails).getIsTempPwd();
-        } else {
-            return ((ParentCustomUserDetails) userDetails).getIsTempPwd();
+            throw new IllegalArgumentException("No user found with email: " + email);
         }
     }
 
@@ -121,11 +108,8 @@ public class AuthServiceImpl implements AuthService {
     public void logout(String token) {
         String jwt = token.replace("Bearer ", "");
         validateToken(jwt);
-
         String email = jwtUtil.getEmailFromToken(jwt);
-        String role = jwtUtil.getRoleFromToken(jwt);
-
-        updateRefreshTokenInRepository(email, null, role);
+        updateRefreshToken(email, null);
         addTokenToBlacklist(jwt);
     }
 
@@ -142,45 +126,38 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    private void isRefreshTokenExpired(String token) {
-        if (jwtUtil.isRefreshTokenExpired(token)) {
-            throw new IllegalArgumentException("Refresh token is expired. Please login again");
-        }
-    }
-
     @Override
     public RefreshAccessTokenResponseDto refreshAccessToken(String refreshToken) {
         validateToken(refreshToken);
-        isRefreshTokenExpired(refreshToken);
 
-        if (jwtUtil.isRefreshTokenExpired(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token is expired. Please login again");
-        }
-
-        if (redisTemplate.hasKey(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token is blacklisted");
+        if (redisTemplate.hasKey(refreshToken) || jwtUtil.isRefreshTokenExpired(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token is expired or blacklisted. Please login again.");
         }
 
         String email = jwtUtil.getEmailFromToken(refreshToken);
-        String role = jwtUtil.getRoleFromToken(refreshToken);
-        UserDetails userDetails = loadUserByRole(email, role);
-
+        UserDetails userDetails = loadUser(email);
         String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String newRefreshToken = refreshTokenIfNeeded(refreshToken, userDetails, email, role);
+        String newRefreshToken = refreshTokenIfNeeded(refreshToken, userDetails, email);
 
         return RefreshAccessTokenResponseDto.builder()
                 .accessToken(accessToken)
-                .refreshToken(newRefreshToken != null ? newRefreshToken : refreshToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
 
-    private String refreshTokenIfNeeded(String refreshToken, UserDetails userDetails, String email, String role) {
+    private String refreshTokenIfNeeded(String refreshToken, UserDetails userDetails, String email) {
         if (jwtUtil.isTokenNearExpiry(refreshToken)) {
             String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
             addTokenToBlacklist(refreshToken);
-            updateRefreshTokenInRepository(email, newRefreshToken, role);
+            updateRefreshToken(email, newRefreshToken);
             return newRefreshToken;
         }
-        return null;
+        return refreshToken;
+    }
+
+    private UserDetails loadUser(String email) {
+        return consultantUserRepository.existsByEmail(email) ?
+                consultantCustomUserDetailService.loadUserByUsername(email) :
+                parentCustomUserDetailService.loadUserByUsername(email);
     }
 }
