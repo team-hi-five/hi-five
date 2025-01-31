@@ -3,7 +3,7 @@ import '@fontsource/noto-sans-kr';
 import '@fontsource/jua';
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage"
+import LoginPage from "./pages/Auth/LoginPage"
 import ChildMainPage from "./pages/Child/ChildMainPage";
 import ParentMainPage from "./pages/Parent/ParentMainPage";
 import CounselorMainPage from "./pages/Counselor/CounselorMainPage";
@@ -11,6 +11,7 @@ import CounselorMainPage from "./pages/Counselor/CounselorMainPage";
 import AppChild from './routes/AppChild';
 import AppParent from './routes/AppParent';
 import AppCounselor from "./routes/AppCounselor"
+import AuthRoutes from './routes/AuthRoutes';
 
 function App() {
 
@@ -18,6 +19,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/login/*" element={<AuthRoutes />} />
 
         {/* 아동 페이지 */}
         <Route path="/child" element={<ChildMainPage />} />

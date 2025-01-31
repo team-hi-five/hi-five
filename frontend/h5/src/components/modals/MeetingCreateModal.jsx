@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import './MeetingCreateModal.css';
 import SingleButtonAlert from '../common/SingleButtonAlert';
+import TimeSlotSelector from './TimeSlotSelector';
 import { Calendar } from 'primereact/calendar';
 
-const MeetingCreateModal = ({ onClose }) => {
+const MeetingCreateModal = ({ onClose, bookedSlots = [] }) => {
     const [formData, setFormData] = useState({
         counselorName: '',
         childName: '',
         email: '',
         parentName: '',
         type: '',
-        date: null,
+        date: '',
         time: ''
     });
 
@@ -86,6 +87,13 @@ const MeetingCreateModal = ({ onClose }) => {
         setFormData(prev => ({
             ...prev,
             [name]: value
+        }));
+    };
+
+    const handleTimeSelect = (time) => {
+        setFormData(prev => ({
+            ...prev,
+            time: time
         }));
     };
 
@@ -198,11 +206,11 @@ const MeetingCreateModal = ({ onClose }) => {
 
                     <div className="co-m-form-group">
                         <label>상담 시간</label>
-                        <input
-                            type="time"
-                            name="time"
+                        <TimeSlotSelector
+                            selectedDate={formData.date}
+                            onTimeSelect={handleTimeSelect}
+                            bookedSlots={bookedSlots}
                             value={formData.time}
-                            onChange={handleChange}
                         />
                     </div>
 

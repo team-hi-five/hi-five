@@ -1,10 +1,10 @@
 import { Route, Routes } from "react-router-dom"
 import CounselorChildrenPage from "../pages/Counselor/Children/CounselorChildrenPage"
 import CounselorChildrenDataPage from "../pages/Counselor/Children/CounselorChildrenDataPage"
-import IdSearch from '../pages/Counselor/IdSearch'
-import PasswordSearch from "../pages/Counselor/PasswordSearch"
-import IdFind from "../pages/Counselor/IdFind"
-import PasswordFind from "../pages/Counselor/PasswordFind"
+import IdSearch from '../pages/Auth/IdSearch'
+import PasswordSearch from "../pages/Auth/PasswordSearch"
+import IdFind from "../pages/Auth/IdFind"
+import PasswordFind from "../pages/Auth/PasswordFind"
 import CounselorSchedulePage from "../pages/Counselor/Schedule/CounselorSchedulePage"
 import CounselorMyPage from "../pages/Counselor/Profile/CounselorMyPage"
 

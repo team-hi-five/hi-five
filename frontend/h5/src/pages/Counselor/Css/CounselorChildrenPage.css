@@ -57,7 +57,7 @@
     align-items: center;
   }
   
-  .co-search-input {
+  .co-search-input2 {
     padding: 12px 35px 12px 15px;
     border-radius: 20px;
     border: 1px solid #ddd;
@@ -69,12 +69,15 @@
     position: absolute;
     right: 12px;
     color: #666;
+
   }
   
   .co-search-section {
     display: flex;
-    align-items: center;
-    gap: 15px;
+    /* justify-content: end; */
+    /* align-items: center; */
+    /* width: 500px; */
+    gap: 5px;
   }
   
   .co-search-dropdown {
