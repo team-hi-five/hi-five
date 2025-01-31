@@ -8,7 +8,7 @@
 
 /* 컨테이너 */
 .pa-container {
-  width: 90%;
+  width: 60%;
   max-width: 1200px;
   margin: 50px auto;
 }
@@ -20,7 +20,6 @@
   font-weight: bold;
   margin-bottom: 20px;
 }
-
 .pa-title span {
   margin-left: 16px;
   font-size: 2.2rem;
@@ -50,6 +49,14 @@
   gap: 20px;
 }
 
+.pa-radar-chart {
+  width: 250px;
+  height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .pa-game-wrapper {
   position: relative;
   display: flex;
@@ -57,16 +64,21 @@
   gap: 20px;
 }
 
-/* 왼쪽(통계) */
+/* 왼쪽(통계) 카드 */
 .pa-card-left {
   flex: 2;
   background: white;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+  display: flex;             
+  flex-direction: column;    
+  align-items: center;       
+  justify-content: flex-start;
 }
 
-/* 오른쪽(감정 설명) */
+/* 오른쪽(감정 설명) 카드 */
 .pa-card-right {
   flex: 3;
   background: white;
@@ -89,7 +101,6 @@
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-
 .pa-game-card p {
   margin-left: 70px;
 }
@@ -113,24 +124,20 @@
   cursor: pointer;
   border-radius: 50%;
 }
-
 .pa-stage-btn.left {
   left: 1%;
 }
-
 .pa-stage-btn.right {
   right: 1%;
 }
-
 .pa-game-wrapper .pa-stage-btn {
   display: none;
 }
-
 .pa-game-wrapper:hover .pa-stage-btn {
   display: block;
 }
 
-/* 감정 일기 (예시 스타일) */
+/* 감정 일기 (예시) */
 .pa-diary-container {
   background-color: #fff;
   padding: 20px;
@@ -140,15 +147,15 @@
 
 /* 실제 달력 팝업 .p-datepicker 위치 강제 */
 .pa-diary-calendar .p-datepicker {
-  position: absolute !important;  /* 자동 계산 무시하고 절대 위치로 */
-  top: 100% !important;           /* Calendar 아래쪽에 딱 붙이기 */
-  left: 0 !important;             /* 필요에 따라 조정 가능 */
-  transform: none !important;     /* Primereact의 자동 위치 로직 무효화 */
-  margin-top: 5px;                /* 인풋과 약간 간격 */
-  z-index: 9999;                  /* 혹시 다른 요소와 겹칠 때 대비 */
+  position: absolute !important;  
+  top: 100% !important;
+  left: 0 !important;
+  transform: none !important;
+  margin-top: 5px;
+  z-index: 9999;
 }
 
-/* 학습 영상 조회 (예시 스타일) */
+/* 학습 영상 조회 (예시) */
 .pa-videos-container {
   background-color: #fff;
   padding: 20px;
@@ -160,34 +167,35 @@
 .pa-videos-calendar {
   margin-top: 30px;
   display: flex;
-  gap: 50px; 
+  gap: 20px;  
   justify-content: center;
 }
 
+/* 달력 자체 스타일 */
 .pa-videos-calendar .p-datepicker-inline {
+  /* ▼ 기존 3px -> 1px로 줄이거나 필요하면 없애도 됨 */
   outline: 3px solid #c8c8c8;
   border-radius: 16px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transform: scale(1, 1.1);
+
+  /* ▼ 크기 축소(예: 0.9). 비율은 그대로 유지됨 */
+  transform: scale(0.9);
   transform-origin: top center;
 }
 
-/* 달력 내부 여백을 위한 추가 스타일 */
+/* 달력 내부 여백(기존 30px -> 20px) */
 .pa-videos-calendar .p-datepicker {
-  padding: 40px !important;
+  padding: 20px !important;
 }
 
-/* 달력 테이블 자체에 여백 추가 */
-.pa-videos-calendar .p-datepicker table {
-  margin: 5px;
-}
-
+/* 버튼 컨테이너 */
 .button-wrapper {
-  margin-top: 85px;
-  margin-bottom: 25px;
+  margin-top: 30px;
+  margin-bottom: 15px;
   text-align: center;
 }
 
+/* 버튼 */
 .pa-button {
   width: 200px;
   height: 43px;
@@ -197,20 +205,19 @@
   color: #ffffff;
   background-color: #334a7e;
   outline: 2px solid #0c1d42;
-  border: none;  /* 기본 테두리 제거 */
+  border: none;
   cursor: pointer;
 }
-
 .pa-button:hover {
   background-color: #203461;
 }
 
 .pa-no-data {
-  min-height: 400px;             /* 영역 높이를 400px */
-  display: flex;                 /* 가로/세로 정렬용 */
-  align-items: center;           /* 수직 가운데 정렬 */
-  justify-content: center;       /* 수평 가운데 정렬 */
-  font-size: 1.2rem;             /* 글자 크기 예시 */
-  color: #999;                   /* 글자 색상 예시 */
-  text-align: center;            /* 텍스트 여러 줄일 때 중앙 정렬 */
+  min-height: 400px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #999;
+  text-align: center;
 }

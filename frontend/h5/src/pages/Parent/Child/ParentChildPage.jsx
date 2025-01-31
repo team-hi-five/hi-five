@@ -130,6 +130,7 @@ function ParentChildPage() {
   };
 
   const handleVideoSearch = () => {
+    // 예시: 단일 영상, 다중 영상 중 하나로 이동
     navigate("/parent/child/video/single");
     // navigate("/parent/child/video/muultiple");
   };
@@ -161,11 +162,14 @@ function ParentChildPage() {
           <div className="pa-analysis-container">
             <div className="pa-card-left">
               <h3>통계</h3>
-              <Chart
-                type="radar"
-                data={radarChartData}
-                options={radarChartOptions}
-              />
+              <div className="pa-radar-chart">
+                <Chart
+                  type="radar"
+                  data={radarChartData}
+                  options={radarChartOptions}
+                  style={{ width: '260px', height: '260px' }}
+                />
+              </div>
             </div>
             <div className="pa-card-right">
               <h3>감정 설명</h3>
@@ -181,7 +185,6 @@ function ParentChildPage() {
           </div>
         </div>
       </div>
-
 
       <div className="pa-container">
         {/* 게임 분석 섹션 */}
@@ -238,7 +241,6 @@ function ParentChildPage() {
               })}
             </div>
 
-
             <button
               className="pa-stage-btn right"
               onClick={handleNextStage}
@@ -254,7 +256,13 @@ function ParentChildPage() {
           <h3>감정 일기</h3>
           <div className="pa-diary-container">
             <div className="pa-diary-calendar">
-              <Calendar value={date} onChange={(e) => setDate(e.value)} showIcon style={{ width: '300px' }} appendTo="self"/>
+              <Calendar
+                value={date}
+                onChange={(e) => setDate(e.value)}
+                showIcon
+                style={{ width: '300px' }}
+                appendTo="self"
+              />
             </div>
             <p>여기에 아이의 감정 일기 기록을 표시하거나 작성할 수 있습니다.</p>
           </div>
@@ -265,8 +273,18 @@ function ParentChildPage() {
           <h3>학습 영상 조회</h3>
           <div className="pa-videos-container">
             <div className="pa-videos-calendar">
-              <Calendar value={date} onChange={(e) => setDate(e.value)} inline showWeek style={{ width: '45%' }} />
-              <Calendar value={date} onChange={(e) => setDate(e.value)} inline showWeek style={{ width: '45%' }} />
+              <Calendar
+                value={date}
+                onChange={(e) => setDate(e.value)}
+                inline
+                style={{ width: '45%' }}
+              />
+              <Calendar
+                value={date}
+                onChange={(e) => setDate(e.value)}
+                inline
+                style={{ width: '45%' }}
+              />
             </div>
             <div className="button-wrapper">
               <button className="pa-button" onClick={handleVideoSearch}>
