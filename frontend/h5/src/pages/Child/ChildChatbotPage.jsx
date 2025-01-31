@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import ChildMainBackground from '../../components/Child/ChildMainBackground'
+import './ChildCss/ChildChatbotPage.css'
 
 function ChildChatbotPage() {
     const navigate = useNavigate()
@@ -8,12 +9,14 @@ function ChildChatbotPage() {
         navigate('/child')
     } 
     return (
-        <>
-        <button onClick={goback}>
-            back
-        </button>
-        <ChildMainBackground />
-        </>
+        <div className='ch-chatbot-container'>
+            <ChildMainBackground />
+            <div className='ch-button'>
+                <button onClick={goback}>
+                    back
+                </button>
+            </div>
+        </div>
     );
 }
 

@@ -1,0 +1,13 @@
+.ch-chatbot-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.ch-button{
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 20px;
+}
