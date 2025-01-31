@@ -5,9 +5,8 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class ScheduleSaveRequestDto {
+public class ScheduleUpdateRequestDto {
     private Integer scheduleId;
-    private Integer consultantId;
     private Integer childId;
     private String schdlDttm;
     private String type;

@@ -18,14 +18,17 @@ public interface ScheduleService {
     List<String> getAvailableTimes(ScheduleAvailableTimeRequestDto scheduleAvailableTimeRequestDto);
 
     /** 스케줄 생성 */
-    void createSchedule(ScheduleSaveRequestDto scheduleSaveRequestDto);
+    void createSchedule(ScheduleCreateRequestDto scheduleCreateRequestDto);
 
     /** 스케줄 수정 */
-    void updateSchedule(ScheduleSaveRequestDto scheduleSaveRequestDto);
+    void updateSchedule(ScheduleUpdateRequestDto scheduleUpdateRequestDto);
 
     /** 스케줄 삭제 */
     void deleteSchedule(ScheduleDeleteRequestDto scheduleDeleteRequestDto );
 
     /** 학부모가 자신의 아동의 상담 일정을 조회 */
     List<ScheduleResponseDto> getSchedulesByParentId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto);
+
+    /** 학부모가 자신의 아동이 있는 날짜 가져오기 */
+    List<String> getScheduleDatesByParentId();
 }

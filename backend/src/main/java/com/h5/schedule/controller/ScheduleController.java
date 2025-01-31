@@ -55,16 +55,16 @@ public class ScheduleController {
 
     @PostMapping("/create")
     @Operation(summary = "새 상담/게임 스케줄 등록", description = "상담사가 새로운 상담/게임 스케줄을 등록합니다.")
-    public ResponseEntity<String> createSchedule(@RequestBody ScheduleSaveRequestDto scheduleSaveRequestDto) {
-        scheduleService.createSchedule(scheduleSaveRequestDto);
+    public ResponseEntity<String> createSchedule(@RequestBody ScheduleCreateRequestDto scheduleCreateRequestDto) {
+        scheduleService.createSchedule(scheduleCreateRequestDto);
         return ResponseEntity.ok("Schedule created successfully.");
     }
 
     @PutMapping("/update")
     @Operation(summary = "스케줄 수정", description = "상담사가 기존 스케줄을 수정합니다.")
     public ResponseEntity<String> updateSchedule(
-            @RequestBody ScheduleSaveRequestDto scheduleSaveRequestDto) {
-        scheduleService.updateSchedule(scheduleSaveRequestDto);
+            @RequestBody ScheduleUpdateRequestDto scheduleUpdateRequestDto) {
+        scheduleService.updateSchedule(scheduleUpdateRequestDto);
         return ResponseEntity.ok("Schedule updated successfully.");
     }
 
@@ -82,4 +82,12 @@ public class ScheduleController {
         List<ScheduleResponseDto> schedules = scheduleService.getSchedulesByParentId(scheduleSearchByParentRequestDto);
         return ResponseEntity.ok(schedules);
     }
+
+    @GetMapping("/dates-by-parent")
+    @Operation(summary = "내 아동 일정이 있는 날짜 조회", description = "학부모가 자신의 아동 일정이 있는 날짜 목록을 조회합니다.")
+    public ResponseEntity<List<String>> getScheduleDatesByParentId() {
+        List<String> dates = scheduleService.getScheduleDatesByParentId();
+        return ResponseEntity.ok(dates);
+    }
+
 }

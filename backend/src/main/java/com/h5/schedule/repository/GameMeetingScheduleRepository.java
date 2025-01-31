@@ -39,5 +39,17 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
     @Modifying
     @Query("UPDATE GameMeetingScheduleEntity g SET g.deleteDttm = CURRENT_TIMESTAMP WHERE g.id = :id AND g.deleteDttm IS NULL")
     void modifyDeleteDttmById(@Param("id") int id);
+
+    @Query("SELECT g FROM GameMeetingScheduleEntity g " +
+            "WHERE g.childUser.id IN :childIds " +
+            "AND DATE(g.schdlDttm) = :date " +
+            "AND g.deleteDttm IS NULL")
+    List<GameMeetingScheduleEntity> findByChildIdsAndDate(@Param("childIds") List<Integer> childIds,
+                                                          @Param("date") String date);
+
+    @Query("SELECT DISTINCT DATE(g.schdlDttm) FROM GameMeetingScheduleEntity g " +
+            "WHERE g.childUser.id IN :childIds AND g.deleteDttm IS NULL")
+    List<String> findDatesByChildIds(@Param("childIds") List<Integer> childIds);
+
 }
 

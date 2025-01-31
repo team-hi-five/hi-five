@@ -1,8 +1,9 @@
 package com.h5.schedule.service;
 
+import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.repository.ConsultantUserRepository;
-import com.h5.global.exception.UserNotFoundException;
+import com.h5.global.exception.*;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import com.h5.schedule.dto.request.*;
@@ -40,6 +41,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     public List<ScheduleResponseDto> getSchedulesByDate(ScheduleSearchByDateRequestDto scheduleSearchByDateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String ConsultantEmail = authentication.getName();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_CONSULTANT")) {
+            throw new UserAccessDeniedException();
+        }
 
         int consultantId = consultantUserRepository.findByEmail(ConsultantEmail)
                 .orElseThrow(() -> new UserNotFoundException())
@@ -87,6 +93,13 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<String> getScheduleDatesByChildId(ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_CONSULTANT")) {
+            throw new UserAccessDeniedException();
+        }
+
         int childId = scheduleSearchByChildRequestDto.getChildId();
 
         List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildId(childId);
@@ -101,6 +114,13 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<ScheduleResponseDto> getSchedulesByChildId(ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_CONSULTANT")) {
+            throw new UserAccessDeniedException();
+        }
+
         int childId = scheduleSearchByChildRequestDto.getChildId();
 
         List<ConsultMeetingScheduleEntity> consultMeetings = consultMeetingScheduleRepository.findByChildId(childId);
@@ -140,6 +160,13 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     public List<String> getAvailableTimes(ScheduleAvailableTimeRequestDto scheduleAvailableTimeRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_CONSULTANT")) {
+            throw new UserAccessDeniedException();
+        }
+
         Integer consultantId = scheduleAvailableTimeRequestDto.getConsultantId();
         String date = scheduleAvailableTimeRequestDto.getDate();
 
@@ -162,22 +189,33 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public void createSchedule(ScheduleSaveRequestDto scheduleSaveRequestDto) {
-        Integer consultantId = scheduleSaveRequestDto.getConsultantId();
-        Integer childId = scheduleSaveRequestDto.getChildId();
-        String schdlDttm = scheduleSaveRequestDto.getSchdlDttm();
-        String type = scheduleSaveRequestDto.getType();
+    public void createSchedule(ScheduleCreateRequestDto scheduleCreateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String consultantEmail = authentication.getName();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_CONSULTANT")) {
+            throw new UserAccessDeniedException();
+        }
+
+        int consultantId = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException())
+                .getId();
+
+        Integer childId = scheduleCreateRequestDto.getChildId();
+        String schdlDttm = scheduleCreateRequestDto.getSchdlDttm();
+        String type = scheduleCreateRequestDto.getType();
 
         boolean isBooked = consultMeetingScheduleRepository.existsByConsultantAndDateTime(consultantId, schdlDttm)
                 || gameMeetingScheduleRepository.existsByConsultantAndDateTime(consultantId, schdlDttm);
 
         if (isBooked) {
-            throw new RuntimeException("Duplicated Schedule");
+            throw new ScheduleConflictException();
         }
 
-        ParentUserEntity parent = parentUserRepository.findByChildId(childId)
-//        @Query("SELECT p FROM ParentUserEntity p WHERE p.id = (SELECT c.parentUser.id FROM ChildUserEntity c WHERE c.id = :childId)")
-//        Optional<ParentUserEntity> findByChildId(@Param("childId") Integer childId);
+        int parentId = scheduleCreateRequestDto.getParentId();
+
+        ParentUserEntity parent = parentUserRepository.findById(parentId)
                 .orElseThrow(() -> new UserNotFoundException());
 
         if ("consult".equals(type)) {
@@ -194,34 +232,45 @@ public class ScheduleServiceImpl implements ScheduleService {
         } else if ("game".equals(type)) {
             GameMeetingScheduleEntity gameSchedule = GameMeetingScheduleEntity.builder()
                     .host(consultantUserRepository.findById(consultantId)
-                            .orElseThrow(() -> new RuntimeException("Consultant not found")))
+                            .orElseThrow(() -> new UserNotFoundException()))
                     .childUser(childUserRepository.findById(childId)
-                            .orElseThrow(() -> new RuntimeException("Child not found")))
+                            .orElseThrow(() -> new UserNotFoundException()))
                     .schdlDttm(LocalDateTime.parse(schdlDttm))
                     .status("P")
                     .build();
             gameMeetingScheduleRepository.save(gameSchedule);
         } else {
-            throw new RuntimeException("Invalid Schedule type");
+            throw new InvalidScheduleException();
         }
     }
 
     @Override
-    public void updateSchedule(ScheduleSaveRequestDto scheduleSaveRequestDto) {
-        Integer scheduleId = scheduleSaveRequestDto.getScheduleId();
-        Integer consultantId = scheduleSaveRequestDto.getConsultantId();
-        String schdlDttm = scheduleSaveRequestDto.getSchdlDttm();
-        String type = scheduleSaveRequestDto.getType();
+    public void updateSchedule(ScheduleUpdateRequestDto scheduleUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String consultantEmail = authentication.getName();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_CONSULTANT")) {
+            throw new UserAccessDeniedException();
+        }
+
+        int consultantId = consultantUserRepository.findByEmail(consultantEmail)
+                .orElseThrow(() -> new UserNotFoundException())
+                .getId();
+
+        Integer scheduleId = scheduleUpdateRequestDto.getScheduleId();
+        String schdlDttm = scheduleUpdateRequestDto.getSchdlDttm();
+        String type = scheduleUpdateRequestDto.getType();
 
         if ("consult".equals(type)) {
             ConsultMeetingScheduleEntity consultSchedule = consultMeetingScheduleRepository.findById(scheduleId)
-                    .orElseThrow(() -> new RuntimeException("Can not find Schedule"));
+                    .orElseThrow(() -> new ScheduleNotFoundException());
 
             boolean isBooked = consultMeetingScheduleRepository.existsByConsultantAndDateTime(consultantId, schdlDttm)
                     || gameMeetingScheduleRepository.existsByConsultantAndDateTime(consultantId, schdlDttm);
 
             if (isBooked && !String.valueOf(consultSchedule.getSchdlDttm()).equals(schdlDttm)) {
-                throw new RuntimeException("Duplicated Schedule");
+                throw new ScheduleConflictException();
             }
 
             consultSchedule.setSchdlDttm(LocalDateTime.parse(schdlDttm));
@@ -229,53 +278,144 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         } else if ("game".equals(type)) {
             GameMeetingScheduleEntity gameSchedule = gameMeetingScheduleRepository.findById(scheduleId)
-                    .orElseThrow(() -> new RuntimeException("Can not find Schedule"));
+                    .orElseThrow(() -> new ScheduleNotFoundException());
 
             boolean isBooked = consultMeetingScheduleRepository.existsByConsultantAndDateTime(consultantId, schdlDttm)
                     || gameMeetingScheduleRepository.existsByConsultantAndDateTime(consultantId, schdlDttm);
 
             if (isBooked && !String.valueOf(gameSchedule.getSchdlDttm()).equals(schdlDttm)) {
-                throw new RuntimeException("Duplicated Schedule");
+                throw new ScheduleConflictException();
             }
 
             gameSchedule.setSchdlDttm(LocalDateTime.parse(schdlDttm));
             gameMeetingScheduleRepository.save(gameSchedule);
         } else {
-            throw new RuntimeException("Invalid schedule type.");
+            throw new InvalidScheduleException();
         }
     }
 
     @Override
     public void deleteSchedule(ScheduleDeleteRequestDto scheduleDeleteRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_CONSULTANT")) {
+            throw new UserAccessDeniedException();
+        }
+
         int id = scheduleDeleteRequestDto.getId();
         String type = scheduleDeleteRequestDto.getType();
 
         if ("consult".equals(type)) {
             ConsultMeetingScheduleEntity consultSchedule = consultMeetingScheduleRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Can not find ConsultMeetingSchedule"));
+                    .orElseThrow(() -> new ScheduleNotFoundException());
 
             if (consultSchedule.getDeleteDttm() != null) {
-                throw new RuntimeException("This consultMeetingSchedule is already deleted");
+                throw new ScheduleAlreadyDeletedException();
             }
 
             consultMeetingScheduleRepository.modifyDeleteDttmById(id);
 
         } else if ("game".equals(type)) {
             GameMeetingScheduleEntity gameSchedule = gameMeetingScheduleRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Can not find GameMeetingSchedule"));
+                    .orElseThrow(() -> new ScheduleNotFoundException());
 
             if (gameSchedule.getDeleteDttm() != null) {
-                throw new RuntimeException("This schedule is already deleted.");
+                throw new ScheduleAlreadyDeletedException();
             }
 
             gameMeetingScheduleRepository.modifyDeleteDttmById(id);
         } else {
-            throw new RuntimeException("Invalid schedule type.");
+            throw new InvalidScheduleException();
         }
     }
 
     @Override
     public List<ScheduleResponseDto> getSchedulesByParentId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto) {
-        return List.of();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String parentEmail = authentication.getName();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_PARENT")) {
+            throw new UserAccessDeniedException();
+        }
+
+        int parentId = consultantUserRepository.findByEmail(parentEmail)
+                .orElseThrow(() -> new UserNotFoundException())
+                .getId();
+
+        String date = scheduleSearchByParentRequestDto.getDate();
+
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentId)
+                .orElseThrow(()-> new UserNotFoundException());
+        List<Integer> childIds = childUserEntities.stream().map(ChildUserEntity::getId).toList();
+
+        if(childIds.isEmpty()){
+            return List.of();
+        }
+        List<ScheduleResponseDto> schedules = new ArrayList<>();
+
+        List<ConsultMeetingScheduleEntity> consultSchedules = consultMeetingScheduleRepository.findByChildIdsAndDate(childIds, date);
+        List<GameMeetingScheduleEntity> gameSchedules = gameMeetingScheduleRepository.findByChildIdsAndDate(childIds, date);
+
+        consultSchedules.forEach(consult -> schedules.add(
+                ScheduleResponseDto.builder()
+                        .scheduleId(consult.getId())
+                        .schdlDttm(String.valueOf(consult.getSchdlDttm()))
+                        .type("consult")
+                        .consultantName(consult.getHost().getName())
+                        .childName(consult.getChildUser().getName())
+                        .parentName(consult.getParentUser().getName())
+                        .status(consult.getStatus())
+                        .build()
+        ));
+
+        gameSchedules.forEach(game -> schedules.add(
+                ScheduleResponseDto.builder()
+                        .scheduleId(game.getId())
+                        .schdlDttm(String.valueOf(game.getSchdlDttm()))
+                        .type("game")
+                        .consultantName(game.getHost().getName())
+                        .childName(game.getChildUser().getName())
+                        .parentName(null)
+                        .status(game.getStatus())
+                        .build()
+        ));
+
+        return schedules.stream()
+                .sorted(Comparator.comparing(ScheduleResponseDto::getSchdlDttm))
+                .collect(Collectors.toList());
     }
+
+    @Override
+    public List<String> getScheduleDatesByParentId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String parentEmail = authentication.getName();
+        String role = authentication.getAuthorities().toString();
+
+        if (!role.contains("ROLE_PARENT")) {
+            throw new UserAccessDeniedException();
+        }
+
+        int parentId = parentUserRepository.findByEmail(parentEmail)
+                .orElseThrow(UserNotFoundException::new)
+                .getId();
+
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentId)
+                .orElseThrow(()-> new UserNotFoundException());
+        List<Integer> childIds = childUserEntities.stream().map(ChildUserEntity::getId).toList();
+
+        if (childIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildIds(childIds);
+        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildIds(childIds);
+
+        return Stream.concat(consultDates.stream(), gameDates.stream())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
 }

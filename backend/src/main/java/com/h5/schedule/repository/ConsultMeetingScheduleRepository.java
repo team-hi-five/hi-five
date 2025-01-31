@@ -40,4 +40,16 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
     @Query("UPDATE ConsultMeetingScheduleEntity c SET c.deleteDttm = CURRENT_TIMESTAMP WHERE c.id = :id AND c.deleteDttm IS NULL")
     void modifyDeleteDttmById(@Param("id") Integer id);
 
+    @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
+            "WHERE c.childUser.id IN :childIds " +
+            "AND DATE(c.schdlDttm) = :date " +
+            "AND c.deleteDttm IS NULL")
+    List<ConsultMeetingScheduleEntity> findByChildIdsAndDate(@Param("childIds") List<Integer> childIds,
+                                                             @Param("date") String date);
+
+    @Query("SELECT DISTINCT DATE(c.schdlDttm) FROM ConsultMeetingScheduleEntity c " +
+            "WHERE c.childUser.id IN :childIds AND c.deleteDttm IS NULL")
+    List<String> findDatesByChildIds(@Param("childIds") List<Integer> childIds);
+
+
 }

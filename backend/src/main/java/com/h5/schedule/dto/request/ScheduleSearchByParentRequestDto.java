@@ -5,5 +5,5 @@ import lombok.*;
 @Getter
 @Builder
 public class ScheduleSearchByParentRequestDto {
-    private Integer parentId; // 학부모 ID
+    private String date;  // yyyy-MM-dd 형식의 날짜
 }
