@@ -39,19 +39,19 @@ public class GameLogEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_game_stage_id", nullable = false)
-    private ChildGameStageEntity childGameStage;
+    private ChildGameStageEntity childGameStageEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
-    private ChildUserEntity childUser;
+    private ChildUserEntity childUserEntity;
 
     @OneToOne(mappedBy = "gameLogEntity")
-    private AiLogEntity aiLog;
+    private AiLogEntity aiLogEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "game_stage_id", nullable = false)
-    private GameStageEntity gameStage;
+    private GameStageEntity gameStageEntity;
 
 }

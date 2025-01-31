@@ -27,12 +27,12 @@ public class ChildGameChapterEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
-    private ChildUserEntity childUser;
+    private ChildUserEntity childUserEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "game_chapter_id", nullable = false)
-    private GameChapterEntity gameChapter;
+    private GameChapterEntity gameChapterEntity;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")

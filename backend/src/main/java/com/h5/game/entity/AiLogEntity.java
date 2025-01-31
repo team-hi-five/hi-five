@@ -18,7 +18,7 @@ public class AiLogEntity {
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "game_log_id", nullable = false)
-    private GameLogEntity gameLog;
+    private GameLogEntity gameLogEntity;
 
     @NotNull
     @Column(name = "f_happy", nullable = false)

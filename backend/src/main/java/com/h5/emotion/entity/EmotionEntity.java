@@ -28,9 +28,9 @@ public class EmotionEntity {
     private String emo;
 
     @OneToMany(mappedBy = "emotion")
-    private Set<GameStageEntity> gameStages = new LinkedHashSet<>();
+    private Set<GameStageEntity> gameStageEntities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "emotion")
-    private Set<StatisticEntity> statistics = new LinkedHashSet<>();
+    private Set<StatisticEntity> statisticEntities = new LinkedHashSet<>();
 
 }

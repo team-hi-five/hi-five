@@ -143,12 +143,12 @@ public class StatisticServiceImpl implements StatisticService {
         LocalDateTime startDate = date.atStartOfDay();
         LocalDateTime endDate = date.atTime(23, 59, 59);
 
-        List<GameLogEntity> gameLogEntities = gameLogRepository
+        List<GameLogEntity> gameLogEntityList = gameLogRepository
                 .findAllByChildUser_IdAndGameStage_IdAndSubmitDttmBetween(childUserId, stageId, startDate, endDate)
                 .orElseThrow(() -> new NoSuchElementException("No game logs found for given criteria"));
 
         AtomicInteger index = new AtomicInteger(0);
-        return gameLogEntities.stream()
+        return gameLogEntityList.stream()
                 .map(gameLog -> GetGameVideoLengthResponseDto.builder()
                         .tryIndex(index.getAndIncrement()) // 인덱스 증가
                         .gameLogId(gameLog.getId())

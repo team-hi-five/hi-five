@@ -34,26 +34,26 @@ public class GameStageEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "game_chapter_id", nullable = false)
-    private GameChapterEntity gameChapter;
+    private GameChapterEntity gameChapterEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "emotion_id", nullable = false)
-    private EmotionEntity emotion;
+    private EmotionEntity emotionEntity;
 
     @OneToOne(mappedBy = "gameStageEntity")
-    private CardAssetEntity cardAsset;
+    private CardAssetEntity cardAssetEntity;
 
     @OneToMany(mappedBy = "gameStage")
-    private Set<ChildGameStageEntity> childGameStages = new LinkedHashSet<>();
+    private Set<ChildGameStageEntity> childGameStageEntities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "gameStage")
-    private Set<ChildStudyStageEntity> childStudyStages = new LinkedHashSet<>();
+    private Set<ChildStudyStageEntity> childStudyStageEntities = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "gameStageEntity")
-    private GameAssetEntity gameAsset;
+    private GameAssetEntity gameAssetEntity;
 
     @OneToMany(mappedBy = "gameStage")
-    private Set<GameLogEntity> gameLogs = new LinkedHashSet<>();
+    private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 
 }

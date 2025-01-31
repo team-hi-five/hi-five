@@ -19,7 +19,7 @@ public class GameAssetEntity {
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "game_stage_id", nullable = false)
-    private GameStageEntity gameStage;
+    private GameStageEntity gameStageEntity;
 
     @Size(max = 255)
     @NotNull

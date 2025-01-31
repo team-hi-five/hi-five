@@ -34,12 +34,12 @@ public class GameChapterEntity {
     private String chapterPic;
 
     @OneToMany(mappedBy = "emotion")
-    private Set<ChildGameChapterEntity> childGameChapters = new LinkedHashSet<>();
+    private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "gameChapter")
-    private Set<ChildStudyChapterEntity> childStudyChapters = new LinkedHashSet<>();
+    private Set<ChildStudyChapterEntity> childStudyChapterEntities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "gameChapter")
-    private Set<GameStageEntity> gameStages = new LinkedHashSet<>();
+    private Set<GameStageEntity> gameStageEntities = new LinkedHashSet<>();
 
 }

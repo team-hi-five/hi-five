@@ -23,14 +23,14 @@ public class ChildGameStageEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "game_stage_id", nullable = false)
-    private GameStageEntity gameStage;
+    private GameStageEntity gameStageEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_chapter_id", nullable = false)
-    private ChildGameChapterEntity userChapter;
+    private ChildGameChapterEntity childGameChapterEntity;
 
     @OneToMany(mappedBy = "childGameStage")
-    private Set<GameLogEntity> gameLogs = new LinkedHashSet<>();
+    private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 
 }

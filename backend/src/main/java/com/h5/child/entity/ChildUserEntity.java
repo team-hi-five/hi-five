@@ -52,7 +52,7 @@ public class ChildUserEntity {
     private String additionalInfo;
 
     @Column(name = "clear_chapter")
-    private Byte clearChapter;
+    private Integer clearChapter;
 
     @Size(max = 10)
     @NotNull
@@ -66,26 +66,26 @@ public class ChildUserEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parent_user_id", nullable = false)
-    private ParentUserEntity parentUser;
+    private ParentUserEntity parentUserEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "consultant_user_id", nullable = false)
-    private ConsultantUserEntity consultantUser;
+    private ConsultantUserEntity consultantUserEntity;
 
     @Column(name = "delete_dttm")
     private Instant deleteDttm;
 
     @OneToMany(mappedBy = "childUser")
-    private Set<ChildGameChapterEntity> childGameChapters = new LinkedHashSet<>();
+    private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "childUser")
-    private Set<ChildStudyChapterEntity> childStudyChapters = new LinkedHashSet<>();
+    private Set<ChildStudyChapterEntity> childStudyChapterEntities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "childUser")
-    private Set<GameLogEntity> gameLogs = new LinkedHashSet<>();
+    private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "childUser")
-    private Set<StatisticEntity> statistics = new LinkedHashSet<>();
+    private Set<StatisticEntity> statisticEntities = new LinkedHashSet<>();
 
 }
