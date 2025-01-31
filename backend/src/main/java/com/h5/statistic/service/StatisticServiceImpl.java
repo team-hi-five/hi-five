@@ -3,9 +3,15 @@ package com.h5.statistic.service;
 import com.h5.child.repository.ChildUserRepository;
 import com.h5.emotion.entity.EmotionEntity;
 import com.h5.emotion.repository.EmotionRepository;
+import com.h5.game.entity.ChildGameChapterEntity;
+import com.h5.game.entity.GameLogEntity;
+import com.h5.game.repository.ChildGameChapterRepository;
+import com.h5.game.repository.GameLogRepository;
 import com.h5.global.exception.UserNotFoundException;
-import com.h5.statistic.dto.data.ChatbotDateDto;
-import com.h5.statistic.dto.data.PentagonAndStickDataDto;
+import com.h5.statistic.dto.response.DataAnalysisResponseDto;
+import com.h5.statistic.dto.response.GetChatbotResponseDto;
+import com.h5.statistic.dto.response.GetDatesResponseDto;
+import com.h5.statistic.dto.response.GetGameVideoLengthResponseDto;
 import com.h5.statistic.entity.ChatBotDocument;
 import com.h5.statistic.entity.StatisticEntity;
 import com.h5.statistic.repository.ChatbotRepository;
@@ -13,9 +19,11 @@ import com.h5.statistic.repository.StatisticRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,38 +33,36 @@ public class StatisticServiceImpl implements StatisticService {
     private final EmotionRepository emotionRepository;
     private final ChildUserRepository childUserRepository;
     private final ChatbotRepository chatbotRepository;
+    private final ChildGameChapterRepository childGameChapterRepository;
+    private final GameLogRepository gameLogRepository;
 
     @Autowired
     public StatisticServiceImpl(StatisticRepository statisticRepository,
                                 EmotionRepository emotionRepository,
                                 ChildUserRepository childUserRepository,
-                                ChatbotRepository chatbotRepository) {
+                                ChatbotRepository chatbotRepository, ChildGameChapterRepository childGameChapterRepository, GameLogRepository gameLogRepository) {
         this.statisticRepository = statisticRepository;
         this.emotionRepository = emotionRepository;
         this.childUserRepository = childUserRepository;
         this.chatbotRepository = chatbotRepository;
+        this.childGameChapterRepository = childGameChapterRepository;
+        this.gameLogRepository = gameLogRepository;
     }
 
     @Override
-    public Map<Integer, PentagonAndStickDataDto> dataAnalysis(int childUserId) {
-
-
-        return null;
-    }
-
-    private Map<Integer, PentagonAndStickDataDto> getPentagonAndStickData(int childUserId) {
+    public Map<Integer, DataAnalysisResponseDto> dataAnalysis(int childUserId) {
         List<EmotionEntity> emotionEntityList = emotionRepository.findAll();
 
-        Map<Integer, PentagonAndStickDataDto> PentagonAndStickDataDtoMap = new HashMap<>();
+        Map<Integer, DataAnalysisResponseDto> PentagonAndStickDataDtoMap = new HashMap<>();
         for (EmotionEntity emotionEntity : emotionEntityList) {
             int emotionEntityId = emotionEntity.getId();
 
             StatisticEntity statisticEntity = statisticRepository.findByEmotion_IdAndChildUser_Id(emotionEntityId, childUserId);
 
-            PentagonAndStickDataDto dataAnalysisRequestDto = PentagonAndStickDataDto.builder()
+            DataAnalysisResponseDto dataAnalysisRequestDto = DataAnalysisResponseDto.builder()
                     .childUserId(childUserId)
                     .childName(childUserRepository.findNameById(childUserId)
-                            .orElseThrow(() -> new UserNotFoundException("User not found for childUserId: " + childUserId))
+                            .orElseThrow(UserNotFoundException::new)
                             .getName())
                     .emotionId(emotionEntityId)
                     .rating(statisticEntity.getRating())
@@ -83,15 +89,71 @@ public class StatisticServiceImpl implements StatisticService {
         return PentagonAndStickDataDtoMap;
     }
 
-    private ChatbotDateDto getChatbotDate(int childUserId) {
-        List<ChatBotDocument> chatbotDateList = chatbotRepository.findByChildUserId(childUserId);
+    @Override
+    public GetDatesResponseDto getChatbotDates(int childUserId, int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDateTime startDate = yearMonth.atDay(1).atStartOfDay();
+        LocalDateTime endDate = yearMonth.atEndOfMonth().atTime(23, 59, 59);
 
-        return ChatbotDateDto.builder()
-                .chatbotDateList(chatbotDateList.stream()
-                        .map(chat -> chat.getChatBotUseDttm().toLocalDate())
+        List<ChatBotDocument> chatbotDocList = chatbotRepository.findByChildUserIdAndChatBotUseDttmBetween(childUserId, startDate, endDate)
+                .orElseThrow(NoSuchElementException::new);
+
+        return GetDatesResponseDto.builder()
+                .dateList(chatbotDocList.stream()
+                        .map(chatbot -> chatbot.getChatBotUseDttm().toLocalDate())
                         .distinct()
                         .sorted()
                         .collect(Collectors.toList()))
                 .build();
     }
+
+    @Override
+    public GetDatesResponseDto getGameVideoDates(int childUserId, int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDateTime startDate = yearMonth.atDay(1).atStartOfDay();
+        LocalDateTime endDate = yearMonth.atEndOfMonth().atTime(23, 59, 59);
+
+        List<ChildGameChapterEntity> childGameChapterEntityList = childGameChapterRepository.findByChildUserEntity_IdAndStartDttmBetween(childUserId,startDate,endDate)
+                .orElseThrow(NoSuchElementException::new);
+
+        return GetDatesResponseDto.builder()
+                .dateList(childGameChapterEntityList.stream()
+                        .map(video -> video.getStartDttm().toLocalDate())
+                        .distinct()
+                        .sorted()
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
+    @Override
+    public GetChatbotResponseDto getChatbot(int childUserId, LocalDate date) {
+        LocalDateTime startDate = date.atStartOfDay();
+        LocalDateTime endDate = date.atTime(23, 59, 59);
+
+        List<ChatBotDocument> chatBotDocumentList = chatbotRepository.findByChildUserIdAndChatBotUseDttmBetween(childUserId,startDate,endDate)
+                .orElseThrow(NoSuchElementException::new);
+
+        return GetChatbotResponseDto.builder()
+                .chatBotDocumentList(chatBotDocumentList)
+                .build();
+    }
+
+    @Override
+    public List<GetGameVideoLengthResponseDto> getGameVideoLength(int childUserId, LocalDate date, int stageId) {
+        LocalDateTime startDate = date.atStartOfDay();
+        LocalDateTime endDate = date.atTime(23, 59, 59);
+
+        List<GameLogEntity> gameLogEntityList = gameLogRepository
+                .findAllByChildUser_IdAndGameStage_IdAndSubmitDttmBetween(childUserId, stageId, startDate, endDate)
+                .orElseThrow(() -> new NoSuchElementException("No game logs found for given criteria"));
+
+        AtomicInteger index = new AtomicInteger(0);
+        return gameLogEntityList.stream()
+                .map(gameLog -> GetGameVideoLengthResponseDto.builder()
+                        .tryIndex(index.getAndIncrement()) // 인덱스 증가
+                        .gameLogId(gameLog.getId())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 }

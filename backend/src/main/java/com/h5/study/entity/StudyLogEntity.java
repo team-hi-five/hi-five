@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
-
 @Getter
 @Setter
 @Entity
@@ -77,10 +75,10 @@ public class StudyLogEntity {
     private String stt;
 
     @NotNull
-    @Column(name = "start_dttm", nullable = false)
-    private Instant startDttm;
+    @Column(name = "start_dttm")
+    private String startDttm;
 
     @Column(name = "end_dttm")
-    private Instant endDttm;
+    private String endDttm;
 
 }

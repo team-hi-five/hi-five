@@ -10,6 +10,6 @@ import java.util.List;
 @Setter
 @Getter
 @Builder
-public class GetChatbotDatesResponseDto {
-    private List<LocalDate> chatbotDateList;
+public class GetDatesResponseDto {
+    private List<LocalDate> dateList;
 }
