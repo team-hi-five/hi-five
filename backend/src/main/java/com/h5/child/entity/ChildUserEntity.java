@@ -76,16 +76,16 @@ public class ChildUserEntity {
     @Column(name = "delete_dttm")
     private Instant deleteDttm;
 
-    @OneToMany(mappedBy = "childUser")
+    @OneToMany(mappedBy = "childUserEntity")
     private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "childUser")
+    @OneToMany(mappedBy = "childUserEntity")
     private Set<ChildStudyChapterEntity> childStudyChapterEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "childUser")
+    @OneToMany(mappedBy = "childUserEntity")
     private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "childUser")
+    @OneToMany(mappedBy = "childUserEntity")
     private Set<StatisticEntity> statisticEntities = new LinkedHashSet<>();
 
 }

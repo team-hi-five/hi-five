@@ -135,11 +135,7 @@ public class NoticeServiceImpl implements NoticeService {
     //글 상세 보기
     @Override
     public NoticeDetailResponseDto findById(int noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId);
-
-        if (noticeEntity == null) {
-            throw new BoardNotFoundException("notice");
-        }
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new BoardNotFoundException("notice"));
 
         updateViewCnt(noticeId); //조회수 증가
         
@@ -190,15 +186,12 @@ public class NoticeServiceImpl implements NoticeService {
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
 
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId);
-        if(noticeEntity == null) {
-            throw new BoardNotFoundException("notice");
-        }
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeId).orElseThrow(() -> new BoardNotFoundException("notice"));
 
         if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
             throw new BoardAccessDeniedException("notice");
         }
-        noticeRepository.deleteById(noticeId);
+        noticeRepository.updateDeleteDttmById(noticeId);
     }
 
     @Override
@@ -209,10 +202,8 @@ public class NoticeServiceImpl implements NoticeService {
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException());
 
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeUpdateRequestDto.getId());
-        if(noticeEntity == null) {
-            throw new BoardNotFoundException("notice");
-        }
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeUpdateRequestDto.getId())
+                .orElseThrow(() -> new BoardNotFoundException("notice"));
 
         if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
             throw new BoardAccessDeniedException("notice");

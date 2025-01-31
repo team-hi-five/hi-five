@@ -27,10 +27,10 @@ public class EmotionEntity {
     @Column(name = "emo", nullable = false, length = 20)
     private String emo;
 
-    @OneToMany(mappedBy = "emotion")
+    @OneToMany(mappedBy = "emotionEntity")
     private Set<GameStageEntity> gameStageEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "emotion")
+    @OneToMany(mappedBy = "emotionEntity")
     private Set<StatisticEntity> statisticEntities = new LinkedHashSet<>();
 
 }

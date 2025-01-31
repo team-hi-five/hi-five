@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface StatisticRepository extends JpaRepository<StatisticEntity, Integer> {
-    StatisticEntity findByEmotion_IdAndChildUser_Id(int emotionEntityId, int childUserId);
+    StatisticEntity findByEmotionEntity_IdAndChildUserEntity_Id(int emotionEntityId, int childUserId);
 }

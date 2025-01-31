@@ -2,6 +2,7 @@ package com.h5.notice.repository;
 
 import com.h5.notice.entity.NoticeEntity;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -68,17 +69,14 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Integer> {
             "AND n.deleteDttm IS NULL")
     Page<NoticeEntity> findByEmail(@Param("writerId") Integer writerId, Pageable pageable);
 
-    //상세 글 보기
-    @Query("SELECT n FROM NoticeEntity n WHERE n.id = :noticeId" )
-    NoticeEntity findById(int noticeId);
-
     //조회수 증가
     @Modifying
     @Query("UPDATE NoticeEntity n SET n.viewCnt = n.viewCnt + 1 WHERE n.id = :noticeId")
     void updateViewCnt (@Param("noticeId") int id);
 
     @Modifying
+    @Transactional
     @Query("UPDATE NoticeEntity n SET n.deleteDttm = CURRENT_TIMESTAMP WHERE n.id = :noticeId")
-    void deleteById(@Param("noticeId") int noticeId);
+    void updateDeleteDttmById(@Param("noticeId") int id);
 
 }

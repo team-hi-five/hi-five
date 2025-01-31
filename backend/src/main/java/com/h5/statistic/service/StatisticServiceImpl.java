@@ -57,7 +57,7 @@ public class StatisticServiceImpl implements StatisticService {
         for (EmotionEntity emotionEntity : emotionEntityList) {
             int emotionEntityId = emotionEntity.getId();
 
-            StatisticEntity statisticEntity = statisticRepository.findByEmotion_IdAndChildUser_Id(emotionEntityId, childUserId);
+            StatisticEntity statisticEntity = statisticRepository.findByEmotionEntity_IdAndChildUserEntity_Id(emotionEntityId, childUserId);
 
             DataAnalysisResponseDto dataAnalysisRequestDto = DataAnalysisResponseDto.builder()
                     .childUserId(childUserId)
@@ -144,7 +144,7 @@ public class StatisticServiceImpl implements StatisticService {
         LocalDateTime endDate = date.atTime(23, 59, 59);
 
         List<GameLogEntity> gameLogEntityList = gameLogRepository
-                .findAllByChildUser_IdAndGameStage_IdAndSubmitDttmBetween(childUserId, stageId, startDate, endDate)
+                .findAllByChildUserEntity_IdAndGameStageEntity_IdAndSubmitDttmBetween(childUserId, stageId, startDate, endDate)
                 .orElseThrow(() -> new NoSuchElementException("No game logs found for given criteria"));
 
         AtomicInteger index = new AtomicInteger(0);

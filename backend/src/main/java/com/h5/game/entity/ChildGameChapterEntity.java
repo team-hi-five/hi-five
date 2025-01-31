@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -18,6 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Table(name = "child_game_chapter")
 public class ChildGameChapterEntity {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +44,7 @@ public class ChildGameChapterEntity {
     @Column(name = "end_dttm")
     private LocalDateTime endDttm;
 
-    @OneToMany(mappedBy = "userChapter")
-    private Set<ChildGameStageEntity> childGameStages = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "childGameChapterEntity")
+    private Set<ChildGameStageEntity> childGameStageEntities = new LinkedHashSet<>();
 
 }

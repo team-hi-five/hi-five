@@ -30,7 +30,7 @@ public class ChildGameStageEntity {
     @JoinColumn(name = "user_chapter_id", nullable = false)
     private ChildGameChapterEntity childGameChapterEntity;
 
-    @OneToMany(mappedBy = "childGameStage")
+    @OneToMany(mappedBy = "childGameStageEntity")
     private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 
 }

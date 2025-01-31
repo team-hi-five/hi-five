@@ -17,7 +17,7 @@ public class StudyLogEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "child_study_stage_id")
-    private ChildStudyStageEntity childStudyStage;
+    private ChildStudyStageEntity childStudyStageEntity;
 
     @NotNull
     @Lob

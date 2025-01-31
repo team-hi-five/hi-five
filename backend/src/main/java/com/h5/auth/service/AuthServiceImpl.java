@@ -88,11 +88,11 @@ public class AuthServiceImpl implements AuthService {
     private String loadUserName(String email, String role) {
         if ("ROLE_CONSULTANT".equals(role)) {
             ConsultantUserEntity consultantUserEntity =  consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException("No user found with email " + email));
+                    .orElseThrow(UserNotFoundException::new);
             return consultantUserEntity.getName();
         } else {
             ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException("No user found with email " + email));
+                    .orElseThrow(UserNotFoundException::new);
             return parentUserEntity.getName();
         }
     }
