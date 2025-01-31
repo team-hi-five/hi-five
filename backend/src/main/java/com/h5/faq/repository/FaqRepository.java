@@ -58,4 +58,5 @@ public interface FaqRepository extends JpaRepository<FaqEntity, Integer> {
 
     //상세 조회
     Optional<FaqEntity> findById(Integer faqId);
+
 }

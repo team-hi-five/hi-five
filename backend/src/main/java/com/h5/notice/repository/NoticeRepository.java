@@ -77,5 +77,8 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Integer> {
     @Query("UPDATE NoticeEntity n SET n.viewCnt = n.viewCnt + 1 WHERE n.id = :noticeId")
     void updateViewCnt (@Param("noticeId") int id);
 
+    @Modifying
+    @Query("UPDATE NoticeEntity n SET n.deleteDttm = CURRENT_TIMESTAMP WHERE n.id = :noticeId")
+    void deleteById(@Param("noticeId") int noticeId);
 
 }

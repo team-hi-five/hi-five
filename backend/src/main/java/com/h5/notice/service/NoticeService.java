@@ -8,13 +8,13 @@ import org.springframework.data.domain.Page;
 public interface NoticeService {
 
     //전체 글 + 페이징
-    Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto, String authorizationHeader);
+    Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto);
 
     //제목으로 검색 + 페이징
-    Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader);
+    Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto);
 
     //작성자로 검색 + 페이징
-    Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader);
+    Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto);
 
     //상세글 보기
     NoticeDetailResponseDto findById(int noticeId);
@@ -23,12 +23,12 @@ public interface NoticeService {
     void updateViewCnt(int noticeId);
 
     //글 등록
-    void createNotice(NoticeCreateRequestDto noticeCreateRequestDto, String authorizationHeader);
+    void createNotice(NoticeCreateRequestDto noticeCreateRequestDto);
 
     //글 삭제
-    void deleteNotice(int noticeId, String authorizationHeader);
+    void deleteNotice(int noticeId);
 
     //글 수정
-    int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto, String authorizationHeader);
+    int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto);
 
 }

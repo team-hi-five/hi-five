@@ -27,25 +27,22 @@ public class NoticeController {
 
     @PostMapping("/list")
     @Operation(summary = "공지 목록 조회", description = "삭제되지 않은 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAll(NoticeListRequestDto noticeListRequestDto,
-                                     @RequestHeader("Authorization") String authorizationHeader) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findAll(noticeListRequestDto, authorizationHeader);
+    public ResponseEntity<?> findAll(@RequestBody NoticeListRequestDto noticeListRequestDto) {
+        Page<NoticeResponseDto> noticeResponseDto = noticeService.findAll(noticeListRequestDto);
         return ResponseEntity.ok(noticeResponseDto);
     }
 
     @PostMapping("/search-by-title")
     @Operation(summary = "공지사항 제목 검색", description = "제목으로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto,
-                                         @RequestHeader("Authorization") String authorizationHeader) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByTitle(noticeSearchRequestDto, authorizationHeader);
+    public ResponseEntity<?> findByTitle(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByTitle(noticeSearchRequestDto);
         return ResponseEntity.ok(noticeResponseDto);
     }
 
     @PostMapping("/search-by-writer")
     @Operation(summary = "공지사항 작성자로 검색", description = "작성자로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto,
-                                         @RequestHeader("Authorization") String authorizationHeader) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByEmail(noticeSearchRequestDto, authorizationHeader);
+    public ResponseEntity<?> findByEmail(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByEmail(noticeSearchRequestDto);
         return ResponseEntity.ok(noticeResponseDto);
 
     }
@@ -59,25 +56,22 @@ public class NoticeController {
 
     @PostMapping("/write")
     @Operation(summary = "공지사항 작성", description = "새로운 공지사항을 생성합니다.")
-    public ResponseEntity<?> createNotice(NoticeCreateRequestDto noticeCreateRequestDto,
-                                          @RequestHeader("Authorization") String authorizationHeader) {
-        noticeService.createNotice(noticeCreateRequestDto, authorizationHeader);
+    public ResponseEntity<?> createNotice(@RequestBody NoticeCreateRequestDto noticeCreateRequestDto) {
+        noticeService.createNotice(noticeCreateRequestDto );
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/delete/{noticeId}")
     @Operation(summary = "공지사항 삭제", description = "특정 공지사항 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteNotice(@PathVariable int noticeId,
-                                             @RequestHeader("Authorization") String authorizationHeader) {
-        noticeService.deleteNotice(noticeId, authorizationHeader);
+    public ResponseEntity<Void> deleteNotice(@PathVariable int noticeId) {
+        noticeService.deleteNotice(noticeId);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/update")
     @Operation(summary = "공지사항 업데이트", description = "기존 공지사항을 수정합니다.")
-    public ResponseEntity<String> updateNotice(@RequestBody NoticeUpdateRequestDto noticeUpdateRequestDto,
-                                               @RequestHeader("Authorization")String authorizationHeader) {
-        int updatedNoticeId = noticeService.updateNotice(noticeUpdateRequestDto, authorizationHeader);
+    public ResponseEntity<String> updateNotice(@RequestBody NoticeUpdateRequestDto noticeUpdateRequestDto) {
+        int updatedNoticeId = noticeService.updateNotice(noticeUpdateRequestDto);
         return ResponseEntity.ok("Notice updated successfully with ID: " + updatedNoticeId);
     }
 
