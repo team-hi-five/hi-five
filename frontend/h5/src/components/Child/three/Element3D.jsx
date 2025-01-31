@@ -13,13 +13,13 @@ export function Sphere() {
     z: 0
   });
 
-  const colorList = [
-    "hsl(0, 86.10%, 60.60%)",   
-    "hsl(60, 80%, 85%)",  
-    "hsl(120, 86.30%, 60.00%)", 
-    "hsl(180, 70%, 85%)",  
+  const colorList = [  
+    "hsl(60, 97.90%, 63.30%)",  
+    "hsl(120, 88.80%, 68.60%)", 
+    "hsl(209, 91.20%, 73.10%)",  
     "hsl(270, 70%, 80%)", 
-    "hsl(355, 80%, 85%)"
+    "hsl(355, 80%, 85%)",
+    "hsl(24, 87.10%, 75.70%)"
   ]
   const randomColor = colorList[Math.floor(Math.random()*colorList.length)]
   // console.log(randomColor)
@@ -63,7 +63,7 @@ export function Sphere() {
   // 마우스 오버 핸들러
   const handlePointerOver = () => {
     const angle = Math.random() * Math.PI * 2; // 0-360도 랜덤 각도
-    const speed = 0.05; // 전체 속도
+    const speed = 0.15; // 전체 속도
   
     velocity.current = {
       x: Math.cos(angle) * speed,  // 각도에 따른 x 속도

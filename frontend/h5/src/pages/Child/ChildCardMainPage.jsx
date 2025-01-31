@@ -1,21 +1,20 @@
-import { useNavigate } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
+import "./ChildCss/ChildCardMainPage.css"
 
 function ChildCardMainPage() {
-    const navigate = useNavigate()
 
-    const goback = () => {
-        navigate('/child')
-    } 
     return (
-        <div>
-            <div className='ch-button'>
-                <button onClick={goback}>
-                    back
-                </button>
+        <div className='ch-card-main-container'>
+            <div className='ch-card-details-nav'>
+                <Link to='joy'>
+                <img src="\test\기쁘미.PNG" alt="" />
+                joy</Link>
+                <Link to='sadness'>sadness</Link>
+                <Link to='anger'>anger</Link>
+                <Link to='fear'>fear</Link>
+                <Link to='surprise'>surprise</Link>
             </div>
-            <div className='ch-card-main-title'>
-                <h1>내가 모은 감정 카드</h1>
-            </div>
+            <Outlet/>
 
         </div>
     );
