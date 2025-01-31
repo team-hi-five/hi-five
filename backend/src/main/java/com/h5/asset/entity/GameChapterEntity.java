@@ -21,13 +21,8 @@ import java.util.Set;
 public class GameChapterEntity {
 
     @Id
-    @Column(name = "emotion_id", nullable = false)
+    @Column(name = "game_chapter_id", nullable = false)
     private Integer id;
-
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "emotion_id", nullable = false)
-    private EmotionEntity emotion;
 
     @Size(max = 100)
     @NotNull
@@ -40,12 +35,12 @@ public class GameChapterEntity {
     private String chapterPic;
 
     @OneToMany(mappedBy = "emotion")
-    private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();
+    private Set<ChildGameChapterEntity> childGameChapters = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "emotion")
-    private Set<ChildStudyChapterEntity> childStudyChapterEntities = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "gameChapter")
+    private Set<ChildStudyChapterEntity> childStudyChapters = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "emotion")
-    private Set<GameStageEntity> gameStageEntities = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "gameChapter")
+    private Set<GameStageEntity> gameStages = new LinkedHashSet<>();
 
 }

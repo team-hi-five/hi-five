@@ -6,7 +6,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.cglib.core.Local;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -18,19 +21,21 @@ import java.util.Set;
 @NoArgsConstructor
 @Table(name = "child_game_chapter")
 public class ChildGameChapterEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "child_game_chapter_id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "emotion_id")
-    private GameChapterEntity emotion;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
-    private ChildUserEntity childUserEntity;
+    private ChildUserEntity childUser;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_chapter_id", nullable = false)
+    private GameChapterEntity gameChapter;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")

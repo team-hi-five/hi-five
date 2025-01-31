@@ -1,25 +1,26 @@
 package com.h5.game.entity;
 
+import com.h5.asset.entity.GameStageEntity;
+import com.h5.child.entity.ChildUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "game_log")
 public class GameLogEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "game_log_id", nullable = false)
     private Integer id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "child_game_session_id")
-    private ChildGameStageEntity childGameSession;
 
     @NotNull
     @Column(name = "selected_opt", nullable = false)
@@ -31,13 +32,28 @@ public class GameLogEntity {
 
     @NotNull
     @Column(name = "submit_dttm", nullable = false)
-    private Instant submitDttm;
+    private LocalDateTime submitDttm;
 
     @NotNull
     @Column(name = "consulted", nullable = false)
     private Boolean consulted = false;
 
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "child_game_stage_id", nullable = false)
+    private ChildGameStageEntity childGameStage;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "child_user_id", nullable = false)
+    private ChildUserEntity childUser;
+
     @OneToOne(mappedBy = "gameLogEntity")
-    private AiLogEntity aiLogEntity;
+    private AiLogEntity aiLog;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_stage_id", nullable = false)
+    private GameStageEntity gameStage;
 
 }

@@ -2,6 +2,7 @@ package com.h5.game.entity;
 
 import com.h5.asset.entity.GameStageEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,20 +14,23 @@ import java.util.Set;
 @Entity
 @Table(name = "child_game_stage")
 public class ChildGameStageEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "child_game_session_id", nullable = false)
+    @Column(name = "child_game_stage_id", nullable = false)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_stage_id")
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_stage_id", nullable = false)
     private GameStageEntity gameStage;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_chapter_id")
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_chapter_id", nullable = false)
     private ChildGameChapterEntity userChapter;
 
-    @OneToMany(mappedBy = "childGameSession")
-    private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "childGameStage")
+    private Set<GameLogEntity> gameLogs = new LinkedHashSet<>();
 
 }

@@ -1,7 +1,14 @@
 package com.h5.emotion.entity;
 
+import com.h5.asset.entity.GameStageEntity;
+import com.h5.statistic.entity.StatisticEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -14,5 +21,16 @@ public class EmotionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "emotion_id", nullable = false)
     private Integer id;
+
+    @Size(max = 20)
+    @NotNull
+    @Column(name = "emo", nullable = false, length = 20)
+    private String emo;
+
+    @OneToMany(mappedBy = "emotion")
+    private Set<GameStageEntity> gameStages = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "emotion")
+    private Set<StatisticEntity> statistics = new LinkedHashSet<>();
 
 }

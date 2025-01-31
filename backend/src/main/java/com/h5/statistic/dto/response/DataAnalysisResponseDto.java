@@ -1,4 +1,4 @@
-package com.h5.statistic.dto.data;
+package com.h5.statistic.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Setter
 @Getter
 @Builder
-public class PentagonAndStickDataDto {
+public class DataAnalysisResponseDto {
 
     private Integer childUserId;
     private String childName;
