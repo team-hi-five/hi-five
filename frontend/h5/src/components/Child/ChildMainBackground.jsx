@@ -1,11 +1,13 @@
-import { Canvas } from '@react-three/fiber';
-import Element3D from './three/Element3D';
+import './ChildCss/ChildMainBackground.css'
+import Background from './three/Background';
 
 function App() {
   return (
-    <Canvas>
-        <Element3D/>
-    </Canvas>
+    <>
+      <div>
+        <Background/>
+      </div>
+    </>
 
   );
 }

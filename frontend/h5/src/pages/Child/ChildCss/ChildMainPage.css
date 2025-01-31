@@ -8,8 +8,20 @@
     font-family: 'Jua';
 } */
 
+
+.ch-main-foreground{
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+
 /* 로그인상태 스타일 */
-.ch-login-state{
+.ch-login-state {
     display: flex;
     justify-content: center;
     border-radius: 20px !important;
@@ -18,11 +30,15 @@
     background: #ffffff !important;
     position: relative;
     max-width: 600px;
+    pointer-events: auto;
 }
 
+/* 카드 내부 텍스트 스타일링 */
 .ch-login-state .p-card-body {
     text-align: center;
     padding: 20px 40px;
+    font-size: clamp(18px, 2.5vw, 24px); /* 반응형 폰트 크기 */
+    font-weight: 600; /* 글씨 진하게 */
 }
 
 /* 각 기능으로 이동하는 페이지 스타일일 */
@@ -33,33 +49,56 @@
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+    pointer-events: auto; 
+    position: relative; 
 }
 
+/* 카드 스타일  */
 .ch-class, .ch-review, .ch-cardmain, .ch-chatbot {
-    background-color: #E6F3FF !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box; 
+    background-color: #A0D6FF !important;
     border-radius: 15px !important;
-    padding: 20px !important;
+    padding: 2rem !important;
     cursor: pointer;
     transition: transform 0.2s;
+    pointer-events: auto;
 }
 
 /* 카드 호버 효과 */
 .ch-class:hover, .ch-review:hover, .ch-cardmain:hover, .ch-chatbot:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
 } 
 
 /* 제목 */
 .ch-class h1, .ch-review h1, .ch-cardmain h1, .ch-chatbot h1 {
-    font-size: 24px;
-    margin-bottom: 8px;
+    font-size: clamp(20px, 4vw, 32px); /* 반응형 폰트 크기 */
+    margin-bottom: 16px;
     color: #333;
+    text-align: center; /* 가운데 정렬 */
+    width: 100%;
+    font-weight: 600;
 }
 
 /* 부제목 */
 .ch-class p, .ch-review p, .ch-cardmain p, .ch-chatbot p {
-    font-size: 16px;
-    color: #666;
+    font-size: clamp(14px, 2vw, 18px); /* 반응형 폰트 크기 */
+    color: #333;
     margin: 0;
+    text-align: center; /* 가운데 정렬 */
+    width: 100%;
+    line-height: 1.5;
 }
 
+/* 반응형 미디어 쿼리 */
+@media screen and (max-width: 768px) {
+    .ch-class h1, .ch-review h1, .ch-cardmain h1, .ch-chatbot h1 {
+        margin-bottom: 12px;
+    }
+}

@@ -5,7 +5,7 @@ import * as THREE from 'three'
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
-// 카메라라
+// 카메라
 const camera = new THREE.PerspectiveCamera(
   90,                                       // 수직 방향으로 보이는 시야각
   window.innerWidth / window.innerHeight,   // 가로/세로 비율율
