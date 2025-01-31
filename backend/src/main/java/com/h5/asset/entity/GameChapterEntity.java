@@ -1,6 +1,5 @@
 package com.h5.asset.entity;
 
-import com.h5.emotion.entity.EmotionEntity;
 import com.h5.game.entity.ChildGameChapterEntity;
 import com.h5.study.entity.ChildStudyChapterEntity;
 import jakarta.persistence.*;

@@ -1,7 +1,6 @@
 package com.h5.game.repository;
 
 import com.h5.game.entity.GameLogEntity;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
