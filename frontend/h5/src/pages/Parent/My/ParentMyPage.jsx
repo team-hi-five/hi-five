@@ -1,4 +1,4 @@
-import ParentHeader from "../../components/Parent/ParentHeader";
+import ParentHeader from "../../../components/Parent/ParentHeader";
 import "/src/pages/Parent/ParentCss/ParentMyPage.css";
 import PasswordChangeModal from "/src/components/modals/PasswordChangeModal";
 import DoubleButtonAlert from "/src/components/common/DoubleButtonAlert";
