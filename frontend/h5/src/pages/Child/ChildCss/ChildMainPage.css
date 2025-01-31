@@ -4,6 +4,10 @@
 @import 'primeflex/primeflex.css';                                 /* flexbox & grid */
 
 
+/* * {
+    font-family: 'Jua';
+} */
+
 /* 로그인상태 스타일 */
 .ch-login-state{
     display: flex;

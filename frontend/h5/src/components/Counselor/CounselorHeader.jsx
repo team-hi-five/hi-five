@@ -1,4 +1,4 @@
-import './CounselorHeader.css';
+import '../Counselor/Css/CounselorHeader.css';
 import { Link } from 'react-router-dom';
 
 

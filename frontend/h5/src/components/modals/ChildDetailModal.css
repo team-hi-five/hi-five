@@ -179,18 +179,20 @@
 }
 
 .save-btn {
-    background: #3A5E8D;
-    color: white;
+    /* background: #3A5E8D; */
+    background: none;
+    color: #3A5E8D;
     border: none;
-    padding: 5px 10px;
+    padding: 2px 8px;
     border-radius: 20px;
     cursor: pointer;
     font-size: 13px;
+    font-weight: bold;
 }
 
-.save-btn:hover {
+/* .save-btn:hover {
     background: #2c4b76;
-}
+} */
 
   .loading-overlay {
     position: fixed;

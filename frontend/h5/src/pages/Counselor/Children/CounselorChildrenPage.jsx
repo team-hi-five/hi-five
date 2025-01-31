@@ -1,9 +1,9 @@
-import CounselorHeader from "../../components/Counselor/CounselorHeader";
-import Footer from "../../components/common/footer";
-import CoChildCard from "../../components/Counselor/CoChildCard";
-import ChildRegistrationModal from "../../components/modals/ChildRegistrationModal"
-import './CounselorChildrenPage.css'
-import DeleteChildModal from "../../components/modals/DeleteChildModal";
+import CounselorHeader from "../../../components/Counselor/CounselorHeader";
+import Footer from "../../../components/common/footer";
+import CoChildCard from "../../../components/Counselor/CoChildCard"
+import ChildRegistrationModal from "../../../components/modals/ChildRegistrationModal"
+import '../Css/CounselorChildrenPage.css'
+import DeleteChildModal from "../../../components/modals/DeleteChildModal"
 import { InputText } from "primereact/inputtext";
 import { useState } from "react";
 import { Dropdown } from 'primereact/dropdown';
@@ -22,7 +22,7 @@ function CounselorChildrenPage() {
       childName: '김민준',
       age: 7,
       parentName: '이영희',
-      imageUrl: '/kid.png',
+      imageUrl: '/test/kid.png',
       gender: '여',
       birthDate: '1997.06.10',
       parentPhone: '010-1111-1111',
@@ -37,7 +37,7 @@ function CounselorChildrenPage() {
       childName: '박지우',
       age: 8,
       parentName: '이영희',
-      imageUrl: '/kid.png',
+      imageUrl: '/test/kid.png',
       gender: '여',
       birthDate: '1997.06.10',
       parentPhone: '010-1111-1111',
@@ -52,7 +52,7 @@ function CounselorChildrenPage() {
       childName: '박지우',
       age: 6,
       parentName: '이영희',
-      imageUrl: '/kid.png',
+      imageUrl: '/test/kid.png',
       gender: '여',
       birthDate: '1997.06.10',
       parentPhone: '010-1111-1111',
@@ -67,7 +67,7 @@ function CounselorChildrenPage() {
       childName: '최유진',
       age: 7,
       parentName: '최재현',
-      imageUrl: '/kid.png',
+      imageUrl: '/test/kid.png',
       gender: '여',
       birthDate: '1997.06.10',
       parentPhone: '010-1111-1111',
@@ -82,7 +82,7 @@ function CounselorChildrenPage() {
       childName: '정하은',
       age: 8,
       parentName: '정민석',
-      imageUrl: '/kid.png',
+      imageUrl: '/test/kid.png',
       gender: '여',
       birthDate: '1997.06.10',
       parentPhone: '010-1111-1111',
@@ -97,7 +97,7 @@ function CounselorChildrenPage() {
       childName: '강도윤',
       age: 6,
       parentName: '강병호',
-      imageUrl: '/kid.png',
+      imageUrl: '/test/kid.png',
       gender: '여',
       birthDate: '1997.06.10',
       parentPhone: '010-1111-1111',
@@ -112,7 +112,7 @@ function CounselorChildrenPage() {
       childName: '윤서아',
       age: 7,
       parentName: '이영희',
-      imageUrl: '/kid.png',
+      imageUrl: '/test/kid.png',
       gender: '여',
       birthDate: '1997.06.10',
       parentPhone: '010-1111-1111',
@@ -198,15 +198,19 @@ function CounselorChildrenPage() {
                 options={searchOptions} 
                 className="co-search-dropdown"
               />
-              <div className="co-search-container">
+              <div>
+                
+              </div>
                 <InputText 
                   placeholder="이름을 입력하세요" 
-                  className="co-search-input"
+                  className="co-search-input2"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
-                />
-                <i className="pi pi-search co-search-icon"></i>
-              </div>
+                >
+              <i className="pi pi-search co-search-icon"></i>
+                </InputText>
+              {/* <div className="co-search-container">
+              </div> */}
             </div>
           </div>
         </div>
@@ -253,7 +257,6 @@ function CounselorChildrenPage() {
           onClose={() => setIsDeleteListModalOpen(false)}
         />
         <Footer />
-        
       </>
 
     )

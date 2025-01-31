@@ -1,4 +1,4 @@
-import './Game.css'
+import '../Child/ChildCss/Game.css'
 
 function Game() {
 

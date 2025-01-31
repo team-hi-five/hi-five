@@ -4,7 +4,7 @@ import { Carousel } from 'primereact/carousel';
 import { useState, useEffect } from 'react';
 import CounselorHeader from "../../components/Counselor/CounselorHeader";
 import Footer from "../../components/common/footer";
-import './CounselorMainPage.css';
+import '../Counselor/Css/CounselorMainPage.css';
 
 const CounselorMainPage = () => {
   const notices = [

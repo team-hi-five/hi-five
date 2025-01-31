@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import '../../styles/Child/ChildMainPage.css'
+import './ChildCss/ChildMainPage.css'
 import { Card } from 'primereact/card';
 import Header from '../../components/Child/ChildLayout';
 // import ChildMainBackground from '../../components/Child/ChildMainBackground';
