@@ -13,5 +13,4 @@ public class FaqCreateRequestDto {
     private String title;
     private String content;
     private String faqAnswer;
-    private String consultantEmail;
 }
