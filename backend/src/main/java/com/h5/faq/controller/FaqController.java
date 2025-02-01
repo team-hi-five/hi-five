@@ -22,23 +22,23 @@ public class FaqController {
 
     private final FaqService faqService;
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     @Operation(summary = "FAQ 목록 조회", description = "삭제되지 않은 FAQ 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAll(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
+    public ResponseEntity<?> findAll(@ModelAttribute FaqSearchRequestDto faqSearchRequestDto) {
         FaqListResponseDto faqResponseDto = faqService.findAll(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
-    @PostMapping("/search-by-title")
+    @GetMapping("/search-by-title")
     @Operation(summary = "FAQ 제목 검색", description = "제목으로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitle(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
+    public ResponseEntity<?> findByTitle(@ModelAttribute FaqSearchRequestDto faqSearchRequestDto) {
         FaqListResponseDto faqResponseDto = faqService.findByTitle(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
-    @PostMapping("/search-by-writer")
+    @GetMapping("/search-by-writer")
     @Operation(summary = "FAQ 작성자로 검색", description = "작성자로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
+    public ResponseEntity<?> findByEmail(@ModelAttribute FaqSearchRequestDto faqSearchRequestDto) {
         FaqListResponseDto faqResponseDto = faqService.findByEmail(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
