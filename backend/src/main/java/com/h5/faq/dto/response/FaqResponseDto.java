@@ -12,5 +12,5 @@ public class FaqResponseDto {
     private String title;
     private String content;
     private String consultantUserEmail;
-
+    private String faqAnswer;
 }

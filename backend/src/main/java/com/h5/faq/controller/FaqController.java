@@ -4,13 +4,12 @@ import com.h5.faq.dto.request.FaqCreateRequestDto;
 import com.h5.faq.dto.request.FaqSearchRequestDto;
 import com.h5.faq.dto.request.FaqUpdateRequestDto;
 import com.h5.faq.dto.response.FaqDetailResponseDto;
-import com.h5.faq.dto.response.FaqResponseDto;
+import com.h5.faq.dto.response.FaqListResponseDto;
 import com.h5.faq.service.FaqService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,21 +25,21 @@ public class FaqController {
     @PostMapping("/list")
     @Operation(summary = "FAQ 목록 조회", description = "삭제되지 않은 FAQ 목록을 페이징 형태로 반환합니다.")
     public ResponseEntity<?> findAll(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
-        Page<FaqResponseDto> faqResponseDto = faqService.findAll(faqSearchRequestDto);
+        FaqListResponseDto faqResponseDto = faqService.findAll(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
     @PostMapping("/search-by-title")
     @Operation(summary = "FAQ 제목 검색", description = "제목으로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
     public ResponseEntity<?> findByTitle(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
-        Page<FaqResponseDto> faqResponseDto = faqService.findByTitle(faqSearchRequestDto);
+        FaqListResponseDto faqResponseDto = faqService.findByTitle(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
     @PostMapping("/search-by-writer")
     @Operation(summary = "FAQ 작성자로 검색", description = "작성자로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
     public ResponseEntity<?> findByEmail(@RequestBody FaqSearchRequestDto faqSearchRequestDto) {
-        Page<FaqResponseDto> faqResponseDto = faqService.findByEmail(faqSearchRequestDto);
+        FaqListResponseDto faqResponseDto = faqService.findByEmail(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
     }
 
