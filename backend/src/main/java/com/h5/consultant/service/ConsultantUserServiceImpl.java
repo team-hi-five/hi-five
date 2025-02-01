@@ -69,7 +69,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     }
 
     private String getFileUrl(int tblId) {
-        return fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl();
+        return !fileService.getFileUrl(FileEntity.TblType.P, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl() : "Default Image";
     }
 
     @Override
@@ -149,6 +149,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         return true;
     }
 
+    @Transactional
     @Override
     public List<GetMyChildrenResponseDto> getChildrenForAuthenticatedConsultant() {
         String consultantEmail = getAuthenticatedEmail();

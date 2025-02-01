@@ -6,10 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user/consultant")
@@ -52,9 +49,9 @@ public class ConsultantUserController {
         return ResponseEntity.ok(consultantUserService.getChildrenForAuthenticatedConsultant());
     }
 
-    @PostMapping("/get-child")
-    public ResponseEntity<?> getChild(@Valid @RequestBody GetChildRequestDto getChildRequestDto) {
-        return ResponseEntity.ok(consultantUserService.getChild(getChildRequestDto.getChildUserId()));
+    @GetMapping("/get-child")
+    public ResponseEntity<?> getChild(@Valid @RequestParam int childUserId) {
+        return ResponseEntity.ok(consultantUserService.getChild(childUserId));
     }
 
     @Transactional

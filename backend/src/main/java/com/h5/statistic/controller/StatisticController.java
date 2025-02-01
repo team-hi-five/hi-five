@@ -20,9 +20,9 @@ public class StatisticController {
         this.statisticService = statisticService;
     }
 
-    @PostMapping("/data-analysis")
-    public ResponseEntity<?> dataAnalysis(@Valid @RequestBody DataAnalysisRequestDto dataAnalysisRequestDto) {
-        return ResponseEntity.ok(statisticService.dataAnalysis(dataAnalysisRequestDto.getChildUserId()));
+    @GetMapping("/data-analysis")
+    public ResponseEntity<?> dataAnalysis(@Valid @RequestParam int childUserId) {
+        return ResponseEntity.ok(statisticService.dataAnalysis(childUserId));
     }
 
     @GetMapping("/get-dates/chatbot")
