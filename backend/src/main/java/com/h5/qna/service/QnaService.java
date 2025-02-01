@@ -1,11 +1,11 @@
 package com.h5.qna.service;
 
+import com.h5.qna.dto.request.QnaCommentCreateRequestDto;
 import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaRequestDto;
+import com.h5.qna.dto.request.QnaSearchRequestDto;
 import com.h5.qna.dto.request.QnaUpdateRequestDto;
 import com.h5.qna.dto.response.QnaDetailResponseDto;
-import com.h5.qna.dto.response.QnaResponseDto;
-import org.springframework.data.domain.Page;
+import com.h5.qna.dto.response.QnaListResponseDto;
 
 public interface QnaService {
     //c
@@ -13,13 +13,13 @@ public interface QnaService {
 
     //r
     //전체 글
-    Page<QnaResponseDto> findAll(QnaRequestDto qnaRequestDto);
+    QnaListResponseDto findAll(QnaSearchRequestDto qnaSearchRequestDto);
 
     //제목으로
-    Page<QnaResponseDto> findByTitle(QnaRequestDto qnaRequestDto);
+    QnaListResponseDto findByTitle(QnaSearchRequestDto qnaSearchRequestDto);
 
     //작성자로
-    Page<QnaResponseDto> findByEmail(QnaRequestDto qnaRequestDto);
+    QnaListResponseDto findByEmail(QnaSearchRequestDto qnaSearchRequestDto);
 
     //상세
     QnaDetailResponseDto findById(int qnaId);
@@ -31,4 +31,6 @@ public interface QnaService {
 
     //d
     void deleteQna(int qnaId);
+
+    void createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto);
 }

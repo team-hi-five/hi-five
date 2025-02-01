@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -28,7 +30,7 @@ public class QnaEntity {
     @NotNull
     @ColumnDefault("0")
     @Column(name = "view_cnt", nullable = false)
-    private Integer viewCnt;
+    private Integer viewCnt = 0;
 
     @NotNull
     @Lob
@@ -36,21 +38,32 @@ public class QnaEntity {
     private String content;
 
     @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "create_dttm", nullable = false)
-    private String createDttm;
+    private LocalDateTime createDttm;
 
     @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "update_dttm", nullable = false)
-    private String updateDttm;
+    private LocalDateTime updateDttm;
 
     @Column(name = "delete_dttm")
-    private String deleteDttm;
+    private LocalDateTime deleteDttm;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parent_user_id", nullable = false)
     private ParentUserEntity parentUser;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createDttm = LocalDateTime.now();
+        this.updateDttm = LocalDateTime.now();
+        if(this.viewCnt == null){
+            this.viewCnt = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updateDttm = LocalDateTime.now();
+    }
 }
