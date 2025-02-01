@@ -24,14 +24,14 @@ public class DeleteUserRequestController {
     }
 
     // 탈퇴 승인
-    @GetMapping("/approve/{deleteUserRequestId}")
-    public ResponseEntity<?> approve(@Valid @PathVariable Integer deleteUserRequestId) {
+    @GetMapping("/approve")
+    public ResponseEntity<?> approve(@Valid @RequestParam Integer deleteUserRequestId) {
         return ResponseEntity.ok(deleteUserRequestService.deleteApprove(deleteUserRequestId));
     }
 
     // 탈퇴 거절
-    @GetMapping("/reject/{deleteUserRequestId}")
-    public ResponseEntity<?> reject(@Valid @PathVariable Integer deleteUserRequestId) {
+    @GetMapping("/reject")
+    public ResponseEntity<?> reject(@Valid @RequestParam Integer deleteUserRequestId) {
         return ResponseEntity.ok(deleteUserRequestService.deleteReject(deleteUserRequestId));
     }
 

@@ -125,17 +125,17 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
                     Set<GetMyDeleteChildResponseDto> childDtos = deleteUserRequestEntity.getParentUser().getChildUserEntities()
                             .stream()
                             .map(childUserEntity -> GetMyDeleteChildResponseDto.builder()
-                                    .child_user_id(childUserEntity.getId())
-                                    .child_name(childUserEntity.getName())
-                                    .child_age(getAge(String.valueOf(childUserEntity.getBirth())))
+                                    .childUserId(childUserEntity.getId())
+                                    .childName(childUserEntity.getName())
+                                    .childAge(getAge(String.valueOf(childUserEntity.getBirth())))
                                     .gender(childUserEntity.getGender())
                                     .build())
                             .collect(Collectors.toSet());
 
                     return GetMyDeleteResponseDto.builder()
-                            .delete_user_request_id(deleteUserRequestEntity.getId())
-                            .parent_user_id(deleteUserRequestEntity.getParentUser().getId())
-                            .parent_name(deleteUserRequestEntity.getParentUser().getName())
+                            .deleteUserRequestId(deleteUserRequestEntity.getId())
+                            .parentUserId(deleteUserRequestEntity.getParentUser().getId())
+                            .parentName(deleteUserRequestEntity.getParentUser().getName())
                             .children(childDtos)
                             .build();
                 })

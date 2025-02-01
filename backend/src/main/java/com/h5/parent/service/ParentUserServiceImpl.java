@@ -24,14 +24,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ParentUserServiceImpl implements ParentUserService {
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final ParentUserRepository parentUserRepository;
     private final ConsultantUserRepository consultantUserRepository;
@@ -97,9 +94,11 @@ public class ParentUserServiceImpl implements ParentUserService {
         for (ChildUserEntity child : childUserEntities) {
             int age = Period.between(child.getBirth(), LocalDate.now()).getYears();
 
+            String profileImgUrl = !fileService.getFileUrl(FileEntity.TblType.P, child.getId()).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, child.getId()).get(0).getUrl() : "Default Image";
+
             myChildInfos.add(MyChildInfo.builder()
                     .childId(child.getId())
-                    .profileImgUrl(fileService.getFileUrl(FileEntity.TblType.P, child.getId()).get(0).getUrl())
+                    .profileImgUrl(profileImgUrl)
                     .name(child.getName())
                     .age(age)
                     .gender(child.getGender())
