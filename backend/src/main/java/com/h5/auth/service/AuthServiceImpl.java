@@ -73,12 +73,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private ConsultantUserEntity getConsultantUser(String email) {
-        return consultantUserRepository.findByEmail(email)
+        return consultantUserRepository.findByEmailAndDeleteDttmIsNull(email)
                 .orElseThrow(UserNotFoundException::new);
     }
 
     private ParentUserEntity getParentUser(String email) {
-        return parentUserRepository.findByEmail(email)
+        return parentUserRepository.findByEmailAndDeleteDttmIsNull(email)
                 .orElseThrow(UserNotFoundException::new);
     }
 

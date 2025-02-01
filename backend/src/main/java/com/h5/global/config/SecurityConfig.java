@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
                         .requestMatchers("/auth/login").permitAll() // 로그인 API
                         .requestMatchers("/user/consultant/find-id", "/user/consultant/temp-pwd").permitAll()
+                        .requestMatchers("/user/parent/find-id", "/user/parent/temp-pwd").permitAll()
                         .anyRequest().authenticated()
                 );
 

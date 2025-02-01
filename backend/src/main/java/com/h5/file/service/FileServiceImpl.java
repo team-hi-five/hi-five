@@ -7,9 +7,13 @@ import com.h5.file.repository.FileRepository;
 import com.h5.global.exception.FileDeleteException;
 import com.h5.global.exception.FileNotFoundException;
 import com.h5.global.exception.FileUploadIOException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +22,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +37,9 @@ public class FileServiceImpl implements FileService {
 
     @Value("${file.access.url.prefix}")
     private String fileAccessUrlPrefix;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public FileServiceImpl(FileRepository fileRepository) {
         this.fileRepository = fileRepository;
@@ -49,6 +57,9 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<GetFileUrlResponseDto> getFileUrl(FileEntity.TblType tblType, int tblId) {
+        Session session = entityManager.unwrap(Session.class);
+        session.enableFilter("activeFilter");
+
         List<FileEntity> fileEntities = fileRepository.findAllByTblTypeAndTblId(tblType, tblId);
 
         List<GetFileUrlResponseDto> responseDtos = new ArrayList<>();
@@ -64,6 +75,9 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public Resource downloadFile(Integer fileId) {
+        Session session = entityManager.unwrap(Session.class);
+        session.enableFilter("activeFilter");
+
         FileEntity fileEntity = fileRepository.findById(fileId)
                 .orElseThrow(() -> new FileNotFoundException("File not found: " + fileId));
 
@@ -72,6 +86,9 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public String getOriginFileName(Integer fileId) {
+        Session session = entityManager.unwrap(Session.class);
+        session.enableFilter("activeFilter");
+
         return fileRepository.findById(fileId)
                 .orElseThrow(() -> new FileNotFoundException("File not found: " + fileId))
                 .getOriginFileName();
@@ -79,16 +96,15 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void deleteFile(Integer fileId) {
+        Session session = entityManager.unwrap(Session.class);
+        session.enableFilter("activeFilter");
+
         FileEntity fileEntity = fileRepository.findById(fileId)
                 .orElseThrow(() -> new FileNotFoundException("File not found: " + fileId));
 
-        try {
-            Files.deleteIfExists(Paths.get(profileImgUploadDir).resolve(fileEntity.getFilePath()));
-        } catch (IOException e) {
-            throw new FileDeleteException("Failed to delete file: " + fileEntity.getFilePath());
-        }
+        fileEntity.setDeleteDttm(LocalDateTime.now().toString());
 
-        fileRepository.delete(fileEntity);
+        fileRepository.save(fileEntity);
     }
 
     private FileEntity saveFile(MultipartFile file, FileEntity.TblType tblType, int tblId) {

@@ -1,6 +1,7 @@
 package com.h5.parent.repository;
 
 import com.h5.parent.entity.ParentUserEntity;
+import com.mongodb.client.MongoIterable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,4 +21,6 @@ public interface ParentUserRepository extends JpaRepository<ParentUserEntity, In
     Optional<ParentUserEntity> findEmailByNameAndPhone(String name, String phone);
 
     boolean existsByEmail(String email);
+
+    Optional<ParentUserEntity> findByEmailAndDeleteDttmIsNull(String email);
 }

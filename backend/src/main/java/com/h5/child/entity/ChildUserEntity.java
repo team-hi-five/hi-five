@@ -74,7 +74,7 @@ public class ChildUserEntity {
     private ConsultantUserEntity consultantUserEntity;
 
     @Column(name = "delete_dttm")
-    private Instant deleteDttm;
+    private String deleteDttm;
 
     @OneToMany(mappedBy = "childUserEntity")
     private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();

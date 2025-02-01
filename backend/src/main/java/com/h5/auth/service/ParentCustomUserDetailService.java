@@ -18,7 +18,7 @@ public class ParentCustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return parentUserRepository.findByEmail(email)
+        return parentUserRepository.findByEmailAndDeleteDttmIsNull(email)
                 .map(ParentCustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

@@ -66,6 +66,8 @@ public class StatisticServiceImpl implements StatisticService {
                             .getName())
                     .emotionId(emotionEntityId)
                     .rating(statisticEntity.getRating())
+                    .totalTryCnt(statisticEntity.getTrialCnt())
+                    .totalCrtCnt(statisticEntity.getCrtCnt())
                     .stageCrtRate1(statisticEntity.getStageCrtRate1())
                     .stageCrtRate2(statisticEntity.getStageCrtRate2())
                     .stageCrtRate3(statisticEntity.getStageCrtRate3())
