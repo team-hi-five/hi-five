@@ -5,6 +5,9 @@ import ParentBoardPage from "/src/pages/Parent/Board/ParentBoardPage"
 import ParentMyPage from "/src/pages/Parent/My/ParentMyPage"
 import ParentBoardDetailPage from "/src/pages/Parent/Board/ParentBoardDetailPage"
 import ParentBoardWritePage from "/src/pages/Parent/Board/ParentBoardWritePage"
+import ParentVideoSinglePage from "/src/pages/Parent/Child/ParentViedoSinglePage"
+import ParentVideoMultiplePage from "/src/pages/Parent/Child/ParentVideoMultiplePage"
+import ParentVideoCallPage from "/src/pages/Parent/Schedule/ParentVideoCallPage"
 
 
 function AppParent(){
@@ -17,8 +20,11 @@ function AppParent(){
             <Route path="/my" element={<ParentMyPage />} />
 
             {/* ParertChild에서 이동가능한 페이지지 */}
-            <Route path="/child/video/single" element={<ParentBoardDetailPage />} />
-            <Route path="child/video/multiple" element={<ParentBoardWritePage />} />
+            <Route path="/child/video/single" element={<ParentVideoSinglePage />} />
+            <Route path="/child/video/multiple" element={<ParentVideoMultiplePage />} />
+
+            {/* ParertSchedult에서 이동가능한 페이지지 */}
+            <Route path="/schedule/call" element={<ParentVideoCallPage />} />
 
             {/* BoardPage에서 이동가능한 페이지지 */}
             <Route path="/board/:type/:no" element={<ParentBoardDetailPage />} />
