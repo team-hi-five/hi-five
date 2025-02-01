@@ -23,21 +23,21 @@ public class NoticeController {
 
     private final NoticeService noticeService;
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     @Operation(summary = "공지 목록 조회", description = "삭제되지 않은 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<NoticeListResponseDto> findAll(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+    public ResponseEntity<NoticeListResponseDto> findAll(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
         return ResponseEntity.ok(noticeService.findAll(noticeSearchRequestDto));
     }
 
-    @PostMapping("/search-by-title")
+    @GetMapping("/search-by-title")
     @Operation(summary = "공지사항 제목 검색", description = "제목으로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<NoticeListResponseDto> findByTitle(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+    public ResponseEntity<NoticeListResponseDto> findByTitle(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
         return ResponseEntity.ok(noticeService.findByTitle(noticeSearchRequestDto));
     }
 
-    @PostMapping("/search-by-writer")
+    @GetMapping("/search-by-writer")
     @Operation(summary = "공지사항 작성자로 검색", description = "작성자로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<NoticeListResponseDto> findByEmail(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+    public ResponseEntity<NoticeListResponseDto> findByEmail(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
         return ResponseEntity.ok(noticeService.findByEmail(noticeSearchRequestDto));
     }
 
