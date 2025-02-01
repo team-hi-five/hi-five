@@ -9,5 +9,7 @@ import java.util.Optional;
 @Repository
 public interface QnaAnswerRepository extends JpaRepository<QnaAnswerEntity, Integer> {
     //BoardId로 댓글 가져오기
-    Optional<QnaAnswerEntity> findByBoardId(Integer qnaId);
+    Optional<QnaAnswerEntity> findByQnaEntity_Id(Integer qnaId);
+
+
 }

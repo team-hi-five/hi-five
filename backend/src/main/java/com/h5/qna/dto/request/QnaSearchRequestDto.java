@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.Pageable;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class QnaRequestDto {
+public class QnaSearchRequestDto {
     private String keyword;
-    private Pageable pageable;
+    private int pageNumber = 0;
+    private int pageSize = 10;
 }

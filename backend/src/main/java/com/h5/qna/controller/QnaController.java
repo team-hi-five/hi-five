@@ -1,16 +1,16 @@
 package com.h5.qna.controller;
 
+import com.h5.qna.dto.request.QnaCommentCreateRequestDto;
 import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaRequestDto;
+import com.h5.qna.dto.request.QnaSearchRequestDto;
 import com.h5.qna.dto.request.QnaUpdateRequestDto;
 import com.h5.qna.dto.response.QnaDetailResponseDto;
-import com.h5.qna.dto.response.QnaResponseDto;
+import com.h5.qna.dto.response.QnaListResponseDto;
 import com.h5.qna.service.QnaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,24 +23,24 @@ public class QnaController {
 
     private final QnaService qnaService;
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     @Operation(summary = "QnA 목록 조회", description = "삭제되지 않은 QnA 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAll(@RequestBody QnaRequestDto qnaRequestDto) {
-        Page<QnaResponseDto> qnaResponseDto = qnaService.findAll(qnaRequestDto);
+    public ResponseEntity<?> findAll(@ModelAttribute QnaSearchRequestDto qnaSearchRequestDto) {
+        QnaListResponseDto qnaResponseDto = qnaService.findAll(qnaSearchRequestDto);
         return ResponseEntity.ok(qnaResponseDto);
     }
 
-    @PostMapping("/search-by-title")
+    @GetMapping("/search-by-title")
     @Operation(summary = "QnA 제목 검색", description = "제목으로 검색한 QnA 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitle(@RequestBody QnaRequestDto qnaRequestDto) {
-        Page<QnaResponseDto> qnaResponseDto = qnaService.findByTitle(qnaRequestDto);
+    public ResponseEntity<?> findByTitle(@ModelAttribute QnaSearchRequestDto qnaSearchRequestDto) {
+        QnaListResponseDto qnaResponseDto = qnaService.findByTitle(qnaSearchRequestDto);
         return ResponseEntity.ok(qnaResponseDto);
     }
 
-    @PostMapping("/search-by-writer")
+    @GetMapping("/search-by-writer")
     @Operation(summary = "QnA 작성자로 검색", description = "작성자로 검색한 QnA 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(@RequestBody QnaRequestDto qnaRequestDto) {
-        Page<QnaResponseDto> qnaResponseDto = qnaService.findByEmail(qnaRequestDto);
+    public ResponseEntity<?> findByEmail(@ModelAttribute QnaSearchRequestDto qnaSearchRequestDto) {
+        QnaListResponseDto qnaResponseDto = qnaService.findByEmail(qnaSearchRequestDto);
         return ResponseEntity.ok(qnaResponseDto);
     }
 
@@ -55,6 +55,12 @@ public class QnaController {
     @Operation(summary = "QnA 작성", description = "새로운 QnA를 생성합니다.")
     public ResponseEntity<?> createQna(@RequestBody QnaCreateRequestDto qnaCreateRequestDto) {
         qnaService.createQna(qnaCreateRequestDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("create-comment")
+     public ResponseEntity<?> createComment(@RequestBody QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
+        qnaService.createQnaComment(qnaCommentCreateRequestDto);
         return ResponseEntity.ok().build();
     }
 
