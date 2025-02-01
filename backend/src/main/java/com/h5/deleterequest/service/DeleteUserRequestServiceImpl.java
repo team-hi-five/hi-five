@@ -2,7 +2,6 @@ package com.h5.deleterequest.service;
 
 import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
-import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.deleterequest.dto.response.*;
 import com.h5.deleterequest.entity.DeleteUserRequestEntity;
 import com.h5.deleterequest.repository.DeleteUserRequestRepository;
@@ -10,7 +9,6 @@ import com.h5.global.exception.UserNotFoundException;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import jakarta.transaction.Transactional;
-import org.hibernate.sql.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

@@ -4,7 +4,6 @@ import com.h5.file.dto.request.FileUploadRequestDto;
 import com.h5.file.dto.response.GetFileUrlResponseDto;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.repository.FileRepository;
-import com.h5.global.exception.FileDeleteException;
 import com.h5.global.exception.FileNotFoundException;
 import com.h5.global.exception.FileUploadIOException;
 import jakarta.persistence.EntityManager;
@@ -13,7 +12,6 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

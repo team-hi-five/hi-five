@@ -5,7 +5,6 @@ import com.h5.parent.entity.ParentUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter

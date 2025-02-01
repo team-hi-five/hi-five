@@ -3,14 +3,12 @@ package com.h5.file.controller;
 import com.h5.file.dto.request.FileUploadRequestDto;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.service.FileService;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.print.attribute.standard.Media;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,9 +1,6 @@
 package com.h5.consultant.repository;
 
 import com.h5.consultant.entity.ConsultantUserEntity;
-import com.mongodb.client.MongoIterable;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

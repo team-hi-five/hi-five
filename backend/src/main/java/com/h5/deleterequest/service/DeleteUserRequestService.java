@@ -4,7 +4,6 @@ import com.h5.deleterequest.dto.response.DeleteRequestResponseDto;
 import com.h5.deleterequest.dto.response.DeleteUserRequestAprproveResponseDto;
 import com.h5.deleterequest.dto.response.DeleteUserRequestRejectResponseDto;
 import com.h5.deleterequest.dto.response.GetMyDeleteResponseDto;
-import com.h5.deleterequest.entity.DeleteUserRequestEntity;
 
 import java.util.List;
 
