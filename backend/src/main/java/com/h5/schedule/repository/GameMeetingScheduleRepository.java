@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -16,7 +18,7 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
             "AND DATE(g.schdlDttm) = :date AND g.deleteDttm IS NULL")
     List<GameMeetingScheduleEntity> findByHostIdAndSchdlDttm(
             @Param("consultantUserId") Integer consultantUserId,
-            @Param("date") String date);
+            @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(g.schdlDttm) FROM GameMeetingScheduleEntity g " +
             "WHERE g.childUserEntity.id = :childUserId AND g.deleteDttm IS NULL")
@@ -29,12 +31,13 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
     @Query("SELECT TIME_FORMAT(g.schdlDttm, '%H:%i') FROM GameMeetingScheduleEntity g " +
             "WHERE g.host.id = :consultantUserId AND DATE(g.schdlDttm) = :date AND g.deleteDttm IS NULL")
     List<String> findBookedTimesByConsultant(@Param("consultantUserId") Integer consultantUserId,
-                                             @Param("date") String date);
+                                             @Param("date") LocalDate date);
 
     @Query("SELECT COUNT(g) > 0 FROM GameMeetingScheduleEntity g " +
             "WHERE g.host.id = :consultantUserId AND g.schdlDttm = :dateTime AND g.deleteDttm IS NULL")
     boolean existsByConsultantAndDateTime(@Param("consultantUserId") Integer consultantUserId,
-                                          @Param("dateTime") String dateTime);
+                                          @Param("dateTime") LocalDateTime dateTime);
+
 
     @Modifying
     @Query("UPDATE GameMeetingScheduleEntity g SET g.deleteDttm = CURRENT_TIMESTAMP WHERE g.id = :id AND g.deleteDttm IS NULL")
@@ -45,7 +48,7 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
             "AND DATE(g.schdlDttm) = :date " +
             "AND g.deleteDttm IS NULL")
     List<GameMeetingScheduleEntity> findByChildUserIdsAndDate(@Param("childUserIds") List<Integer> childUserIds,
-                                                          @Param("date") String date);
+                                                          @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(g.schdlDttm) FROM GameMeetingScheduleEntity g " +
             "WHERE g.childUserEntity.id IN :childUserIds AND g.deleteDttm IS NULL")

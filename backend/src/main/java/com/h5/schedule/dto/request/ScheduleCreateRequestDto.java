@@ -1,14 +1,18 @@
 package com.h5.schedule.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Builder
 public class ScheduleCreateRequestDto {
-    private Integer scheduleId;
     private Integer childId;
     private Integer parentUserId;
-    private String schdlDttm;
     private String type;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime schdlDttm;
 }
