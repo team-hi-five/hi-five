@@ -132,14 +132,6 @@
   cursor: pointer;
 }
 
-.pi-user {
-  padding-left: 0.5rem;
-}
-
-.pi-lock {
-  padding-left: 0.5rem;
-}
-
 .register-link a {
   text-decoration: none;
   color: inherit;

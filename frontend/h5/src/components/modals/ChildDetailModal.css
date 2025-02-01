@@ -125,7 +125,7 @@
     margin-top: 30px;
   }
   
-  .btn-submit, .btn-delete {
+  .btn-submit, .btn-delete1, .btn-delete2 {
     padding: 10px 30px;
     border-radius: 20px;
     border: none;
@@ -140,9 +140,14 @@
   .btn-submit:hover {
     background-color: #2c4b76;
   }
-  
-  .btn-delete {
+
+  .btn-delete1 {
     background-color: #3A5E8D;
+    margin-left: 10px;
+  }
+  
+  .btn-delete2 {
+    background-color: #f6a937;
     margin-left: 10px;
   }
 

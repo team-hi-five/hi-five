@@ -1,6 +1,5 @@
 import '../Counselor/Css/CounselorHeader.css';
-import { Link } from 'react-router-dom';
-
+import { Link, NavLink } from 'react-router-dom';
 
 function CounselorHeader() {
   return (
@@ -12,14 +11,16 @@ function CounselorHeader() {
       </div>
       <ul className="co_nav-list">
         <li className="co_nav-item">
-          <Link to="/counselor/children">우리아이들</Link>
+          <NavLink to="/counselor/children">우리아이들</NavLink>
         </li>
         <li className="co_nav-item">
-          <Link to="/counselor/schedule">상담일정</Link>
+          <NavLink to="/counselor/schedule">상담일정</NavLink>
         </li>
-        <li className="co_nav-item">게시판</li>
         <li className="co_nav-item">
-          <Link to="/counselor/mypage">마이페이지</Link>
+          <NavLink to="/counselor/board">게시판</NavLink>
+        </li>
+        <li className="co_nav-item">
+          <NavLink to="/counselor/mypage">마이페이지</NavLink>
         </li>
         <li className="co_nav-item">
           <Link to="/">로그아웃</Link>

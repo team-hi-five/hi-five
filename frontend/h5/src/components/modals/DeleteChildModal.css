@@ -29,7 +29,7 @@
     justify-content: center; 
     align-items: center;
     position: relative;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
   }
   
   .delete-modal-header h2 {
@@ -69,10 +69,10 @@
   }
   
   .delete-photo-box {
-    /* background-color: white; */
+    background-color: rgb(27, 119, 67);
     border-radius: 50%; /* 원형으로 변경 */
-    width: 100px; /* 고정된 너비 */
-    height: 100px; /* 고정된 높이 - 정원을 만들기 위해 너비와 동일하게 */
+    width: 105px; /* 고정된 너비 */
+    height: 110px; /* 고정된 높이 - 정원을 만들기 위해 너비와 동일하게 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -96,9 +96,22 @@
     margin: 0 0 10px 0;
   }
 
+  .no-requests-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .no-requests-image {
+    width: 200px;  /* 이미지 크기 조절 */
+    height: auto;
+  }
+
   .no-requests-message {
     text-align: center;
-    padding: 40px 0;
+    padding: 5px 0;
     font-size: 1.2rem;
     font-weight: bold;
     color: #1A2A4D;

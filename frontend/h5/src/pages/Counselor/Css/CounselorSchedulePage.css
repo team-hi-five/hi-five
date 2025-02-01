@@ -9,20 +9,24 @@
 
 .co-schedule-wrapper {
     max-width: 1200px;
-    width: 80%;
+    width: 100%;
     margin: 0 auto;
     display: flex;
     padding: 30px 10px;
     gap: 50px;
     position: relative;
     justify-content: center;
+    align-items: center;
 }
 
 .co-calendar-section {
     background-color: white;
     padding: 10px 40px;
+    width: 100%;
+    max-width: 600px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-width: 600px;
+    min-height: 525.43px;
+    /* min-width: 600px; */
 }
 
 .co-notcalendar {
@@ -31,11 +35,12 @@
     gap: 30px;
     align-items: center;
     min-width: 400px;
+    max-width: 400px;
 }
 
 .co-select-date {
     font-size: 18px;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
     color: #333;
 }
 
@@ -45,7 +50,7 @@
     padding: 10px 30px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 100%;
-    min-height: 436px;
+    min-height: 450px;
 }
 
 
@@ -53,11 +58,10 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    max-height: 330px; /* 2개의 아이템이 보이도록 높이 제한 */
+    max-height: 360px; /* 2개의 아이템이 보이도록 높이 제한 */
     overflow-y: auto; /* 스크롤 활성화 */
     scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
     -ms-overflow-style: none; /* IE/Edge에서 스크롤바 숨기기 */
-    padding-right: 5px; /* 내용물이 잘리지 않도록 여백 추가 */
     padding-bottom: 5px;
 }
 
@@ -78,15 +82,15 @@
 }
 
 .co-schedule-info p {
-    margin: 5px 0;
+    margin: 3px 0;
     color: #333;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
 }
 
 .co-button-group {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: flex-end;
 }
 
@@ -130,7 +134,14 @@
     justify-content: flex-end;
 }
 
+.co-schedule-info-first {
+    display: flex;
+    justify-content: space-between;
+    height: 26px;
+}
+
 .co-schedule-date {
+    /* position: r; */
     padding: 4px;
     border-radius: 4px;
     font-size: 14px;
@@ -143,7 +154,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
 }
 
 .co-search-container {
@@ -153,7 +164,8 @@
 
 .co-schedule-title {
     font-size: 22px;
-    margin-bottom: 15px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     color: #333;
     text-align: center;
 }
@@ -393,11 +405,12 @@
     align-items: center;
     padding: 18px;
     color: #1A2A4D;
-    height: 300px;
+    height: 400px;
     font-size: 20px;
     font-weight: bold;
     border-radius: 6px;
     border: 2px dashed #1A2A4D;
+    /* background-color: #69A6DF; */
   }
 
 .loading-overlay {

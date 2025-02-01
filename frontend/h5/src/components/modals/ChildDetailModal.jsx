@@ -5,7 +5,7 @@ import SingleButtonAlert from '../common/SingleButtonAlert';
 import ProfileImageModal from './ProfileImageModal';
 
 
-const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate }) => {
+const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
 
     const [profileImage, setProfileImage] = useState(childData.imageUrl); // 이미지 상태 추가
     const [isEditing, setIsEditing] = useState(false);
@@ -224,30 +224,51 @@ const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate }) =>
        <div className="modal-footer">
           {!isEditing ? (
             <div>
-              <button className="btn-submit" onClick={handleEditClick}>
-                  <strong>수정</strong>
-              </button>
-              <button 
-                  className="btn-delete" 
-                  onClick={handleDelete}
-                  disabled={isLoading}
-              >
-                  <strong>{isLoading ? '삭제 중...' : '회원삭제'}</strong>
-              </button>
+              {isDeleteRequest ? (
+                <>
+                  <button 
+                    className="btn-delete1" 
+                    onClick={() => onCancelRequest(childData.id)}
+                  >
+                    <strong>요청취소</strong>
+                  </button>
+                  <button 
+                    className="btn-delete2" 
+                    onClick={() => onDelete(childData.id)}
+                    disabled={isLoading}
+                  >
+                    <strong>{isLoading ? '삭제 중...' : '회원삭제'}</strong>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="btn-submit" onClick={handleEditClick}>
+                    <strong>수정</strong>
+                  </button>
+                  <button 
+                    className="btn-delete2" 
+                    onClick={handleDelete}
+                    disabled={isLoading}
+                  >
+                    <strong>{isLoading ? '삭제 중...' : '회원삭제'}</strong>
+                  </button>
+                </>
+              )}
             </div>
           ) : (
-            <button className="btn-submit" onClick={handleSaveClick}><strong>수정완료</strong></button>
+            <button className="btn-submit" onClick={handleSaveClick}>
+              <strong>수정완료</strong>
+            </button>
           )}
         </div>
-     </div>
-     {/* 로딩 오버레이 추가 */}
-     {isLoading && (
-          <div className="loading-overlay">
-              <div className="loading-spinner"></div>
-          </div>
+      </div>
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+        </div>
       )}
-   </div>
- );
+    </div>
+  );
 };
 
 export default ChildDetailModal;
