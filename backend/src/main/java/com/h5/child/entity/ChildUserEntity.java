@@ -11,7 +11,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -74,7 +73,7 @@ public class ChildUserEntity {
     private ConsultantUserEntity consultantUserEntity;
 
     @Column(name = "delete_dttm")
-    private Instant deleteDttm;
+    private String deleteDttm;
 
     @OneToMany(mappedBy = "childUserEntity")
     private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();

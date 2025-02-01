@@ -5,10 +5,11 @@ import com.h5.auth.service.ParentCustomUserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,21 +18,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final ConsultantCustomUserDetailService consultantCustomUserDetailService;
-    private final ParentCustomUserDetailService parentCustomUserDetailService;
 
-    public SecurityConfig(JwtFilter jwtFilter,
-                          ConsultantCustomUserDetailService consultantCustomUserDetailService,
-                          ParentCustomUserDetailService parentCustomUserDetailService) {
+    public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
-        this.consultantCustomUserDetailService = consultantCustomUserDetailService;
-        this.parentCustomUserDetailService = parentCustomUserDetailService;
     }
 
     @Bean
@@ -41,7 +37,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(AbstractHttpConfigurer::disable);
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         // CORS 설정
@@ -60,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
                         .requestMatchers("/auth/login").permitAll() // 로그인 API
                         .requestMatchers("/user/consultant/find-id", "/user/consultant/temp-pwd").permitAll()
+                        .requestMatchers("/user/parent/find-id", "/user/parent/temp-pwd").permitAll()
                         .anyRequest().authenticated()
                 );
 
@@ -67,20 +64,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {
-        AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-
+    public AuthenticationManager authenticationManager(
+            ConsultantCustomUserDetailService consultantCustomUserDetailService,
+            ParentCustomUserDetailService parentCustomUserDetailService,
+            PasswordEncoder passwordEncoder
+    ) {
         DaoAuthenticationProvider consultantProvider = new DaoAuthenticationProvider();
         consultantProvider.setUserDetailsService(consultantCustomUserDetailService);
         consultantProvider.setPasswordEncoder(passwordEncoder);
+        consultantProvider.setHideUserNotFoundExceptions(false);  // 추가
 
         DaoAuthenticationProvider parentProvider = new DaoAuthenticationProvider();
         parentProvider.setUserDetailsService(parentCustomUserDetailService);
         parentProvider.setPasswordEncoder(passwordEncoder);
+        parentProvider.setHideUserNotFoundExceptions(false);  // 추가
 
-        authBuilder.authenticationProvider(consultantProvider);
-        authBuilder.authenticationProvider(parentProvider);
-
-        return authBuilder.build();
+        return new ProviderManager(List.of(consultantProvider, parentProvider));
     }
+
 }

@@ -15,10 +15,11 @@ public interface ParentUserRepository extends JpaRepository<ParentUserEntity, In
     @Modifying
     @Transactional
     @Query("UPDATE ParentUserEntity c SET c.refreshToken = :refreshToken WHERE c.email = :email")
-    int updateRefreshTokenByEmail(@Param("email") String email, @Param("refreshToken") String refreshToken);
-
-    @Query("SELECT c.name FROM ParentUserEntity c WHERE c.id = :id")
-    Optional<String> findNameById(@Param("id") Integer id);
+    void updateRefreshTokenByEmail(@Param("email") String email, @Param("refreshToken") String refreshToken);
 
     Optional<ParentUserEntity> findEmailByNameAndPhone(String name, String phone);
+
+    boolean existsByEmail(String email);
+
+    Optional<ParentUserEntity> findByEmailAndDeleteDttmIsNull(String email);
 }

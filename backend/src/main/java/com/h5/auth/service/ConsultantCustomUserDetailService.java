@@ -17,7 +17,7 @@ public class ConsultantCustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return consultantUserRepository.findByEmail(email)
+        return consultantUserRepository.findByEmailAndDeleteDttmIsNull(email)
                 .map(ConsultantCustomUserDetails::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }

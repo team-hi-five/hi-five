@@ -17,7 +17,11 @@ public interface ConsultantUserRepository extends JpaRepository<ConsultantUserEn
     @Modifying
     @Transactional
     @Query("UPDATE ConsultantUserEntity c SET c.refreshToken = :refreshToken WHERE c.email = :email")
-    int updateRefreshTokenByEmail(@Param("email") String email, @Param("refreshToken") String refreshToken);
+    void updateRefreshTokenByEmail(@Param("email") String email, @Param("refreshToken") String refreshToken);
 
     Optional<ConsultantUserEntity> findEmailByNameAndPhone(String name, String phone);
+
+    boolean existsByEmail(String email);
+
+    Optional<ConsultantUserEntity> findByEmailAndDeleteDttmIsNull(String email);
 }

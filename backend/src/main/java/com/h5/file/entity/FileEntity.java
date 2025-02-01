@@ -5,10 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
 
 @Entity
 @Getter
 @Setter
+@FilterDef(name = "activeFilter")
+@Filter(name = "activeFilter", condition = "delete_dttm is null")
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor
 @Table(name = "file")
@@ -32,7 +36,7 @@ public class FileEntity {
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "upload_dttm", nullable = false)
+    @Column(name = "upload_dttm")
     private String uploadDttm;
 
     @Column(name = "delete_dttm")
