@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -16,7 +18,7 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
             "AND DATE(c.schdlDttm) = :date AND c.deleteDttm IS NULL")
     List<ConsultMeetingScheduleEntity> findByHostIdAndSchdlDttm(
             @Param("consultantUserId") Integer consultantUserId,
-            @Param("date") String date);
+            @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(c.schdlDttm) FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.childUserEntity.id = :childUserId AND c.deleteDttm IS NULL")
@@ -29,12 +31,12 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
     @Query("SELECT TIME_FORMAT(c.schdlDttm, '%H:%i') FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.host.id = :consultantUserId AND DATE(c.schdlDttm) = :date AND c.deleteDttm IS NULL")
     List<String> findBookedTimesByConsultant(@Param("consultantUserId") Integer consultantUserId,
-                                             @Param("date") String date);
+                                             @Param("date") LocalDate date);
 
     @Query("SELECT COUNT(c) > 0 FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.host.id = :consultantUserId AND c.schdlDttm = :dateTime AND c.deleteDttm IS NULL")
     boolean existsByConsultantAndDateTime(@Param("consultantUserId") Integer consultantUserId,
-                                          @Param("dateTime") String dateTime);
+                                          @Param("dateTime") LocalDateTime dateTime);
 
     @Modifying
     @Query("UPDATE ConsultMeetingScheduleEntity c SET c.deleteDttm = CURRENT_TIMESTAMP WHERE c.id = :id AND c.deleteDttm IS NULL")
@@ -45,7 +47,7 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
             "AND DATE(c.schdlDttm) = :date " +
             "AND c.deleteDttm IS NULL")
     List<ConsultMeetingScheduleEntity> findByChildUserIdsAndDate(@Param("childUserIds") List<Integer> childUserIds,
-                                                             @Param("date") String date);
+                                                             @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(c.schdlDttm) FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.childUserEntity.id IN :childUserIds AND c.deleteDttm IS NULL")

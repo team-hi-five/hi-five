@@ -2,6 +2,8 @@ package com.h5.schedule.dto.response;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -9,7 +11,7 @@ import lombok.*;
 @Builder
 public class ScheduleResponseDto {
     private Integer scheduleId;
-    private String schdlDttm;
+    private LocalDateTime schdlDttm;
     private String type;
     private String consultantName;
     private String childName;

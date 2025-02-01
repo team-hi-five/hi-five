@@ -6,8 +6,6 @@ import com.h5.parent.entity.ParentUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,11 +26,9 @@ public class ConsultMeetingScheduleEntity {
     private LocalDateTime schdlDttm;
 
     @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "create_dttm", nullable = false)
+    @Column(name = "create_dttm", nullable = false, updatable = false)
     private LocalDateTime createDttm;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "update_dttm")
     private LocalDateTime updateDttm;
 
@@ -44,7 +40,6 @@ public class ConsultMeetingScheduleEntity {
     private LocalDateTime startDttm;
 
     @NotNull
-    @ColumnDefault("'P'")
     @Lob
     @Column(name = "status", nullable = false)
     private String status;
@@ -64,4 +59,15 @@ public class ConsultMeetingScheduleEntity {
     @JoinColumn(name = "child_user_id", nullable = false)
     private ChildUserEntity childUserEntity;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createDttm = LocalDateTime.now();
+        this.updateDttm = this.createDttm;
+        this.startDttm = (this.schdlDttm != null) ? this.schdlDttm.minusMinutes(10) : null;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updateDttm = LocalDateTime.now();
+    }
 }
