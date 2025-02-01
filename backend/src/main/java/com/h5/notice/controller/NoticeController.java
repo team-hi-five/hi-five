@@ -1,15 +1,13 @@
 package com.h5.notice.controller;
 
 import com.h5.notice.dto.request.NoticeCreateRequestDto;
-import com.h5.notice.dto.request.NoticeListRequestDto;
 import com.h5.notice.dto.request.NoticeSearchRequestDto;
 import com.h5.notice.dto.request.NoticeUpdateRequestDto;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
-import com.h5.notice.dto.response.NoticeResponseDto;
+import com.h5.notice.dto.response.NoticeListResponseDto;
 import com.h5.notice.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,37 +25,32 @@ public class NoticeController {
 
     @PostMapping("/list")
     @Operation(summary = "공지 목록 조회", description = "삭제되지 않은 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAll(@RequestBody NoticeListRequestDto noticeListRequestDto) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findAll(noticeListRequestDto);
-        return ResponseEntity.ok(noticeResponseDto);
+    public ResponseEntity<NoticeListResponseDto> findAll(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+        return ResponseEntity.ok(noticeService.findAll(noticeSearchRequestDto));
     }
 
     @PostMapping("/search-by-title")
     @Operation(summary = "공지사항 제목 검색", description = "제목으로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitle(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByTitle(noticeSearchRequestDto);
-        return ResponseEntity.ok(noticeResponseDto);
+    public ResponseEntity<NoticeListResponseDto> findByTitle(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+        return ResponseEntity.ok(noticeService.findByTitle(noticeSearchRequestDto));
     }
 
     @PostMapping("/search-by-writer")
     @Operation(summary = "공지사항 작성자로 검색", description = "작성자로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByEmail(noticeSearchRequestDto);
-        return ResponseEntity.ok(noticeResponseDto);
-
+    public ResponseEntity<NoticeListResponseDto> findByEmail(@RequestBody NoticeSearchRequestDto noticeSearchRequestDto) {
+        return ResponseEntity.ok(noticeService.findByEmail(noticeSearchRequestDto));
     }
 
     @GetMapping("/{noticeId}")
     @Operation(summary = "공지사항 글 상세", description = "공지사항 글 상세내용을 조회합니다.")
-    public ResponseEntity<?> findByNoticeId(@PathVariable int noticeId) {
-        NoticeDetailResponseDto noticeDetailResponseDto = noticeService.findById(noticeId);
-        return ResponseEntity.ok(noticeDetailResponseDto);
+    public ResponseEntity<NoticeDetailResponseDto> findByNoticeId(@PathVariable int noticeId) {
+        return ResponseEntity.ok(noticeService.findById(noticeId));
     }
 
     @PostMapping("/write")
     @Operation(summary = "공지사항 작성", description = "새로운 공지사항을 생성합니다.")
-    public ResponseEntity<?> createNotice(@RequestBody NoticeCreateRequestDto noticeCreateRequestDto) {
-        noticeService.createNotice(noticeCreateRequestDto );
+    public ResponseEntity<Void> createNotice(@RequestBody NoticeCreateRequestDto noticeCreateRequestDto) {
+        noticeService.createNotice(noticeCreateRequestDto);
         return ResponseEntity.ok().build();
     }
 
@@ -74,5 +67,4 @@ public class NoticeController {
         int updatedNoticeId = noticeService.updateNotice(noticeUpdateRequestDto);
         return ResponseEntity.ok("Notice updated successfully with ID: " + updatedNoticeId);
     }
-
 }
