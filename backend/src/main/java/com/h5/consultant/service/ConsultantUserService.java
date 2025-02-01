@@ -4,6 +4,7 @@ import com.h5.consultant.dto.request.RegisterParentAccountDto;
 import com.h5.consultant.dto.response.GetChildResponseDto;
 import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
 import com.h5.consultant.dto.response.MyProfileResponseDto;
+import com.h5.consultant.dto.response.RegisterParentAccountResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public interface ConsultantUserService {
     // 임시 비밀번호에서 입력한 비밀번호로 변경
     void updatePwd(String email, String oldPwd, String newPwd);
 
-    boolean registerParentAccount(RegisterParentAccountDto registerParentAccountDto);
+    RegisterParentAccountResponseDto registerParentAccount(RegisterParentAccountDto registerParentAccountDto);
 
     List<GetMyChildrenResponseDto> getChildrenForAuthenticatedConsultant();
 

@@ -6,6 +6,7 @@ import com.h5.consultant.dto.request.RegisterParentAccountDto;
 import com.h5.consultant.dto.response.GetChildResponseDto;
 import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
 import com.h5.consultant.dto.response.MyProfileResponseDto;
+import com.h5.consultant.dto.response.RegisterParentAccountResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.file.entity.FileEntity;
@@ -107,7 +108,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     }
 
     @Override
-    public boolean registerParentAccount(RegisterParentAccountDto registerParentAccountDto) {
+    public RegisterParentAccountResponseDto registerParentAccount(RegisterParentAccountDto registerParentAccountDto) {
         String consultantEmail = getAuthenticatedEmail();
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
@@ -123,9 +124,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .consultantUserEntity(consultantUser)
                 .build();
 
-        parentUserRepository.save(parentUser);
-
-
+        int parentUserId = parentUserRepository.save(parentUser).getId();
 
         ChildUserEntity childUser = ChildUserEntity.builder()
                 .name(registerParentAccountDto.getChildName())
@@ -138,7 +137,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .consultantUserEntity(consultantUser)
                 .build();
 
-        childUserRepository.save(childUser);
+        int childUserId = childUserRepository.save(childUser).getId();
 
         try {
             mailUtil.sendRegistrationEmail(registerParentAccountDto.getParentEmail(), registerParentAccountDto.getParentEmail(), initPwd);
@@ -146,7 +145,10 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
             throw new ParentAccountRegistrationException("Failed to send registration email", e);
         }
 
-        return true;
+        return RegisterParentAccountResponseDto.builder()
+                .parentUserId(parentUserId)
+                .childUserId(childUserId)
+                .build();
     }
 
     @Transactional

@@ -46,7 +46,7 @@ public class ParentUserEntity {
     private String phone;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "create_dttm", nullable = false)
+    @Column(name = "create_dttm")
     private String createDttm;
 
     @Column(name = "delete_dttm")
