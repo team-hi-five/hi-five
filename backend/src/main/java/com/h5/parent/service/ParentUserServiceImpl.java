@@ -31,8 +31,6 @@ import java.util.List;
 @Service
 public class ParentUserServiceImpl implements ParentUserService {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
     private final ParentUserRepository parentUserRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ChildUserRepository childUserRepository;

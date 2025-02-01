@@ -1,6 +1,5 @@
 package com.h5.statistic.controller;
 
-import com.h5.statistic.dto.request.DataAnalysisRequestDto;
 import com.h5.statistic.service.StatisticService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
