@@ -41,7 +41,7 @@ public class ConsultantUserController {
 
     @PostMapping("/register-parent-account")
     public ResponseEntity<?> registerParentAccount(@Valid @RequestBody RegisterParentAccountDto registerParentAccountDto) {
-        return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto) ? "Success register parent user account" : "Fail register parent user account");
+        return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto));
     }
 
     @PostMapping("/get-my-children")
