@@ -188,7 +188,7 @@ function CounselorChildrenPage() {
     return (
       <>
         <div className="co-counselor-container">
-          <div className="fixed-section">
+          <div className="co-cc-fixed-section">
             <CounselorHeader />
             <div className="co_blankdefault" style={{marginTop: '64.49px'}}></div>
             <div className="co-c-title">

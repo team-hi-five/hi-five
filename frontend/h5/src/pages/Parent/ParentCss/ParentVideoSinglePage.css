@@ -104,28 +104,29 @@
     object-fit: cover;
 }
 
-.p-dropdown {
+/* 특정 컨테이너 내의 Dropdown 스타일만 적용되도록 수정 */
+.video-section :global(.dropdown-input.p-dropdown) {
     width: 100%;
     border-radius: 8px;
-}
-
-.p-dropdown .p-dropdown-label {
+   }
+   
+   .video-section :global(.dropdown-input.p-dropdown) :global(.p-dropdown-label) {
     padding: 0.75rem;
     border-radius: 8px;
-}
-
-.p-dropdown-items {
+   }
+   
+   .video-section :global(.dropdown-input) :global(.p-dropdown-items) {
     padding: 0.5rem;
-}
-
-.p-dropdown-item {
+   }
+   
+   .video-section :global(.dropdown-input) :global(.p-dropdown-item) {
     padding: 0.75rem 1rem;
-}
-
-.p-dropdown-item:hover {
+   }
+   
+   .video-section :global(.dropdown-input) :global(.p-dropdown-item:hover) {
     background: #dcdcdc;
     color: #fff;
-}
+   }
 
 @media (max-width: 768px) {
     .controls-row {

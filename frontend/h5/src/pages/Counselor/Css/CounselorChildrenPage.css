@@ -7,7 +7,7 @@
   background-color: #EEF5FC;
 }
 
-.fixed-section {
+.co-cc-fixed-section {
   position: fixed;
   top: 0;
   left: 0;
@@ -100,13 +100,13 @@
   justify-content: flex-end;
 }
 
-.co-search-dropdown {
+.co-search-section .co-search-dropdown.p-dropdown {
   min-width: 120px;
   border-radius: 25px;
   flex-shrink: 0;
 }
 
-.p-dropdown .p-dropdown-label {
+.co-search-section .co-search-dropdown .p-dropdown-label {
   padding-right: 0;
   padding-left: 15px;
 }

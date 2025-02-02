@@ -119,10 +119,14 @@ small {
   font-weight: bold;
  }
 
- .p-dropdown .p-dropdown-label {
+ .input-container .input-field.p-dropdown .p-dropdown-label {
   color: #888585 !important;
   font-weight: bold;
  }
+
+.input-container .input-field.p-dropdown {
+  padding: 3.5px 0 3.5px 5px;
+}
 
  .find-button, .cancel-button {
   outline: none !important;
