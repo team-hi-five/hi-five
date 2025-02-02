@@ -106,3 +106,20 @@
         margin-bottom: 12px;
     }
 }
+
+/* 클릭시 전체 크기 줄이기  */
+
+
+.ch-card-main-container.selected {
+    height: 1000px; 
+    width: 1000px;  
+}
+
+.ch-card-sticky-container.selected {
+    height: 80%; 
+    width: 80%; 
+}
+.ch-card-big-list.selected {
+    height: 80%; 
+    width: 80%; 
+}
