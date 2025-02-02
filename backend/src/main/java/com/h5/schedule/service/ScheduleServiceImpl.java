@@ -283,7 +283,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElseThrow(UserNotFoundException::new)
                 .getId();
 
-        Integer scheduleId = scheduleUpdateRequestDto.getScheduleId();
+        Integer scheduleId = scheduleUpdateRequestDto.getId();
         String schdlDttm = scheduleUpdateRequestDto.getSchdlDttm().toString();
         String type = scheduleUpdateRequestDto.getType();
 

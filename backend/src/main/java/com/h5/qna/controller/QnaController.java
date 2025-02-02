@@ -58,7 +58,7 @@ public class QnaController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("create-comment")
+    @PostMapping("/write-qna-comment")
      public ResponseEntity<?> createComment(@RequestBody QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
         qnaService.createQnaComment(qnaCommentCreateRequestDto);
         return ResponseEntity.ok().build();
@@ -75,7 +75,7 @@ public class QnaController {
     @Operation(summary = "QnA 업데이트", description = "기존 QnA를 수정합니다.")
     public ResponseEntity<String> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
         qnaService.updateQna(qnaUpdateRequestDto);
-        return ResponseEntity.ok("QnA updated successfully with ID: ");
+        return ResponseEntity.ok("QnA updated successfully with ID: " + qnaUpdateRequestDto.getId());
     }
 
 }

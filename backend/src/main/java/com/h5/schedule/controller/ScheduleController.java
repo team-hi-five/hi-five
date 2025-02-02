@@ -38,7 +38,7 @@ public class ScheduleController {
     }
 
     @GetMapping("/list-by-child")
-    @Operation(summary = "아동 이름으로 상담 스케줄 조회", description = "특정 아동의 상담 및 게임 일정을 조회합니다.")
+    @Operation(summary = "아동 상담 스케줄 조회", description = "특정 아동의 상담 및 게임 일정을 조회합니다.")
     public ResponseEntity<List<ScheduleResponseDto>> getSchedulesByChildId(
             @ModelAttribute ScheduleSearchByChildRequestDto scheduleSearchByChildRequestDto) {
         List<ScheduleResponseDto> schedules = scheduleService.getSchedulesByChildUserId(scheduleSearchByChildRequestDto);

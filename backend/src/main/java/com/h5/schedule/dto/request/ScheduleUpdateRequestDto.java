@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class ScheduleUpdateRequestDto {
-    private Integer scheduleId;
+    private Integer id;
     private Integer childId;
     private String type;
 
