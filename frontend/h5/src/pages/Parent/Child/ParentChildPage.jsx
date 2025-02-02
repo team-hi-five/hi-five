@@ -2,14 +2,15 @@ import { useState } from "react";
 import { Chart } from "primereact/chart";
 import { Calendar } from 'primereact/calendar';
 import ParentHeader from "/src/components/Parent/ParentHeader";
+import Footer from "/src/components/common/Footer";
 import "/src/pages/Parent/ParentCss/ParentChildPage.css";
-import { useNavigate } from 'react-router-dom';
+
 
 function ParentChildPage() {
   const [selectedChild, setSelectedChild] = useState("박성원");
   const [currentStage, setCurrentStage] = useState(1);
   const [date, setDate] = useState(null);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const children = ["박성원", "김한주", "이영희"];
 
@@ -130,10 +131,13 @@ function ParentChildPage() {
   };
 
   const handleVideoSearch = () => {
-    // 예시: 단일 영상, 다중 영상 중 하나로 이동
-    navigate("/parent/child/video/single");
-    // navigate("/parent/child/video/muultiple");
+    window.open(
+      '/parent/child/video/multiple',
+      '_blank',
+      'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+    );
   };
+  
 
   return (
     <div className="pa-page">
@@ -294,6 +298,7 @@ function ParentChildPage() {
           </div>
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

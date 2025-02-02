@@ -2,13 +2,12 @@
 .pa-page {
   background-color: #eef5fc;
   min-height: 100vh;
-  padding-top: 120px;
-  padding-bottom: 50px;
+  padding-top: 90px;
 }
 
 /* 컨테이너 */
 .pa-container {
-  width: 60%;
+  width: 70%;
   max-width: 1200px;
   margin: 50px auto;
 }
@@ -158,6 +157,7 @@
 /* 학습 영상 조회 (예시) */
 .pa-videos-container {
   background-color: #fff;
+  margin-bottom: 130px;
   padding: 20px;
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -190,7 +190,6 @@
 
 /* 버튼 컨테이너 */
 .button-wrapper {
-  margin-top: 30px;
   margin-bottom: 15px;
   text-align: center;
 }
