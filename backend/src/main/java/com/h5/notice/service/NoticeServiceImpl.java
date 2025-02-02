@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +37,11 @@ public class NoticeServiceImpl implements NoticeService {
     public NoticeListResponseDto findAll(NoticeSearchRequestDto noticeSearchRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().toString();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+
         Page<NoticeEntity> noticeEntityPage;
 
         Pageable pageable = PageRequest.of(
@@ -45,22 +50,26 @@ public class NoticeServiceImpl implements NoticeService {
                 Sort.by(Sort.Direction.DESC, "createDttm")
         );
 
-        switch (role) {
-            case "[ROLE_CONSULTANT]":
-                ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                        .orElseThrow(UserNotFoundException::new);
-                noticeEntityPage = noticeRepository.findAll(consultantUser.getId(), null, pageable);
-                break;
-
-            case "[ROLE_PARENT]":
-                ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                        .orElseThrow(UserNotFoundException::new);
-                noticeEntityPage = noticeRepository.findAll(null, parentUser.getId(), pageable);
-                break;
-
-            default:
-                throw new RuntimeException("Invalid role: " + role);
+        if ("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findAll(
+                    consultantUser.getId(),
+                    null,
+                    pageable
+            );
+        } else if ("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findAll(
+                    null,
+                    parentUser.getId(),
+                    pageable
+            );
+        } else {
+            throw new UserNotFoundException();
         }
+
 
         return convertToResponseDto(noticeEntityPage);
     }
@@ -71,7 +80,10 @@ public class NoticeServiceImpl implements NoticeService {
     public NoticeListResponseDto findByTitle(NoticeSearchRequestDto noticeSearchRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().toString();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
         Page<NoticeEntity> noticeEntityPage;
 
@@ -81,32 +93,28 @@ public class NoticeServiceImpl implements NoticeService {
                 Sort.by(Sort.Direction.DESC, "createDttm")
         );
 
-        switch (role) {
-            case "[ROLE_CONSULTANT]":
-                ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                        .orElseThrow(UserNotFoundException::new);
-                noticeEntityPage = noticeRepository.findByTitle(
-                        noticeSearchRequestDto.getKeyword(),
-                        consultantUser.getId(),
-                        null,
-                        pageable
-                );
-                break;
-
-            case "[ROLE_PARENT]":
-                ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                        .orElseThrow(UserNotFoundException::new);
-                noticeEntityPage = noticeRepository.findByTitle(
-                        noticeSearchRequestDto.getKeyword(),
-                        null,
-                        parentUser.getId(),
-                        pageable
-                );
-                break;
-
-            default:
-                throw new UserNotFoundException();
+        if ("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByTitle(
+                    noticeSearchRequestDto.getKeyword(),
+                    consultantUser.getId(),
+                    null,
+                    pageable
+            );
+        } else if ("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByTitle(
+                    noticeSearchRequestDto.getKeyword(),
+                    null,
+                    parentUser.getId(),
+                    pageable
+            );
+        } else {
+            throw new UserNotFoundException();
         }
+
 
         return convertToResponseDto(noticeEntityPage);
     }
@@ -115,20 +123,39 @@ public class NoticeServiceImpl implements NoticeService {
     public NoticeListResponseDto findByEmail(NoticeSearchRequestDto noticeSearchRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-
-        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(UserNotFoundException::new);
-
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
         Pageable pageable = PageRequest.of(
                 noticeSearchRequestDto.getPageNumber(),
                 noticeSearchRequestDto.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "createDttm")
         );
 
-        Page<NoticeEntity> noticeEntityPage = noticeRepository.findByEmail(
-                consultantUser.getId(),
-                pageable
-        );
+        Page<NoticeEntity> noticeEntityPage;
+
+        if ("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByEmail(
+                    noticeSearchRequestDto.getKeyword(),
+                    consultantUser.getId(),
+                    null,
+                    pageable
+            );
+        } else if ("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByEmail(
+                    noticeSearchRequestDto.getKeyword(),
+                    null,
+                    parentUser.getId(),
+                    pageable
+            );
+        } else {
+            throw new UserNotFoundException();
+        }
 
         return convertToResponseDto(noticeEntityPage);
     }
@@ -159,12 +186,15 @@ public class NoticeServiceImpl implements NoticeService {
     public void createNotice(NoticeCreateRequestDto noticeCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().toString();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
-        if (!"[ROLE_CONSULTANT]".equals(role)) {
+        if (!"ROLE_CONSULTANT".equals(role)) {
             throw new BoardAccessDeniedException("notice");
         }
 
