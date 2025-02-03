@@ -13,4 +13,5 @@ public class LoadAssetResponseDto {
     private String gameVideo;
     private String[] options;
     private String[] optionImages;
+    private String situation;
 }
