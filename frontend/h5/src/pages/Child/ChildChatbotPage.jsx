@@ -6,6 +6,9 @@ function ChildChatbotPage() {
     return (
         <div className='ch-chatbot-container'>
             <ChildMainBackground />
+            <div className='ch-chatbot-box'>
+                챗봇
+            </div>
         </div>
     );
 }

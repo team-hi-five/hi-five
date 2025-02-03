@@ -1,5 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Sphere } from './Element3D';
+import { Heart } from './Element3DHeart';
 
 const ChildMainBackground = () => {
   return (
@@ -21,9 +22,18 @@ const ChildMainBackground = () => {
         <pointLight position={[10, 10, 10]} intensity={0.6} color="#ffffff" />
         <pointLight position={[-5, 5, 5]} intensity={0.3} color="#ffffff" />
         <directionalLight position={[0, 10, 5]} intensity={1.5} />
+        
+        {/* 구체  */}
         {Array.from({ length: 13 }, (_, i) => (
-          <Sphere key={i} />
+          <Sphere key={`Sphere-${i}`} />
         ))}
+
+        {/* 하트 */}
+        {Array.from({ length: 5 }, (_, i) => (
+          <Heart key={`Heart-${i}`} />
+        ))}
+
+
       </Canvas>
     </div>
   );
