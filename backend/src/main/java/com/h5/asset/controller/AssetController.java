@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/asset")
 @RequiredArgsConstructor
 public class AssetController {
-    AssetService assetService;
+    private final AssetService assetService;
 
     @GetMapping("/load-asset")
     public ResponseEntity<?> getAsset(@ModelAttribute LoadAssetRequestDto loadAssetRequestDto) {
@@ -25,5 +25,6 @@ public class AssetController {
     public ResponseEntity<?> getCards(@ModelAttribute LoadCardRequestDto loadCardRequestDto) {
         return ResponseEntity.ok(assetService.loadCard(loadCardRequestDto));
     }
+
 
 }

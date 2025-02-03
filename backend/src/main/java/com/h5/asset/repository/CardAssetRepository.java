@@ -10,8 +10,13 @@ import java.util.List;
 
 @Repository
 public interface CardAssetRepository extends JpaRepository<CardAssetEntity, Integer> {
-    @Query("SELECT c FROM CardAssetEntity c " +
-            "JOIN GameStageEntity s ON c.gameStageEntity.id = s.id " +
-            "WHERE s.gameChapterEntity.id = :gameChapterId AND s.stage = :stage")
-    List<CardAssetEntity> findCardAssetByChapterAndStage(@Param("Chapter") int chapter, @Param("Stage") int stage);
+
+    @Query("""
+    SELECT ca FROM CardAssetEntity ca
+    JOIN ca.gameStageEntity gs
+    WHERE gs.gameChapterEntity.id < :chapter
+       OR (gs.gameChapterEntity.id = :chapter AND gs.stage <= :stage)
+    ORDER BY gs.gameChapterEntity.id, gs.stage
+    """)
+    List<CardAssetEntity> findCardAssetByChapterAndStage(@Param("chapter") int chapter, @Param("stage") int stage);
 }

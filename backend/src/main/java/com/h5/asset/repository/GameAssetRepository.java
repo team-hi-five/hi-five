@@ -11,9 +11,12 @@ import java.util.Optional;
 @Repository
 public interface GameAssetRepository extends JpaRepository<GameAssetEntity, Integer> {
 
-    @Query("SELECT g FROM GameAssetEntity g " +
-            "JOIN GameStageEntity s ON g.gameStageEntity.id = s.id " +
-            "WHERE s.id = :gameChapterId AND s.stage = :stage")
-    Optional<GameAssetEntity> findGameAssetByChapterAndStage(@Param("gameChapterId") int gameChapterId,
+    @Query("""
+    SELECT ga FROM GameAssetEntity ga
+    JOIN ga.gameStageEntity gs
+    WHERE gs.gameChapterEntity.id = :chapter
+      AND gs.stage = :stage
+    """)
+    Optional<GameAssetEntity> findGameAssetByChapterAndStage(@Param("chapter") int chapter,
                                                             @Param("stage") int stage);
 }

@@ -1,6 +1,5 @@
 package com.h5.asset.dto.response;
 
-import com.h5.asset.entity.CardAssetEntity;
 import lombok.*;
 
 import java.util.List;
@@ -11,5 +10,5 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class LoadCardResponseDto {
-    List<CardAssetEntity> cardAssetEntities;
+    List<CardAssetResponseDto> cardAssetList;
 }
