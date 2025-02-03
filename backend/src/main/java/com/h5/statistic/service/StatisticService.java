@@ -1,7 +1,6 @@
 package com.h5.statistic.service;
 
 import com.h5.statistic.dto.response.DataAnalysisResponseDto;
-import com.h5.chatbot.dto.response.GetChatbotDatesResponseDto;
 import com.h5.statistic.dto.response.GetGameVideoDatesResponseDto;
 import com.h5.statistic.dto.response.GetGameVideoLengthResponseDto;
 
