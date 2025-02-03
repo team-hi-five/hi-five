@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ParentHeader from "../../../components/Parent/ParentHeader";
+import Footer from "../../../components/common/footer";
 import "/src/pages/Parent/ParentCss/ParentBoardPage.css";
 
 /* 샘플 게시글 데이터 */
@@ -37,7 +38,7 @@ function ParentBoardPage() {
   const [paSearchCategory, setPaSearchCategory] = useState("title");
   const [paSearchTerm, setPaSearchTerm] = useState("");
   const [paCurrentPage, setPaCurrentPage] = useState(1);
-  const paItemsPerPage = 7;
+  const paItemsPerPage = 6;
 
   // 라우터 네비게이트 (상세페이지 이동 시 사용)
   const navigate = useNavigate();
@@ -314,6 +315,7 @@ function ParentBoardPage() {
           )}
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

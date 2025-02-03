@@ -91,7 +91,7 @@
   background-color: #6b8cb3 !important;
   border: none !important;
   border-radius: 8px;
-  padding: 0.5rem 4rem !important;
+  padding: 0.6rem 4rem !important;
   font-weight: 600 !important;
   font-size: 18px;
 }
@@ -112,12 +112,12 @@
 }
 
 .co_notice_title {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   color: #2d4356;
   margin-bottom: 2rem;
   margin-top: 0;
-  font-weight: 900;
-  padding-left: 10px;
+  font-weight: bold;
+  padding-left: 8px;
 }
 
 .co_carousel .p-carousel {
@@ -186,14 +186,15 @@
  }
  
  .co_carousel .p-carousel-item {
-  padding: 0 10px;
+  padding: 0 5px;
  }
 
 .co_notice_card {
     border-radius: 20px !important;
-    border: 2px solid #EEF5FC !important;
+    border: 2px solid #f0f7ff !important;
     padding: 0.5rem !important;
     box-shadow: none !important;
+    background-color: #f0f7ff;
   }
   
   .co_notice_tags {

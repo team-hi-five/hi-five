@@ -7,7 +7,7 @@
   .pa-write-container {
     width: 90%;
     max-width: 1000px;
-    margin: 50px auto 0 auto;
+    margin: 35px auto 0 auto;
     background: white;
     padding: 20px;
     border-radius: 8px;
@@ -36,10 +36,11 @@
     display: flex;
     justify-content: center; /* 가운데 정렬 */
     margin-top: 20px;
+    gap: 10px;
   }
   
-  .pa-write-submit {
-    background-color: #3A5E8D;
+  .pa-write-submit, .pa-write-cancel {
+    background-color: #517bac;
     color: white;
     padding: 8px 24px;
     border: none;
@@ -49,7 +50,16 @@
     font-weight: bold;
   }
   
-  .pa-write-submit:hover {
-    background-color: #2a4c73;
+  .pa-write-submit:hover, .pa-write-cancel:hover {
+    background-color: #3A5E8D;
   }
   
+  .pa-write-container .p-fileupload .p-button {
+    font-size: 0.6rem;
+    padding: 0.3rem 0.6rem;
+    background-color: #517bac;
+  }
+
+  .p-fileupload-content{
+    font-size: 12px;
+  }

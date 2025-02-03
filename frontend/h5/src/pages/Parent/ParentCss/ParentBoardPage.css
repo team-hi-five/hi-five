@@ -28,7 +28,7 @@
 .pa-board-bottom-wrapper {
   width: 90%;
   max-width: 1200px;
-  margin: 20px auto; /* 위아래 간격 20px */
+  margin: 20px auto 60px;
   padding: 20px;
   background-color: #fff; /* 흰색 박스 */
   border-radius: 8px;

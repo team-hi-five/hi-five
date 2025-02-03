@@ -16,7 +16,16 @@ function Footer() {
         </ul>
       </div>
       <hr />
-      <p className="copyright">©2025 CZ05 ssafy. All rights reserved.</p>
+      <div className='footer-bottom'>
+        <div className='footer-left'>
+          <span className="copyright">©2025 CZ05 ssafy. All rights reserved.</span>
+        </div>
+        <div className='footer-right'>
+          <i className="pi pi-phone" style={{ fontSize: '1.0rem', color: '#FF9F1C', marginRight: '10px', marginTop: '5px' }}></i>
+          <span style={{marginRight: '5px'}}>am 9:00 - pm 18:00 </span>
+          <span>062-000-0000</span>
+        </div>
+      </div>
     </footer>
   );
 }

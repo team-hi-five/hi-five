@@ -60,6 +60,24 @@ function CounselorSchedulePage() {
         {
             time: "15:00 ~ 16:00",
             counselor: "박성원",
+            counsultation_target: "김현순",
+            counsultation_type: "게임",
+            date: "2025-01-31",
+            isLoading: false,
+            isCompleted: false
+        },
+        {
+            time: "10:00 ~ 11:00",
+            counselor: "박성원",
+            counsultation_target: "박현순",
+            counsultation_type: "게임",
+            date: "2025-01-31",
+            isLoading: false,
+            isCompleted: false
+        },
+        {
+            time: "15:00 ~ 16:00",
+            counselor: "박성원",
             counsultation_target: "김도로롱",
             counsultation_type: "아동학습현황상담",
             date: "2025-02-15",
@@ -294,14 +312,17 @@ function CounselorSchedulePage() {
                                     filteredSchedules.map((schedule, index) => (
                                         <div key={index} className="co-schedule-item">
                                             <div className="co-schedule-info">
-                                                {searchTerm && (
-                                                    <div className="co-schedule-header-row">
-                                                        <div className="co-schedule-date">
-                                                            {formatDisplayDate(schedule.date)}
+                                                <div className="co-schedule-info-first">
+
+                                                    <p>상담 시간 : {schedule.time}</p>
+                                                    {searchTerm && (
+                                                        <div className="co-schedule-header-row">
+                                                            <div className="co-schedule-date">
+                                                                {formatDisplayDate(schedule.date)}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                )}
-                                                <p>상담 시간 : {schedule.time}</p>
+                                                    )}
+                                                </div>
                                                 <p>상담유형 : {schedule.counsultation_type}</p>
                                                 <p>상담대상(이름) : {schedule.counsultation_target}</p>
                                             </div>

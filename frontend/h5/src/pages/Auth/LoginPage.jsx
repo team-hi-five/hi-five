@@ -36,7 +36,7 @@ const LoginPage = () => {
         </div>
         
         <div className="login-box">
-          <img src="/logo.png" alt="Logo" className="logo" />
+          <img src="/logo.png" alt="Logo" className="l-logo" />
           <h2 className="subtitle">감정을 배우는 즐거운 여행</h2>
           
           <div className="tabs">

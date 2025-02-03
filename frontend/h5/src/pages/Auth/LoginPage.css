@@ -38,7 +38,7 @@
   object-fit: contain;
 }
 
-.logo {
+.l-logo {
   width: 100px;
 }
 
@@ -130,14 +130,6 @@
   color: #666;
   font-size: 0.9rem;
   cursor: pointer;
-}
-
-.pi-user {
-  padding-left: 0.5rem;
-}
-
-.pi-lock {
-  padding-left: 0.5rem;
 }
 
 .register-link a {
