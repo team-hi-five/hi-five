@@ -20,23 +20,18 @@ function CardMainEmotionCard ({ id, image, name, bgColor, textColor, onClick}){
         >
             <div className="ch-big-card"    
                  onClick={handleClick}
-                 data-isselected={isSelected}
             >
                 <img src={image} 
                      alt={name}
-                     data-isselected={isSelected}
                 />
                 <Card className="ch-big-name-card"
                       style={{ backgroundColor: bgColor }}
-                      data-isselected={isSelected}
                 >
                     <h2 className="ch-big-card-name"
                         style={{ color: textColor}}
-                        data-isselected={isSelected}
                     >{name}</h2>
                 </Card>
                 <div className='card-hover-text'
-                     data-isselected={isSelected}
                 > 카드 더보기 &gt; </div>
             </div>
         </motion.div>
