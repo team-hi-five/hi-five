@@ -10,9 +10,9 @@
 .co-schedule-wrapper {
     max-width: 1200px;
     width: 100%;
-    margin: 0 auto;
+    margin: 5px auto;
     display: flex;
-    padding: 30px 10px;
+    padding: 70px 10px;
     gap: 50px;
     position: relative;
     justify-content: center;
@@ -21,7 +21,7 @@
 
 .co-calendar-section {
     background-color: white;
-    padding: 10px 40px;
+    padding: 15px 40px;
     width: 100%;
     max-width: 600px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -32,7 +32,7 @@
 .co-notcalendar {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 20px;
     align-items: center;
     min-width: 400px;
     max-width: 400px;
@@ -50,7 +50,7 @@
     padding: 10px 30px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 100%;
-    min-height: 450px;
+    min-height: 460px;
 }
 
 
@@ -58,7 +58,7 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    max-height: 360px; /* 2개의 아이템이 보이도록 높이 제한 */
+    max-height: 370px; /* 2개의 아이템이 보이도록 높이 제한 */
     overflow-y: auto; /* 스크롤 활성화 */
     scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
     -ms-overflow-style: none; /* IE/Edge에서 스크롤바 숨기기 */
@@ -67,7 +67,7 @@
 
 .co-schedule-item {
     background-color: #EEF5FC;
-    padding: 10px 15px;
+    padding: 8px 15px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 추가 */
     transition: box-shadow 0.2s ease; /* 부드러운 그림자 효과 */
@@ -78,7 +78,7 @@
 }
 
 .co-schedule-info {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .co-schedule-info p {
