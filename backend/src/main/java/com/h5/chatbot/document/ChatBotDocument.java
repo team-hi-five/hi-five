@@ -1,4 +1,4 @@
-package com.h5.statistic.entity;
+package com.h5.chatbot.document;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Id;

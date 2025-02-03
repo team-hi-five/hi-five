@@ -1,4 +1,4 @@
-package com.h5.statistic.dto.response;
+package com.h5.chatbot.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +10,6 @@ import java.util.List;
 @Setter
 @Getter
 @Builder
-public class GetDatesResponseDto {
+public class GetChatbotDatesResponseDto {
     private List<LocalDate> dateList;
 }

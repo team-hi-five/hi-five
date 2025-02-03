@@ -1,8 +1,8 @@
 package com.h5.statistic.service;
 
 import com.h5.statistic.dto.response.DataAnalysisResponseDto;
-import com.h5.statistic.dto.response.GetChatbotResponseDto;
-import com.h5.statistic.dto.response.GetDatesResponseDto;
+import com.h5.chatbot.dto.response.GetChatbotDatesResponseDto;
+import com.h5.statistic.dto.response.GetGameVideoDatesResponseDto;
 import com.h5.statistic.dto.response.GetGameVideoLengthResponseDto;
 
 import java.time.LocalDate;
@@ -13,11 +13,7 @@ public interface StatisticService {
 
     Map<Integer, DataAnalysisResponseDto> dataAnalysis(int childUserId);
 
-    GetDatesResponseDto getChatbotDates(int childUserId, int year, int month);
-
-    GetDatesResponseDto getGameVideoDates(int childUserId, int year, int month);
-
-    GetChatbotResponseDto getChatbot(int childUserId, LocalDate date);
+    GetGameVideoDatesResponseDto getGameVideoDates(int childUserId, int year, int month);
 
     List<GetGameVideoLengthResponseDto> getGameVideoLength(int childUserId, LocalDate date, int stageId);
 

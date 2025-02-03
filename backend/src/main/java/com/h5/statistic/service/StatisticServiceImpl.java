@@ -9,12 +9,9 @@ import com.h5.game.repository.ChildGameChapterRepository;
 import com.h5.game.repository.GameLogRepository;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.statistic.dto.response.DataAnalysisResponseDto;
-import com.h5.statistic.dto.response.GetChatbotResponseDto;
-import com.h5.statistic.dto.response.GetDatesResponseDto;
+import com.h5.statistic.dto.response.GetGameVideoDatesResponseDto;
 import com.h5.statistic.dto.response.GetGameVideoLengthResponseDto;
-import com.h5.statistic.entity.ChatBotDocument;
 import com.h5.statistic.entity.StatisticEntity;
-import com.h5.statistic.repository.ChatbotRepository;
 import com.h5.statistic.repository.StatisticRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,7 +29,6 @@ public class StatisticServiceImpl implements StatisticService {
     private final StatisticRepository statisticRepository;
     private final EmotionRepository emotionRepository;
     private final ChildUserRepository childUserRepository;
-    private final ChatbotRepository chatbotRepository;
     private final ChildGameChapterRepository childGameChapterRepository;
     private final GameLogRepository gameLogRepository;
 
@@ -40,11 +36,11 @@ public class StatisticServiceImpl implements StatisticService {
     public StatisticServiceImpl(StatisticRepository statisticRepository,
                                 EmotionRepository emotionRepository,
                                 ChildUserRepository childUserRepository,
-                                ChatbotRepository chatbotRepository, ChildGameChapterRepository childGameChapterRepository, GameLogRepository gameLogRepository) {
+                                ChildGameChapterRepository childGameChapterRepository,
+                                GameLogRepository gameLogRepository) {
         this.statisticRepository = statisticRepository;
         this.emotionRepository = emotionRepository;
         this.childUserRepository = childUserRepository;
-        this.chatbotRepository = chatbotRepository;
         this.childGameChapterRepository = childGameChapterRepository;
         this.gameLogRepository = gameLogRepository;
     }
@@ -92,25 +88,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public GetDatesResponseDto getChatbotDates(int childUserId, int year, int month) {
-        YearMonth yearMonth = YearMonth.of(year, month);
-        LocalDateTime startDate = yearMonth.atDay(1).atStartOfDay();
-        LocalDateTime endDate = yearMonth.atEndOfMonth().atTime(23, 59, 59);
-
-        List<ChatBotDocument> chatbotDocList = chatbotRepository.findByChildUserIdAndChatBotUseDttmBetween(childUserId, startDate, endDate)
-                .orElseThrow(NoSuchElementException::new);
-
-        return GetDatesResponseDto.builder()
-                .dateList(chatbotDocList.stream()
-                        .map(chatbot -> chatbot.getChatBotUseDttm().toLocalDate())
-                        .distinct()
-                        .sorted()
-                        .collect(Collectors.toList()))
-                .build();
-    }
-
-    @Override
-    public GetDatesResponseDto getGameVideoDates(int childUserId, int year, int month) {
+    public GetGameVideoDatesResponseDto getGameVideoDates(int childUserId, int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDateTime startDate = yearMonth.atDay(1).atStartOfDay();
         LocalDateTime endDate = yearMonth.atEndOfMonth().atTime(23, 59, 59);
@@ -118,25 +96,12 @@ public class StatisticServiceImpl implements StatisticService {
         List<ChildGameChapterEntity> childGameChapterEntityList = childGameChapterRepository.findByChildUserEntity_IdAndStartDttmBetween(childUserId,startDate,endDate)
                 .orElseThrow(NoSuchElementException::new);
 
-        return GetDatesResponseDto.builder()
+        return GetGameVideoDatesResponseDto.builder()
                 .dateList(childGameChapterEntityList.stream()
                         .map(video -> video.getStartDttm().toLocalDate())
                         .distinct()
                         .sorted()
                         .collect(Collectors.toList()))
-                .build();
-    }
-
-    @Override
-    public GetChatbotResponseDto getChatbot(int childUserId, LocalDate date) {
-        LocalDateTime startDate = date.atStartOfDay();
-        LocalDateTime endDate = date.atTime(23, 59, 59);
-
-        List<ChatBotDocument> chatBotDocumentList = chatbotRepository.findByChildUserIdAndChatBotUseDttmBetween(childUserId,startDate,endDate)
-                .orElseThrow(NoSuchElementException::new);
-
-        return GetChatbotResponseDto.builder()
-                .chatBotDocumentList(chatBotDocumentList)
                 .build();
     }
 
