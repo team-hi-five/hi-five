@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import ParentHeader from "/src/components/Parent/ParentHeader";
-import "/src/pages/Parent/ParentCss/ParentBoardDetailPage.css";
+import CounselorHeader from "/src/components/Counselor/CounselorHeader";
+import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
+import '/src/pages/counselor/Css/CounselorBoardDetailPage.css';
 
 // 샘플 데이터
 const noticeData = [
@@ -18,13 +20,92 @@ const qnaData = [
   { no: 2, title: "결제 관련 문의", writer: "김철수", status: "답변완료", date: "2025-01-17", content: "결제 관련 문의입니다." },
 ];
 
-function ParentBoardDetailPage() {
+function CounselorBoardDetailPage() {
   const navigate = useNavigate();
   const { type, no } = useParams();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const answers = [
+    {
+      id: 1,
+      writer: "김상담",
+      content: "문의하신 사항에 대해 답변드립니다. 해당 문제는 설정에서 해결 가능합니다.",
+      time: "2시간 전"
+    },
+    {
+      id: 2,
+      writer: "이상담",
+      content: "추가적인 정보가 필요하면 언제든 문의해주세요!",
+      time: "1시간 전"
+    },
+    {
+      id: 3,
+      writer: "박상담",
+      content: "해당 이슈는 현재 확인 중이며, 빠른 시일 내에 해결하겠습니다.",
+      time: "30분 전"
+    }
+  ];
+  
 
-  // 뒤로 가기 버튼 클릭 시
   const handleBack = () => {
     navigate(-1);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedContent(postData.content);
+  };
+
+  const handleEditComplete = async () => {
+    try {
+      // API 호출이 들어갈 자리
+      // 예: await updatePost(type, no, { content: editedContent, file: selectedFile });
+      
+      // 임시로 데이터 직접 수정 (API 연동 시 제거)
+      if (type === "notice") {
+        const postIndex = noticeData.findIndex(post => post.no === Number(no));
+        if (postIndex !== -1) {
+          noticeData[postIndex] = {
+            ...noticeData[postIndex],
+            content: editedContent
+          };
+        }
+      } else if (type === "faq") {
+        const postIndex = faqData.findIndex(post => post.no === Number(no));
+        if (postIndex !== -1) {
+          faqData[postIndex] = {
+            ...faqData[postIndex],
+            content: editedContent
+          };
+        }
+      }
+
+      setIsEditing(false);
+      setSelectedFile(null);
+    } catch (error) {
+      console.error('수정 처리 중 오류 발생:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      const result = await DoubleButtonAlert("정말 삭제 하시겠습니까?");
+      if (result.isConfirmed) {
+        // 삭제 API 호출이 들어갈 자리
+        // 예: await deletePost(type, no);
+        navigate(`/counselor/board`);
+      }
+    } catch (error) {
+      console.error('삭제 처리 중 오류 발생:', error);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
   };
 
   // 해당하는 게시판 데이터를 가져옴
@@ -40,17 +121,17 @@ function ParentBoardDetailPage() {
   // 데이터가 없을 경우 처리
   if (!postData) {
     return (
-      <div className="pa-detail-page">
-        <ParentHeader />
-        <div className="pa-detail-container">
-          <div className="pa-detail-topbar">
-            <button className="pa-detail-back-btn" onClick={handleBack}>
+      <div className="co-detail-page">
+        <CounselorHeader />
+        <div className="co-detail-container">
+          <div className="co-detail-topbar">
+            <button className="co-detail-back-btn" onClick={handleBack}>
               ←
             </button>
-            <span className="pa-detail-top-title">게시글 상세보기</span>
+            <span className="co-detail-top-title">게시글 상세보기</span>
           </div>
-          <div className="pa-detail-card">
-            <h2 className="pa-detail-post-title">게시글을 찾을 수 없습니다.</h2>
+          <div className="co-detail-card">
+            <h2 className="co-detail-post-title">게시글을 찾을 수 없습니다.</h2>
           </div>
         </div>
       </div>
@@ -58,59 +139,125 @@ function ParentBoardDetailPage() {
   }
 
   return (
-    <div className="pa-detail-page">
-      <ParentHeader />
+    <div className="co-detail-page">
+      <CounselorHeader />
+      <div className="co-detail-container">
+        {/* 질문 영역 */}
+        <div className="question-section">
+          {!isEditing ? (
+            <div className="co-detail-topbar">
+              <button className="co-detail-back-btn" onClick={handleBack}>
+                ←
+              </button>
+              <span className="co-detail-top-title">
+                {type === "notice" ? "공지사항" : type === "faq" ? "FAQ" : "질문"}
+              </span>
+            </div> 
+          ) : <div className="co-detail-topbar2">
+          </div>}
 
-      <div className="pa-detail-container">
-        {/* 상단 바 */}
-        <div className="pa-detail-topbar">
-          <button className="pa-detail-back-btn" onClick={handleBack}>
-            ←
-          </button>
-          <span className="pa-detail-top-title">{type === "notice" ? "공지사항" : type === "faq" ? "FAQ" : "질문"}</span>
-        </div>
-
-        {/* 게시글 상세 */}
-        <div className="pa-detail-card">
-          <h2 className="pa-detail-post-title">{postData.title}</h2>
-
-          {/* 공지사항 & 질문은 작성일 표시 / FAQ는 작성자만 표시 */}
-          {type === "notice" || type === "qna" ? (
-            <table className="pa-detail-info-table">
-              <thead>
-                <tr>
-                  <th>작성자</th>
-                  {type === "qna" && <th>답변 상태</th>}
-                  <th>작성일</th>
-                  {type === "notice" && <th>조회수</th>}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{postData.writer}</td>
-                  {type === "qna" && <td>{postData.status}</td>}
-                  <td>{postData.date}</td>
-                  {type === "notice" && <td>{postData.views}</td>}
-                </tr>
-              </tbody>
-            </table>
-          ) : (
-            <div className="pa-detail-info-text">
-              <strong>작성자:</strong> {postData.writer}
+          <div className="co-detail-card">
+            <div className="co-detail-title-section">
+              <h2 className="co-detail-post-title">{postData.title}</h2>
+              <div className="co-detail-buttons">
+              {type === "qna" && !isEditing && (
+                  <button onClick={handleEdit} className="co-detail-edit-btn">
+                      수정
+                  </button>
+              )}
+              {type === "qna" && (
+                  isEditing ? (
+                      <button onClick={handleEditComplete} className="co-detail-edit-btn">
+                          수정완료
+                      </button>
+                  ) : (
+                      <button onClick={handleDelete} className="co-detail-delete-btn">
+                          삭제
+                      </button>
+                  )
+              )}
             </div>
-          )}
 
-          {/* 본문 내용 */}
-          <div className="pa-detail-content">
-            <p>{postData.content}</p>
+            </div>
+
+            {type === "notice" || type === "qna" ? (
+              <div className="co-detail-info-text">
+                <span><strong>작성자:</strong> {postData.writer}</span>
+                {type === "qna" && <span> | <strong>답변 상태:</strong> {postData.status}</span>}
+                <span> | <strong>작성일:</strong> {postData.date}</span>
+                {type === "notice" && <span> | <strong>조회수:</strong> {postData.views}회</span>}
+              </div>
+            ) : (
+              <div className="co-detail-info-text">
+                <strong>작성자:</strong> {postData.writer}
+              </div>
+            )}
+
+            <div className="co-detail-content">
+              <div
+                contentEditable={isEditing}
+                suppressContentEditableWarning={true}
+                onInput={(e) => setEditedContent(e.currentTarget.textContent || "")}
+                className={isEditing ? "co-detail-content-editable" : ""}
+              >
+                {postData.content}
+              </div>
+            </div>
+
+            <div className="co-detail-file">
+              {isEditing ? (
+                <>
+                  <input
+                    type="file"
+                    id="fileInput" 
+                    onChange={handleFileChange}
+                    className="co-detail-file-input"
+                  />
+                  <label htmlFor="fileInput" className="co-detail-file-label">파일 선택</label>
+                  <span className="co-detail-file-name">
+                    {selectedFile ? selectedFile.name : '선택된 파일 없음'}
+                  </span>
+                </>
+              ) : (
+                "첨부파일"
+              )}
+            </div>
           </div>
-
-          {/* 첨부파일 영역 (예시) */}
-          <div className="pa-detail-file">첨부파일</div>
         </div>
+
+        {/* 답변 영역 */}
+        {type === "qna" && (
+  <div className="answer-section">
+    <div className="co-detail-card">
+      <div className="co-detail-answer">
+        <div className="co-detail-answer-header">
+          <h3 className="co-detail-answer-title">답변</h3>
+        </div>
+        
+        {answers.length > 0 ? (
+          answers.map((ans) => (
+            <div key={ans.id} className="co-detail-answer-content">
+              <div className="co-detail-answer-info">
+                <img src="/no.png" alt="프로필" className="co-detail-answer-info-img" />
+                <span className="co-detail-answer-writer">{ans.writer}</span>
+                <span className="co-detail-answer-time">{ans.time}</span>
+              </div>
+              <div className="co-detail-answer-info-content">
+                {ans.content}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="co-detail-no-answer">아직 답변이 없습니다.</p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );
 }
 
-export default ParentBoardDetailPage;
+export default CounselorBoardDetailPage;

@@ -1,16 +1,11 @@
-/* 페이지 전체 배경 및 레이아웃 */
-.pa-board-na {
-  background-color: #EEF5FC; /* 전체 페이지 배경 */
-  min-height: 100vh;
-  padding-top: 80px; /* 고정 헤더 높이에 맞춰 여백 */
-}
-
 .pa-board-page {
   background-color: #EEF5FC; /* 전체 페이지 배경 */
   min-height: 100vh;
-  padding-top: 80px; /* 고정 헤더 높이에 맞춰 여백 */
+  padding-top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
 /* =====================
    (위) 탭만 들어있는 흰색 박스
    ===================== */
