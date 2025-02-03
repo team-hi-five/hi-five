@@ -103,7 +103,11 @@ function ParentBoardPage() {
   };
 
   const handleWriteClick = () => {
-    navigate("/parent/board/write");
+    if (paActiveTab === "qna") {
+      navigate("/counselor/board/qna/write");
+    } else {
+      navigate("/counselor/board/write");
+    }
   };
 
   // 테이블 행 클릭 -> 상세 페이지로 이동 (예시: /board/{tab}/{글번호})
@@ -116,203 +120,203 @@ function ParentBoardPage() {
   const colSpan = paActiveTab === "faq" ? 4 : paActiveTab === "qna" ? 5 : 5;
 
   return (
-    <div className="pa-board-page">
+    <div>
       <ParentHeader />
-
-      {/* ───────────── (위) 탭 영역 ───────────── */}
-      <div className="pa-board-top-wrapper">
-        <div className="pa-board-tabs">
-          <button
-            className={`pa-board-tab ${paActiveTab === "notice" ? "pa-active-tab" : ""}`}
-            onClick={() => handleTabClick("notice")}
-          >
-            공지사항
-          </button>
-          <button
-            className={`pa-board-tab ${paActiveTab === "faq" ? "pa-active-tab" : ""}`}
-            onClick={() => handleTabClick("faq")}
-          >
-            FAQ
-          </button>
-          <button
-            className={`pa-board-tab ${paActiveTab === "qna" ? "pa-active-tab" : ""}`}
-            onClick={() => handleTabClick("qna")}
-          >
-            질문
-          </button>
+      <div className='pa-board-page'>
+        <div className="pa-board-top-wrapper">
+          <div className="pa-board-tabs">
+            <button
+              className={`pa-board-tab ${paActiveTab === "notice" ? "pa-active-tab" : ""}`}
+              onClick={() => handleTabClick("notice")}
+            >
+              공지사항
+            </button>
+            <button
+              className={`pa-board-tab ${paActiveTab === "faq" ? "pa-active-tab" : ""}`}
+              onClick={() => handleTabClick("faq")}
+            >
+              FAQ
+            </button>
+            <button
+              className={`pa-board-tab ${paActiveTab === "qna" ? "pa-active-tab" : ""}`}
+              onClick={() => handleTabClick("qna")}
+            >
+              질문
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* ───────────── (아래) 검색 + 테이블 영역 ───────────── */}
-      <div className="pa-board-bottom-wrapper">
-        {/* 검색바 */}
-        <div className="pa-board-searchbar">
-          <div className="pa-board-search-select">
-            <div className="pa-board-search-label">
-              {paSearchCategory === "title" ? "제목" : "작성자"} ▼
-            </div>
-            <div className="pa-board-search-options">
-              <div
-                className="pa-board-search-option"
-                onClick={() => handleCategoryClick("title")}
-              >
-                제목
+        {/* ───────────── (아래) 검색 + 테이블 영역 ───────────── */}
+        <div className="pa-board-bottom-wrapper">
+          {/* 검색바 */}
+          <div className="pa-board-searchbar">
+            <div className="pa-board-search-select">
+              <div className="pa-board-search-label">
+                {paSearchCategory === "title" ? "제목" : "작성자"} ▼
               </div>
-              <div
-                className="pa-board-search-option"
-                onClick={() => handleCategoryClick("writer")}
-              >
-                작성자
+              <div className="pa-board-search-options">
+                <div
+                  className="pa-board-search-option"
+                  onClick={() => handleCategoryClick("title")}
+                >
+                  제목
+                </div>
+                <div
+                  className="pa-board-search-option"
+                  onClick={() => handleCategoryClick("writer")}
+                >
+                  작성자
+                </div>
               </div>
             </div>
+
+            <input
+              type="text"
+              className="pa-board-search-input"
+              placeholder={`${paTitle} 내 검색`}
+              value={paSearchTerm}
+              onChange={handleSearchChange}
+            />
+            <button className="pa-board-search-button">검색</button>
           </div>
 
-          <input
-            type="text"
-            className="pa-board-search-input"
-            placeholder={`${paTitle} 내 검색`}
-            value={paSearchTerm}
-            onChange={handleSearchChange}
-          />
-          <button className="pa-board-search-button">검색</button>
-        </div>
+          {/* 테이블 상단 (타이틀 + 글쓰기버튼) */}
+          <div className="pa-board-table-header">
+            <h2 className="pa-board-table-title">{paTitle}</h2>
+            {paTitle === "질문" && (
+              <button className="pa-board-write-button" onClick={handleWriteClick}>
+              글쓰기
+            </button>
+            )}
+          </div>
 
-        {/* 테이블 상단 (타이틀 + 글쓰기버튼) */}
-        <div className="pa-board-table-header">
-          <h2 className="pa-board-table-title">{paTitle}</h2>
-          {paTitle === "질문" && (
-            <button className="pa-board-write-button" onClick={handleWriteClick}>
-            글쓰기
-          </button>
-          )}
-        </div>
-
-        {/* 테이블 */}
-        <div className="pa-board-table-container">
-          <table className="pa-board-table">
-            <thead>
-              <tr>
-                {/* 탭별로 컬럼 구성 분기 */}
-                {paActiveTab === "faq" ? (
-                  <>
-                    <th>번호</th>
-                    <th>유형</th>
-                    <th>제목</th>
-                    <th>작성자</th>
-                  </>
-                ) : paActiveTab === "qna" ? (
-                  <>
-                    <th>번호</th>
-                    <th>제목</th>
-                    <th>작성자</th>
-                    <th>답변상태</th>
-                    <th>작성일</th>
-                  </>
-                ) : (
-                  // 공지사항
-                  <>
-                    <th>번호</th>
-                    <th>제목</th>
-                    <th>작성자</th>
-                    <th>조회수</th>
-                    <th>작성일</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {/* 데이터가 없을 때: 한 행만 표시 */}
-              {paPageData.length === 0 ? (
+          {/* 테이블 */}
+          <div className="pa-board-table-container">
+            <table className="pa-board-table">
+              <thead>
                 <tr>
-                  <td colSpan={colSpan} className="pa-empty-row">
-                    게시글이 없습니다.
-                  </td>
-                </tr>
-              ) : (
-                paPageData.map((item) => {
-                  if (paActiveTab === "faq") {
-                    return (
-                      <tr
-                        key={item.no}
-                        onClick={() => handleRowClick("faq", item)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <td>{item.no}</td>
-                        <td>{item.type}</td>
-                        <td>{item.title}</td>
-                        <td>{item.writer}</td>
-                      </tr>
-                    );
-                  } else if (paActiveTab === "qna") {
-                    return (
-                      <tr
-                        key={item.no}
-                        onClick={() => handleRowClick("qna", item)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <td>{item.no}</td>
-                        <td>{item.title}</td>
-                        <td>{item.writer}</td>
-                        <td>{item.status}</td>
-                        <td>{item.date}</td>
-                      </tr>
-                    );
-                  } else {
+                  {/* 탭별로 컬럼 구성 분기 */}
+                  {paActiveTab === "faq" ? (
+                    <>
+                      <th>번호</th>
+                      <th>유형</th>
+                      <th>제목</th>
+                      <th>작성자</th>
+                    </>
+                  ) : paActiveTab === "qna" ? (
+                    <>
+                      <th>번호</th>
+                      <th>제목</th>
+                      <th>작성자</th>
+                      <th>답변상태</th>
+                      <th>작성일</th>
+                    </>
+                  ) : (
                     // 공지사항
-                    return (
-                      <tr
-                        key={item.no}
-                        onClick={() => handleRowClick("notice", item)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <td>{item.no}</td>
-                        <td>{item.title}</td>
-                        <td>{item.writer}</td>
-                        <td>{item.views}</td>
-                        <td>{item.date}</td>
-                      </tr>
-                    );
-                  }
-                })
-              )}
-
-              {/* 데이터 개수가 7개 미만이면, 빈 행으로 테이블 높이 맞추기 */}
-              {Array.from({ length: emptyRowsCount }).map((_, idx) => (
-                <tr key={`empty-${idx}`}>
-                  <td colSpan={colSpan} className="pa-empty-row">
-                    &nbsp;
-                  </td>
+                    <>
+                      <th>번호</th>
+                      <th>제목</th>
+                      <th>작성자</th>
+                      <th>조회수</th>
+                      <th>작성일</th>
+                    </>
+                  )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {/* 데이터가 없을 때: 한 행만 표시 */}
+                {paPageData.length === 0 ? (
+                  <tr>
+                    <td colSpan={colSpan} className="pa-empty-row">
+                      게시글이 없습니다.
+                    </td>
+                  </tr>
+                ) : (
+                  paPageData.map((item) => {
+                    if (paActiveTab === "faq") {
+                      return (
+                        <tr
+                          key={item.no}
+                          onClick={() => handleRowClick("faq", item)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td>{item.no}</td>
+                          <td>{item.type}</td>
+                          <td>{item.title}</td>
+                          <td>{item.writer}</td>
+                        </tr>
+                      );
+                    } else if (paActiveTab === "qna") {
+                      return (
+                        <tr
+                          key={item.no}
+                          onClick={() => handleRowClick("qna", item)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td>{item.no}</td>
+                          <td>{item.title}</td>
+                          <td>{item.writer}</td>
+                          <td>{item.status}</td>
+                          <td>{item.date}</td>
+                        </tr>
+                      );
+                    } else {
+                      // 공지사항
+                      return (
+                        <tr
+                          key={item.no}
+                          onClick={() => handleRowClick("notice", item)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td>{item.no}</td>
+                          <td>{item.title}</td>
+                          <td>{item.writer}</td>
+                          <td>{item.views}</td>
+                          <td>{item.date}</td>
+                        </tr>
+                      );
+                    }
+                  })
+                )}
 
-          {/* 페이지네이션 */}
-          {paTotalItems > 0 && (
-            <div className="pa-board-pagination">
-              <button onClick={handlePrevPage} disabled={paCurrentPage === 1}>
-                이전
-              </button>
-              {Array.from({ length: paTotalPages }).map((_, idx) => {
-                const pageNum = idx + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    className={paCurrentPage === pageNum ? "pa-active-page" : ""}
-                    onClick={() => handlePageChange(pageNum)}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              <button
-                onClick={handleNextPage}
-                disabled={paCurrentPage === paTotalPages}
-              >
-                다음
-              </button>
-            </div>
-          )}
+                {/* 데이터 개수가 7개 미만이면, 빈 행으로 테이블 높이 맞추기 */}
+                {Array.from({ length: emptyRowsCount }).map((_, idx) => (
+                  <tr key={`empty-${idx}`}>
+                    <td colSpan={colSpan} className="pa-empty-row">
+                      &nbsp;
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* 페이지네이션 */}
+            {paTotalItems > 0 && (
+              <div className="pa-board-pagination">
+                <button onClick={handlePrevPage} disabled={paCurrentPage === 1}>
+                  이전
+                </button>
+                {Array.from({ length: paTotalPages }).map((_, idx) => {
+                  const pageNum = idx + 1;
+                  return (
+                    <button
+                      key={pageNum}
+                      className={paCurrentPage === pageNum ? "pa-active-page" : ""}
+                      onClick={() => handlePageChange(pageNum)}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={handleNextPage}
+                  disabled={paCurrentPage === paTotalPages}
+                >
+                  다음
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <Footer/>

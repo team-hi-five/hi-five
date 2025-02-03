@@ -1,7 +1,7 @@
 .pa-schedule-container {
     flex-direction: column;
     position: relative;
-    min-height: 100vh; 
+    min-height: 100vh;
     display: flex;
     justify-content: space-between;
     background-color: #EEF5FC;
@@ -9,13 +9,14 @@
 
 .pa-schedule-wrapper {
     max-width: 1200px;
-    width: 80%;
-    margin: 0 auto;
+    width: 100%;
+    margin: 5px auto;
     display: flex;
-    padding: 30px 10px;
+    padding: 100px 10px;
     gap: 50px;
     position: relative;
     justify-content: center;
+    align-items: center;
 }
 
 .pa-calendar-section {
@@ -59,7 +60,7 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    max-height: 330px; /* 2개의 아이템이 보이도록 높이 제한 */
+    max-height: 409px; /* 2개의 아이템이 보이도록 높이 제한 */
     overflow-y: auto; /* 스크롤 활성화 */
     scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
     -ms-overflow-style: none; /* IE/Edge에서 스크롤바 숨기기 */
@@ -303,7 +304,7 @@
     align-items: center;
     padding: 18px;
     color: #1A2A4D;
-    height: 300px;
+    height: 409px;
     font-size: 20px;
     font-weight: bold;
     border-radius: 6px;

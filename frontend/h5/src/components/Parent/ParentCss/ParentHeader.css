@@ -1,13 +1,9 @@
-/* @import '@fontsource/noto-sans-kr';
-@import '@fontsource/jua'; */
-
-/* pa-navbar */
 .pa-navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ffffff;
-  padding: 15px 20px;
+  background-color: white;
+  padding: 10px 20px;
   position: fixed;
   top: 0;
   left: 0;
@@ -16,13 +12,11 @@
   font-family: 'Noto Sans', sans-serif;
 }
 
-/* pa-logo */
 .pa-logo {
   height: 40px;
   width: auto;
 }
 
-/* pa-nav-list */
 .pa-nav-list {
   list-style: none;
   display: flex;
@@ -32,43 +26,38 @@
   margin-left: auto;
 }
 
-/* pa-nav-item */
 .pa-nav-item {
   cursor: pointer;
   font-weight: bold;
   color: #1A2A4D;
-  position: relative;
 }
 
-.pa-nav-item::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -5px;
-  width: 0;
-  height: 2px;
-  background-color: #1A2A4D;
-  transition: width 0.3s;
-  transform: translateX(-50%);
-}
-
-.pa-nav-item:hover::after {
-  width: 100%;
-}
-
-/* 링크 스타일 정리 (클릭 후 흔적 제거) */
 .pa-nav-item a {
   text-decoration: none;
   color: inherit;
-  outline: none;
+  position: relative;
+  padding-bottom: 2px;
 }
 
-.pa-nav-item a:visited {
-  color: inherit;
+/* hover 효과 */
+.pa-nav-item a::after {
+content: '';
+position: absolute;
+left: 50%;
+bottom: -5px;
+width: 0;
+height: 2px;
+background-color: #1A2A4D;
+transition: width 0.3s;
+transform: translateX(-50%);
 }
 
-.pa-nav-item a:focus,
-.pa-nav-item a:active {
-  color: inherit;
-  outline: none;
+.pa-nav-item a:hover::after,
+.pa-nav-item a.active::after {
+width: 100%;
+}
+
+/* 로그아웃 버튼은 활성화 상태 표시 제외 */
+.pa-nav-item:last-child a.active::after {
+width: 0;
 }

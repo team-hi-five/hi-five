@@ -1,6 +1,5 @@
-// ParentHeader.jsx
-import { Link } from "react-router-dom";
-import '/src/components/Parent/ParentCss/ParentHeader.css';
+import '../Parent/ParentCss/ParentHeader.css';
+import { Link, NavLink } from 'react-router-dom';
 
 function ParentHeader() {
   return (
@@ -12,16 +11,16 @@ function ParentHeader() {
       </div>
       <ul className="pa-nav-list">
         <li className="pa-nav-item">
-          <Link to="/parent/data">우리아이들</Link>
+          <NavLink to="/parent/data">우리아이들</NavLink>
         </li>
         <li className="pa-nav-item">
-          <Link to="/parent/schedule">상담일정</Link>
+          <NavLink to="/parent/schedule">상담일정</NavLink>
         </li>
         <li className="pa-nav-item">
-          <Link to="/parent/board">게시판</Link>
+          <NavLink to="/parent/board">게시판</NavLink>
         </li>
         <li className="pa-nav-item">
-          <Link to="/parent/my">마이페이지</Link>
+          <NavLink to="/parent/my">마이페이지</NavLink>
         </li>
         <li className="pa-nav-item">
           <Link to="/">로그아웃</Link>
