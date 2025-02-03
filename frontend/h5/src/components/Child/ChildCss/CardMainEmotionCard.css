@@ -1,0 +1,111 @@
+
+.ch-big-card-container{
+    padding-top: 5px;
+    width: 70vw;
+    height: 70vh;
+    padding-right: 2vw;
+    max-width: 25vw;
+    max-height: 80vh;
+    overflow: visible;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+}
+
+
+.ch-big-card {
+    flex: 1;
+    width: 90%;
+    position : relative;
+    aspect-ratio: 1 / 1.3; /* 비율 유지 */
+    padding-left : 1vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+}
+
+.ch-big-card img {
+    width: 60%;  
+    height: auto;
+    object-fit: contain;
+    display: block;
+    position: relative;
+    z-index: 5;
+    margin-top: -20px;
+}
+
+.ch-big-name-card {
+    position :absolute;  
+    width: 100%;
+    height: 60%;
+    bottom: -10px;
+    left : 48%;
+    transform: translateX(-50%);
+                /* 왼쪽위 오른쪽위 오른쪽 아래 왼쪽아래 */
+    border-radius: 10% 10% 10% 10%;        
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.ch-big-card-name {
+    text-align: center;
+    padding-top: 50px;
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    font-family: 'Jua';
+}
+
+
+/* 마우스 갖다 댔을시 호버 */
+.card-hover-text {
+    position: absolute;
+    top: 90%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgb(12, 12, 12);
+    font-size: clamp(1rem, 2vw, 2rem);
+    opacity: 0;
+    z-index: 10;
+    font-family: 'Jua';
+}
+
+.ch-big-card-container:hover .card-hover-text {
+    opacity: 2;
+}
+
+/* 클릭 했을 시 화면 커지기 + 카드리스트 보이기 */
+.ch-big-card[data-isselected="true"] {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    transition: all 0.3s ease;
+    z-index: 10;
+    display: flex;  
+    align-items: center; 
+    padding: 2rem;
+    display: flex;
+}
+
+.ch-big-card img[data-isselected="true"] {
+    position: absolute;
+    top: 220px;
+    right: 850px;
+    width: 50%;
+    height: 70%;
+}
+
+.ch-big-name-card[data-isselected="true"]{
+    bottom: 50px;
+    width: 1250px;
+    height: 600px;
+    align-items: center; 
+}
+
+.ch-big-card-name[data-isselected="true"] {
+    display: none;
+}
+
+.card-hover-text[data-isselected="true"]{
+    display: none;
+}
