@@ -48,7 +48,7 @@
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 25px;
+  padding: 0 25px 0 20px;
 }
 
 .co-notification {
@@ -145,19 +145,29 @@
 }
 
 /* SimpleBar 커스텀 스타일 */
-.simplebar-scrollbar::before {
-  background-color: #97B1E1;
-  border-radius: 8px;
-  width: 8px;
+.simplebar-scrollbar:before {
+  background-color: #B1CCE2 !important;
+  border-radius: 10px;
+  width: 9px;
   opacity: 1 !important;
 }
 
 .simplebar-track.simplebar-vertical {
-  background-color: #f1f1f1;
+  background-color: #EEF5FC;
   width: 8px;
   right: 0;
 }
 
+/* 스크롤바 항상 표시 */
+.simplebar-track {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.simplebar-scrollbar {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
 
 .counselor-children-item {
   width: 300px;
@@ -196,7 +206,7 @@
 
 .co-register-button:hover {
   background-color: #9BB8D3;
-  border: 1px solid #3A5E8D;
+  /* border: 1px solid #3A5E8D; */
 }
 
 @font-face {

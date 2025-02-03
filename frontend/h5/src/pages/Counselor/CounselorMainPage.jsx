@@ -2,11 +2,13 @@ import { Card } from 'primereact/card';
 import { Button } from 'primereact/button';
 import { Carousel } from 'primereact/carousel';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CounselorHeader from "../../components/Counselor/CounselorHeader";
 import Footer from "../../components/common/footer";
 import '../Counselor/Css/CounselorMainPage.css';
 
 const CounselorMainPage = () => {
+  const navigate = useNavigate();
   const notices = [
     { id: 1, type: '공지사항', author: '작성자', isNew: true, content: '새글내ㅇㄹㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁ애낙어래ㅑㅑㅐ 야ㅓ멀 ㅐㅑㅓㅑㅐㄷ ㅁㄹ 러아님 랴댖 ㅁ러ㅑ댐  ㅑㄷㅁㄹ ㅓ댜ㅣㅁ;용', date: '2025.01.18' },
     { id: 2, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
@@ -110,7 +112,7 @@ const CounselorMainPage = () => {
                 <span className="co_highlight">박성원</span> 상담사님.
               </h2>
               <p className="co_service_subtitle">감정을 놀이로 전달하는 <span>HI 서비스</span> 입니다.</p>
-              <Button label="상담일정 보러가기" className="co_schedule_btn" />
+              <Button label="상담일정 보러가기" className="co_schedule_btn" onClick={() => navigate('/counselor/schedule')}/>
             </div>
           </div>
           <div className="co_hero_image">
