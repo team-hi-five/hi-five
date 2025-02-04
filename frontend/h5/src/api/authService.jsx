@@ -1,5 +1,4 @@
 import api from "./api";
-import Cookies from "js-cookie";
 
 // ✅ 로그인 API 요청
 export const login = async (email, password, role) => {
@@ -17,8 +16,6 @@ export const login = async (email, password, role) => {
         // 쿠키에 토큰 저장 (1시간 유지)
         localStorage.setItem("access_token", response.data.accessToken);
         localStorage.setItem("refresh_token", response.data.refreshToken);
-        // Cookies.set("access_token", response.data.accessToken, { expires: 1 / 24 });
-        // Cookies.set("refresh_token", response.data.refreshToken, { expires: 7 });
 
         return response.data;
     } catch (error) {
@@ -31,7 +28,7 @@ export const login = async (email, password, role) => {
 // ✅ 로그아웃 API 요청
 export const logout = async () => {
     try {
-        const accessToken = Cookies.get("access_token");
+        const accessToken = localStorage.getItem("access_token");
         if (!accessToken) {
             console.warn("❌ 로그아웃 실패: 토큰이 없습니다.");
             return;
