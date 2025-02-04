@@ -9,6 +9,7 @@ import lombok.Setter;
 @Builder
 public class ConsultantInfo {
     private int consultantId;
+    private String consultantName;
     private String consultantPhone;
     private String consultantEmail;
     private String centerName;

@@ -115,6 +115,7 @@ public class ParentUserServiceImpl implements ParentUserService {
 
         return ConsultantInfo.builder()
                 .consultantId(consultant.getId())
+                .consultantName(consultant.getName())
                 .consultantPhone(consultant.getPhone())
                 .consultantEmail(consultant.getEmail())
                 .centerName(consultant.getCenter().getCenterName())
