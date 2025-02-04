@@ -14,8 +14,7 @@ export const login = async (email, password, role) => {
         console.log("✅ 로그인 성공:", response.data);
 
         // 쿠키에 토큰 저장 (1시간 유지)
-        localStorage.setItem("access_token", response.data.accessToken);
-        localStorage.setItem("refresh_token", response.data.refreshToken);
+        sessionStorage.setItem("access_token", response.data.accessToken);
 
         return response.data;
     } catch (error) {
@@ -28,7 +27,7 @@ export const login = async (email, password, role) => {
 // ✅ 로그아웃 API 요청
 export const logout = async () => {
     try {
-        const accessToken = localStorage.getItem("access_token");
+        const accessToken = sessionStorage.getItem("access_token");
         if (!accessToken) {
             console.warn("❌ 로그아웃 실패: 토큰이 없습니다.");
             return;
@@ -43,11 +42,7 @@ export const logout = async () => {
 
         console.log("✅ 로그아웃 성공:", response.data);
 
-        // 토큰 삭제 (쿠키 정리)
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        // Cookies.remove("access_token");
-        // Cookies.remove("refresh_token");
+        sessionStorage.removeItem("access_token");
 
         return response.data;
     } catch (error) {
