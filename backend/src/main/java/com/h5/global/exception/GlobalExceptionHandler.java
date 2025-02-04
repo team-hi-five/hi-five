@@ -14,6 +14,18 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(e.getMessage(), e.getStatus().value()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> IllegalArgumentException(BoardException e) {
+        return ResponseEntity.status(e.getStatus())
+                .body(new ErrorResponse(e.getMessage(), e.getStatus().value()));
+    }
+
+    @ExceptionHandler(InvalidJwtTokenException.class)
+    public ResponseEntity<?> InvalidJwtTokenException(BoardException e) {
+        return ResponseEntity.status(e.getStatus())
+                .body(new ErrorResponse(e.getMessage(), e.getStatus().value()));
+    }
+
     @Getter
     public static class ErrorResponse {
         private final String message;

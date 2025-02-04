@@ -14,8 +14,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -28,6 +31,8 @@ public class AuthServiceImpl implements AuthService {
     private final ParentCustomUserDetailService parentCustomUserDetailService;
     private final ConsultantUserRepository consultantUserRepository;
     private final ParentUserRepository parentUserRepository;
+
+    private final long REDIS_REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 15; // 15 days;
 
     @Autowired
     public AuthServiceImpl(RedisTemplate<Object, Object> redisTemplate,
@@ -89,19 +94,16 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponseDto.builder()
                 .name(name)
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
                 .pwdChanged(isTempPwd)
                 .build();
     }
 
     private void updateRefreshToken(String email, String refreshToken) {
-        if (consultantUserRepository.existsByEmail(email)) {
-            consultantUserRepository.updateRefreshTokenByEmail(email, refreshToken);
-        } else if (parentUserRepository.existsByEmail(email)) {
-            parentUserRepository.updateRefreshTokenByEmail(email, refreshToken);
-        } else {
-            throw new IllegalArgumentException("No user found with email: " + email);
-        }
+        redisTemplate.opsForValue().set(email, refreshToken, Duration.ofDays(REDIS_REFRESH_TOKEN_EXPIRE_TIME));
+    }
+
+    private void deleteRefreshToken(String email) {
+        redisTemplate.delete(email);
     }
 
     @Override
@@ -109,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
         String jwt = token.replace("Bearer ", "");
         validateToken(jwt);
         String email = jwtUtil.getEmailFromToken(jwt);
-        updateRefreshToken(email, null);
+        deleteRefreshToken(email);
         addTokenToBlacklist(jwt);
     }
 
@@ -127,32 +129,38 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public RefreshAccessTokenResponseDto refreshAccessToken(String refreshToken) {
-        validateToken(refreshToken);
+    public RefreshAccessTokenResponseDto refreshAccessToken() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
-        if (redisTemplate.hasKey(refreshToken) || jwtUtil.isRefreshTokenExpired(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token is expired or blacklisted. Please login again.");
+        System.out.println(email);
+
+        String storedRefreshToken = (String) redisTemplate.opsForValue().get(email);
+
+        if (storedRefreshToken == null) {
+            throw new IllegalArgumentException("Refresh token not found. Please login again.");
         }
 
-        String email = jwtUtil.getEmailFromToken(refreshToken);
+        if (jwtUtil.isRefreshTokenExpired(storedRefreshToken)) {
+            redisTemplate.delete(email);
+            throw new IllegalArgumentException("Refresh token expired. Please login again.");
+        }
+
         UserDetails userDetails = loadUser(email);
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String newRefreshToken = refreshTokenIfNeeded(refreshToken, userDetails, email);
+        String newAccessToken = jwtUtil.generateAccessToken(userDetails);
+        refreshTokenIfNeeded(storedRefreshToken, userDetails, email);
 
         return RefreshAccessTokenResponseDto.builder()
-                .accessToken(accessToken)
-                .refreshToken(newRefreshToken)
+                .accessToken(newAccessToken)
                 .build();
     }
 
-    private String refreshTokenIfNeeded(String refreshToken, UserDetails userDetails, String email) {
+    private void refreshTokenIfNeeded(String refreshToken, UserDetails userDetails, String email) {
         if (jwtUtil.isTokenNearExpiry(refreshToken)) {
             String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
             addTokenToBlacklist(refreshToken);
             updateRefreshToken(email, newRefreshToken);
-            return newRefreshToken;
         }
-        return refreshToken;
     }
 
     private UserDetails loadUser(String email) {

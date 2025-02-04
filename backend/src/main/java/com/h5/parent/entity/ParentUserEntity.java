@@ -56,10 +56,6 @@ public class ParentUserEntity {
     @Column(name = "update_dttm", insertable = false, updatable = false)
     private String updateDttm;
 
-    @Size(max = 255)
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "consultant_user_id", nullable = false)

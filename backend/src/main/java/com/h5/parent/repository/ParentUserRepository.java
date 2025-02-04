@@ -12,14 +12,7 @@ import java.util.Optional;
 public interface ParentUserRepository extends JpaRepository<ParentUserEntity, Integer> {
     Optional<ParentUserEntity> findByEmail(String email);
 
-    @Modifying
-    @Transactional
-    @Query("UPDATE ParentUserEntity c SET c.refreshToken = :refreshToken WHERE c.email = :email")
-    void updateRefreshTokenByEmail(@Param("email") String email, @Param("refreshToken") String refreshToken);
-
     Optional<ParentUserEntity> findEmailByNameAndPhone(String name, String phone);
-
-    boolean existsByEmail(String email);
 
     Optional<ParentUserEntity> findByEmailAndDeleteDttmIsNull(String email);
 }

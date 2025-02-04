@@ -14,11 +14,6 @@ import java.util.Optional;
 public interface ConsultantUserRepository extends JpaRepository<ConsultantUserEntity, Integer> {
     Optional<ConsultantUserEntity> findByEmail(String email);
 
-    @Modifying
-    @Transactional
-    @Query("UPDATE ConsultantUserEntity c SET c.refreshToken = :refreshToken WHERE c.email = :email")
-    void updateRefreshTokenByEmail(@Param("email") String email, @Param("refreshToken") String refreshToken);
-
     Optional<ConsultantUserEntity> findEmailByNameAndPhone(String name, String phone);
 
     boolean existsByEmail(String email);
