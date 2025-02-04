@@ -8,10 +8,7 @@ import com.h5.parent.service.ParentUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user/parent")
@@ -49,6 +46,9 @@ public class ParentUserController {
         return ResponseEntity.ok("Password changed successfully.");
     }
     
-    // TODO 회원 탈퇴 요청
+    @GetMapping("/my-children")
+    public ResponseEntity<?> myChildren() {
+        return ResponseEntity.ok(parentUserService.myChildren());
+    }
 
 }
