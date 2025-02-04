@@ -7,7 +7,6 @@ function ChildCardDetailsPage() {
   const emotion = location.state?.emotion;
 
   const emotionContent = () => {
-    console.log(emotion);
 
     switch (emotion.type) {
       case "joy":

@@ -1,0 +1,13 @@
+.ch-review-container{
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    padding-top: 100px;
+    gap: 70px;
+    background: linear-gradient(to bottom, #DEF0FF, #FFFFFF 100%);
+}
+
+.ch-review-game-left,
+.ch-review-game-right {
+    width: 40%; 
+}
