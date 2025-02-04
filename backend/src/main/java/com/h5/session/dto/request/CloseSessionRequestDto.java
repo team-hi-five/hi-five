@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EndMeetingRequest {
+public class CloseSessionRequestDto {
     private int schdlId;
     private String type;
 }

@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class SessionJoinRequestDto {
+public class JoinSessionRequestDto {
     @NotNull
     private int sessionId;
 

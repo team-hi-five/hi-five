@@ -1,13 +1,13 @@
 package com.h5.session.service;
 
-import com.h5.session.dto.request.SessionCreateRequestDto;
-import com.h5.session.dto.request.SessionJoinRequestDto;
+import com.h5.session.dto.request.CloseSessionRequestDto;
+import com.h5.session.dto.request.JoinSessionRequestDto;
 
 public interface SessionService {
 
 //    String startMeeting(SessionCreateRequestDto sessionCreateRequestDto);
 
-    String joinMeeting(SessionJoinRequestDto sessionJoinRequestDto);
+    String joinMeeting(JoinSessionRequestDto joinSessionRequestDto);
 
-    void endMeeting(SessionJoinRequestDto sessionJoinRequestDto);
+    void endMeeting(CloseSessionRequestDto closeSessionRequestDto);
 }

@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SessionCreateRequestDto {
+public class CreateSessionRequestDto {
     private int schdlId;
     private String type; //consult, game
 }
