@@ -3,15 +3,12 @@ package com.h5.parent.controller;
 import com.h5.consultant.dto.request.FindEmailRequestDto;
 import com.h5.consultant.dto.request.UpdatePwdRequestDto;
 import com.h5.consultant.dto.request.UpdateToTempPwdRequestDto;
-import com.h5.parent.dto.response.MyChildrenResponseDto;
 import com.h5.parent.dto.response.MyPageResponseDto;
 import com.h5.parent.service.ParentUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/user/parent")
