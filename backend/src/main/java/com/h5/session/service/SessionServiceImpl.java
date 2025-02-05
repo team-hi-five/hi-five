@@ -6,6 +6,7 @@ import com.h5.schedule.entity.GameMeetingScheduleEntity;
 import com.h5.schedule.repository.ConsultMeetingScheduleRepository;
 import com.h5.schedule.repository.GameMeetingScheduleRepository;
 import com.h5.session.dto.request.CloseSessionRequestDto;
+import com.h5.session.dto.request.ControlRequest;
 import com.h5.session.dto.request.JoinSessionRequestDto;
 import com.h5.session.repository.ConsultSessionRepository;
 import com.h5.session.repository.GameSessionRepository;
@@ -129,6 +130,14 @@ public class SessionServiceImpl implements SessionService {
             throw new RuntimeException("wrong type");
         }
 
+    }
+
+    @Override
+    public void processControlMessage(ControlRequest controlRequest) {
+        String sessionId = controlRequest.getSessionId();
+        String action = controlRequest.getAction();
+
+        //gameService.handleGameAction(sessionId, action);
     }
 
 }
