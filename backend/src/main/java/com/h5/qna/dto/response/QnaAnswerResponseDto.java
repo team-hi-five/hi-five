@@ -11,5 +11,6 @@ public class QnaAnswerResponseDto {
     private int id;
     private String content;
     private String createDttm;
-    private String consultantEmail;
+    private String name;
+    private String profileImageUrl;
 }

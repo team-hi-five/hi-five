@@ -5,10 +5,7 @@ import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.faq.dto.request.FaqCreateRequestDto;
 import com.h5.faq.dto.request.FaqSearchRequestDto;
 import com.h5.faq.dto.request.FaqUpdateRequestDto;
-import com.h5.faq.dto.response.FaqDetailResponseDto;
-import com.h5.faq.dto.response.FaqListResponseDto;
-import com.h5.faq.dto.response.FaqResponseDto;
-import com.h5.faq.dto.response.PaginationResponseDto;
+import com.h5.faq.dto.response.*;
 import com.h5.faq.entity.FaqEntity;
 import com.h5.faq.repository.FaqRepository;
 import com.h5.global.exception.*;
@@ -38,7 +35,7 @@ public class FaqServiceImpl implements FaqService {
     //c
     //글 등록
     @Override
-    public void createFaq(FaqCreateRequestDto faqCreateRequestDto) {
+    public FaqSaveResponseDto createFaq(FaqCreateRequestDto faqCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -61,6 +58,10 @@ public class FaqServiceImpl implements FaqService {
                 .build();
 
         faqRepository.save(faqEntity);
+
+        return FaqSaveResponseDto.builder()
+                .faqId(faqEntity.getId())
+                .build();
     }
 
     //r
@@ -185,16 +186,15 @@ public class FaqServiceImpl implements FaqService {
         return FaqDetailResponseDto.builder()
                 .id(faqEntity.getId())
                 .title(faqEntity.getTitle())
-                .content(faqEntity.getContent())
                 .faqAnswer(faqEntity.getFaqAns())
-                .consultantUserEmail(faqEntity.getConsultantUser().getEmail())
+                .name(faqEntity.getConsultantUser().getName())
                 .build();
     }
 
     //u
     //글수정
     @Override
-    public void updateFaq(FaqUpdateRequestDto faqUpdateRequestDto) {
+    public FaqSaveResponseDto updateFaq(FaqUpdateRequestDto faqUpdateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -208,16 +208,16 @@ public class FaqServiceImpl implements FaqService {
         }
 
         faqEntity.setTitle(faqUpdateRequestDto.getFaqTitle());
-        faqEntity.setContent(faqUpdateRequestDto.getFaqContent());
         faqEntity.setFaqAns(faqUpdateRequestDto.getFaqAnswer());
 
         faqRepository.save(faqEntity);
+        return FaqSaveResponseDto.builder().faqId(faqEntity.getId()).build();
     }
 
     //d
     //글삭제
     @Override
-    public void deleteFaq(int id) {
+    public FaqSaveResponseDto deleteFaq(int id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -231,6 +231,8 @@ public class FaqServiceImpl implements FaqService {
         }
 
         faqRepository.deleteById(id);
+
+        return FaqSaveResponseDto.builder().faqId(faqEntity.getId()).build();
     }
 
 
@@ -239,8 +241,7 @@ public class FaqServiceImpl implements FaqService {
                 .map(faqEntity -> new FaqResponseDto(
                         faqEntity.getId(),
                         faqEntity.getTitle(),
-                        faqEntity.getContent(),
-                        faqEntity.getConsultantUser().getEmail(),
+                        faqEntity.getConsultantUser().getName(),
                         faqEntity.getFaqAns()
                 )).toList();
 

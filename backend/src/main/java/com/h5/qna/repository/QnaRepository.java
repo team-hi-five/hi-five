@@ -1,7 +1,5 @@
 package com.h5.qna.repository;
 
-import com.h5.notice.entity.NoticeEntity;
-import com.h5.qna.entity.QnaAnswerEntity;
 import com.h5.qna.entity.QnaEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,8 +48,8 @@ public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
             "WHERE (:role = 'ROLE_PARENT' AND q.parentUser.id = :parentUserId " +
             "       OR :role = 'ROLE_CONSULTANT' AND q.parentUser.consultantUserEntity.id = :consultantUserId) " +
             "AND q.deleteDttm IS NULL " +
-            "AND (:writer IS NULL OR q.parentUser.email LIKE %:writer%)")
-    Page<QnaEntity> findByEmail(
+            "AND (:writer IS NULL OR q.parentUser.name LIKE %:writer%)")
+    Page<QnaEntity> findByName(
             @Param("role") String role,
             @Param("parentUserId") Integer parentUserId,
             @Param("consultantUserId") Integer consultantUserId,
