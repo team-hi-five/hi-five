@@ -1,9 +1,9 @@
 .co-my-container {
+    display: flex;
     flex-direction: column;
+    justify-content: space-between;
     position: relative;
     min-height: 100vh; 
-    display: flex;
-    justify-content: space-between;
     background-color: #EEF5FC;
 }
 

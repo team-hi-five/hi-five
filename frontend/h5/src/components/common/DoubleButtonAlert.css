@@ -1,8 +1,13 @@
+.my-swal-container {
+  z-index: 100000 !important; /* 모달의 z-index보다 높게 설정 */
+}
+
 .my-swal-popup {
     border-radius: 20px;
     padding: 10px 20px;
     border: 1px solid black;
     width: 400px;
+    z-index: 100001 !important;
   }
   
   .my-swal-title {

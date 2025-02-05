@@ -3,6 +3,7 @@
     padding: 10px 20px;
     border: 1px solid black;
     width: 400px;
+    z-index: 100000 !important;
   }
   
   .my-swal-title {
