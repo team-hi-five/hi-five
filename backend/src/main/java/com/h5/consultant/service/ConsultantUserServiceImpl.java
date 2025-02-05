@@ -197,7 +197,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .profileImgUrl(getFileUrl(childUser.getId()))
                 .childName(childUser.getName())
                 .age(calculateAge(String.valueOf(childUser.getBirth())))
-                .gender(childUser.getGender().equals("M") ? "남성" : "여성")
+                .gender(childUser.getGender().equals("M") ? "남" : "여")
                 .birth(String.valueOf(childUser.getBirth()))
                 .firstConsultDate(String.valueOf(childUser.getFirstConsultDt()))
                 .interest(childUser.getInterest())
