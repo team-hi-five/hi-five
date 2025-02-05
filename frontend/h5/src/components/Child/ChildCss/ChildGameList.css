@@ -1,0 +1,45 @@
+.ch-game-chapter-card {
+    width: 100%;
+    max-width: 60rem;
+    height: 40rem; 
+    border-radius: 4%;
+    position: relative; 
+    overflow: hidden;
+    background-color: #FEF5E7;
+}
+
+.ch-game-screenshot {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    border-radius: 4%;
+}
+
+.ch-game-screenshot img {
+    max-width: 95%; 
+    max-height: 100%;
+    width: auto; 
+    height: auto; 
+    object-fit: contain; /* 이미지 비율 유지 */
+    border-radius: 6%;
+    opacity: 80%;
+}
+
+.ch-game-chapter-title{
+    position: absolute;
+    top: 40%; /* 위치 조정 가능 */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    color: white; /* 텍스트가 잘 보이도록 색상 설정 */
+    /* 필요한 경우 텍스트에 그림자 추가 */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
+}
