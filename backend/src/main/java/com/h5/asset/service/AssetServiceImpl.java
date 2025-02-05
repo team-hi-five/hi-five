@@ -34,7 +34,32 @@ public class AssetServiceImpl implements AssetService {
         int chapter = cleared / 10;
         int stage = cleared % 10;
 
-        if(stage == 5){
+        if(stage == 6){
+            chapter++;
+            stage = 1;
+        }else {
+            stage++;
+        }
+
+        GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
+                .orElseThrow(RuntimeException::new);
+
+        return LoadAssetResponseDto.builder()
+                .gameStageId(gameAssetEntity.getId())
+                .chapterId(gameAssetEntity.getGameStageEntity().getGameChapterEntity().getId())
+                .gameVideo(gameAssetEntity.getGameSceneVideo())
+                .options(new String[]{gameAssetEntity.getOpt1(), gameAssetEntity.getOpt2(), gameAssetEntity.getOpt3()})
+                .optionImages(new String[]{gameAssetEntity.getOptPic1(), gameAssetEntity.getOptPic2(), gameAssetEntity.getOptPic3()})
+                .situation(gameAssetEntity.getSituation())
+                .build();
+    }
+
+    @Override
+    public LoadAssetResponseDto loadAssetByStage(int stageNum) {
+        int chapter = stageNum / 10;
+        int stage = stageNum % 10;
+
+        if(stage == 6){
             chapter++;
             stage = 1;
         }else {

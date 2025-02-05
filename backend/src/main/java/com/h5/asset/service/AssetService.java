@@ -8,5 +8,7 @@ import com.h5.asset.dto.response.LoadCardResponseDto;
 public interface AssetService {
     LoadAssetResponseDto loadAsset(LoadAssetRequestDto loadAssetRequestDto);
 
+    LoadAssetResponseDto loadAssetByStage(int stageNum);
+
     LoadCardResponseDto loadCard(LoadCardRequestDto loadCardRequestDto);
 }
