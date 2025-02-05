@@ -5,14 +5,43 @@ import ChildRegistrationModal from "../../../components/modals/ChildRegistration
 import '../Css/CounselorChildrenPage.css'
 import DeleteChildModal from "../../../components/modals/DeleteChildModal"
 import { InputText } from "primereact/inputtext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dropdown } from 'primereact/dropdown';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
+import { getConsultantChildren, getConsultantChild } from "/src/api/userCounselor";
 
 function CounselorChildrenPage() {
   const [isDeleteListModalOpen, setIsDeleteListModalOpen] = useState(false);
-  const [deleteRequestCount, setDeleteRequestCount] = useState(0);  // 탈퇴요청 수를 저장할 state 추가
+  const [deleteRequestCount, setDeleteRequestCount] = useState(0);
+  const [childrenData, setChildrenData] = useState([]);
+  const [searchType, setSearchType] = useState('child');
+  const [searchText, setSearchText] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    async function fetchChildren() {
+      try {
+        const childrenList = await getConsultantChildren();
+  
+        // 각 아이의 상세 정보를 가져오기 위한 Promise 배열
+        const childrenDetailsPromises = childrenList.map(child =>
+          getConsultantChild(child.childUserID)
+        );
+  
+        // 모든 아이의 상세 정보를 병렬로 가져옴
+        const childrenDetails = await Promise.all(childrenDetailsPromises);
+  
+        // 가져온 상세 정보를 childrenData 상태에 저장
+        setChildrenData(childrenDetails);
+      } catch (error) {
+        console.error("아동 정보 불러오기 실패:", error);
+      }
+    }
+  
+    fetchChildren();
+  }, []);
+  
 
   // 벨 아이콘 클릭 핸들러 추가
   const handleNotificationClick = () => {
@@ -24,123 +53,10 @@ function CounselorChildrenPage() {
     setDeleteRequestCount(count);
   };
 
-  const initialChildrenData = [
-    {
-      id: 1,
-      childName: '김민준',
-      age: 7,
-      parentName: '이영희',
-      imageUrl: '/test/kid.png',
-      gender: '여',
-      birthDate: '1997.06.10',
-      parentPhone: '010-1111-1111',
-      parentEmail: 'dksajfie@naver.com',
-      treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-      firstConsultDate: '2024.05.06',
-      interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-      notes: 'ex) 참고해야 할 사항 등..'
-    },
-    {
-      id: 2,
-      childName: '박지우',
-      age: 8,
-      parentName: '이영희',
-      imageUrl: '/test/kid.png',
-      gender: '여',
-      birthDate: '1997.06.10',
-      parentPhone: '010-1111-1111',
-      parentEmail: 'dksajfie@naver.com',
-      treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-      firstConsultDate: '2024.05.06',
-      interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-      notes: 'ex) 참고해야 할 사항 등..'
-    },
-    {
-      id: 3,
-      childName: '박지우',
-      age: 6,
-      parentName: '이영희',
-      imageUrl: '/test/kid.png',
-      gender: '여',
-      birthDate: '1997.06.10',
-      parentPhone: '010-1111-1111',
-      parentEmail: 'dksajfie@naver.com',
-      treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-      firstConsultDate: '2024.05.06',
-      interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-      notes: 'ex) 참고해야 할 사항 등..'
-    },
-    {
-      id: 4,
-      childName: '최유진',
-      age: 7,
-      parentName: '최재현',
-      imageUrl: '/test/kid.png',
-      gender: '여',
-      birthDate: '1997.06.10',
-      parentPhone: '010-1111-1111',
-      parentEmail: 'dksajfie@naver.com',
-      treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-      firstConsultDate: '2024.05.06',
-      interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-      notes: 'ex) 참고해야 할 사항 등..'
-    },
-    {
-      id: 5,
-      childName: '정하은',
-      age: 8,
-      parentName: '정민석',
-      imageUrl: '/test/kid.png',
-      gender: '여',
-      birthDate: '1997.06.10',
-      parentPhone: '010-1111-1111',
-      parentEmail: 'dksajfie@naver.com',
-      treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-      firstConsultDate: '2024.05.06',
-      interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-      notes: 'ex) 참고해야 할 사항 등..'
-    },
-    {
-      id: 6,
-      childName: '강도윤',
-      age: 6,
-      parentName: '강병호',
-      imageUrl: '/test/kid.png',
-      gender: '여',
-      birthDate: '1997.06.10',
-      parentPhone: '010-1111-1111',
-      parentEmail: 'dksajfie@naver.com',
-      treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-      firstConsultDate: '2024.05.06',
-      interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-      notes: 'ex) 참고해야 할 사항 등..'
-    },
-    {
-      id: 7,
-      childName: '윤서아',
-      age: 7,
-      parentName: '이영희',
-      imageUrl: '/test/kid.png',
-      gender: '여',
-      birthDate: '1997.06.10',
-      parentPhone: '010-1111-1111',
-      parentEmail: 'dksajfie@naver.com',
-      treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-      firstConsultDate: '2024.05.06',
-      interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-      notes: 'ex) 참고해야 할 사항 등..'
-    }
-  ];
-
-  const [childrenData, setChildrenData] = useState(initialChildrenData);
   const searchOptions = [
     { label: '아동 이름', value: 'child' },
     { label: '학부모 이름', value: 'parent' }
    ];
-
-  const [searchType, setSearchType] = useState('child');
-  const [searchText, setSearchText] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openModal = () => {
     setIsModalOpen(true);
@@ -230,27 +146,27 @@ function CounselorChildrenPage() {
                 <div className="grid-container">
                   <SimpleBar style={{ width: '100%', maxHeight: 500 }} autoHide={false}>
                     <div className="counselor-children-grid">
-                      {filteredChildren.map((child) => (
-                        <div key={child.id} className={`counselor-children-item ${filteredChildren.length === 1 ? 'single-item' : ''}`}>
-                          <CoChildCard
-                            id={child.id}
-                            childName={child.childName}
-                            age={child.age}
-                            parentName={child.parentName}
-                            imageUrl={child.imageUrl}
-                            gender={child.gender}
-                            birthDate={child.birthDate}
-                            parentPhone={child.parentPhone}
-                            parentEmail={child.parentEmail}
-                            treatmentPeriod={child.treatmentPeriod}
-                            firstConsultDate={child.firstConsultDate}
-                            interests={child.interests}
-                            notes={child.notes}
-                            onDelete={handleDelete}
-                            onUpdate={handleUpdateChild}
-                          />
-                        </div>
-                      ))}
+                    {filteredChildren.map((child) => (
+                      <div key={child.childUserId} className={`counselor-children-item ${filteredChildren.length === 1 ? 'single-item' : ''}`}>
+                        <CoChildCard
+                          id={child.childUserId}
+                          childName={child.childName}
+                          age={child.age}
+                          parentName={child.parentName}
+                          imageUrl={child.profileImageUrl}
+                          gender={child.gender}
+                          birthDate={child.birth}
+                          parentPhone={child.parentPhone}
+                          parentEmail={child.parentEmail}
+                          treatmentPeriod={child.treatmentPeriod}
+                          firstConsultDate={child.firstConsultDate}
+                          interests={child.interest}
+                          notes={child.additionalInfo}
+                          onDelete={handleDelete}
+                          onUpdate={handleUpdateChild}
+                        />
+                      </div>
+                    ))}
                     </div>
                   </SimpleBar>
                 </div>

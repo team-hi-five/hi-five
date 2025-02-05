@@ -6,6 +6,7 @@ const API_URL = import.meta.env.VITE_SERVER_API_URL || "https://i12c205.p.ssafy.
 // ✅ 토큰 갱신이 필요 없는 API 엔드포인트 목록
 const noAuthEndpoints = [
   "/auth/login",
+  "/auth/logout",
   "/auth/parent/find-id",
   "/user/parent/temp-pwd",
   "/user/consultant/find-id",
