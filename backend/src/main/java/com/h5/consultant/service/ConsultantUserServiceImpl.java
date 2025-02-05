@@ -93,7 +93,10 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     }
 
     @Override
-    public void updatePwd(String email, String oldPwd, String newPwd) {
+    public void updatePwd(String oldPwd, String newPwd) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 

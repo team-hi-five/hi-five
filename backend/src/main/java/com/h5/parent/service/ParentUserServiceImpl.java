@@ -142,7 +142,10 @@ public class ParentUserServiceImpl implements ParentUserService {
     }
 
     @Override
-    public void updatePwd(String email, String oldPwd, String newPwd) {
+    public void updatePwd(String oldPwd, String newPwd) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         ParentUserEntity parentUserEntity = findParentByEmail(email);
 
         if (!passwordEncoder.matches(oldPwd, parentUserEntity.getPwd())) {

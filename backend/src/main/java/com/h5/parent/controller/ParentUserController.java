@@ -40,8 +40,7 @@ public class ParentUserController {
 
     @PostMapping("/change-pwd")
     public ResponseEntity<?> updatePwd(@Valid @RequestBody UpdatePwdRequestDto updatePwdRequestDto) {
-        parentUserService.updatePwd(updatePwdRequestDto.getEmail(),
-                updatePwdRequestDto.getOldPwd(),
+        parentUserService.updatePwd(updatePwdRequestDto.getOldPwd(),
                 updatePwdRequestDto.getNewPwd());
         return ResponseEntity.ok("Password changed successfully.");
     }
