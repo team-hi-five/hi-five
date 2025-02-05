@@ -33,8 +33,7 @@ public class ConsultantUserController {
 
     @PostMapping("/change-pwd")
     public ResponseEntity<?> updatePwd(@Valid @RequestBody UpdatePwdRequestDto updatePwdRequestDto) {
-        consultantUserService.updatePwd(updatePwdRequestDto.getEmail(),
-                updatePwdRequestDto.getOldPwd(),
+        consultantUserService.updatePwd(updatePwdRequestDto.getOldPwd(),
                 updatePwdRequestDto.getNewPwd());
         return ResponseEntity.ok("Password changed successfully.");
     }

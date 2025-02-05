@@ -6,7 +6,6 @@ import lombok.Setter;
 @Setter
 @Getter
 public class UpdatePwdRequestDto {
-    private String email;
     private String oldPwd;
     private String newPwd;
 }
