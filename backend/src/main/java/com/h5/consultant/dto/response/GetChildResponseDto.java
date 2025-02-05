@@ -13,6 +13,7 @@ public class GetChildResponseDto {
     private String childName;
     private int age;
     private String birth;
+    private String gender;
     private String firstConsultDate;
     private String interest;
     private String additionalInfo;
