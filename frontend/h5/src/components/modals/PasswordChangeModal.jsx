@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import SingleButtonAlert from '../common/SingleButtonAlert';
 import './PasswordChangeModal.css';
+import { changeParentPassword } from '/src/api/userParent';
+import { changeConsultantPassword } from '/src/api/userCounselor';
 
-const PasswordChangeModal = ({ isOpen, onClose }) => {
+const PasswordChangeModal = ({ isOpen, onClose, role }) => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -29,7 +32,13 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
 
     const handleSubmit = async () => {
         try {
-            // 여기에 비밀번호 변경 API 호출 로직 추가
+            // 비밀번호 변경 api
+            if(role==="parent"){
+                await changeParentPassword(currentPassword, confirmPassword);
+            }
+            else{
+                await changeConsultantPassword(currentPassword, confirmPassword);
+            }
             await SingleButtonAlert('비밀번호가 변경되었습니다.');
             onClose();
             // 폼 초기화
@@ -121,6 +130,12 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
             </div>
         </div>
     );
+};
+
+PasswordChangeModal.propTypes = {
+    isOpen: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired,
+    role: PropTypes.func.isRequired,
 };
 
 export default PasswordChangeModal;

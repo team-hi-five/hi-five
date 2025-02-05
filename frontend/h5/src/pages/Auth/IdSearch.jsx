@@ -3,18 +3,56 @@ import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import logo from '/logo.png'
+import { useNavigate } from 'react-router-dom';
+import { findParentEmail, findConsultantEmail } from "/src/api/authService";
+import logo from '/logo.png';
 import './IdSearch.css';
 
 const memberTypes = [
-  { label: '학부모', value: '학부모' },
-  { label: '상담사', value: '상담사' },
+  { label: '학부모', value: 'parent' },
+  { label: '상담사', value: 'consultant' },
 ];
 
 function IdSearch() {
   const [selectedType, setSelectedType] = useState(null);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [error, setError] = useState(null);
+  const [phoneError, setPhoneError] = useState(null);
   const navigate = useNavigate();
+
+  const handleFindId = async () => {
+    if (!selectedType || !name || !phone) {
+      setError("모든 필드를 입력해주세요.");
+      return;
+    }
+    
+    if (phone.includes("-")) {
+      setPhoneError("*하이픈(-) 없이 작성해주세요.");
+      return;
+    } else {
+      setPhoneError(null);
+    }
+
+    try {
+      let response;
+      if (selectedType === "parent") {
+        response = await findParentEmail(name, phone);
+      } else {
+        response = await findConsultantEmail(name, phone);
+      }
+      
+      if (response) {
+        navigate(`/login/idfind/${name}/${response}`);
+      } else {
+        setError("입력된 정보로 아이디를 찾을 수 없습니다.");
+      }
+    } catch (error) {
+      console.error("아이디 찾기 실패", error);
+      setError("입력된 정보로 아이디를 찾을 수 없습니다.");
+    }
+  };
+
   return (
     <>
       <div className="logo-container">
@@ -29,23 +67,24 @@ function IdSearch() {
           </div>
           <div className="input-container">
             <p>이름</p>
-            <InputText className="input-field" id="name" placeholder="이름을 입력해주세요." />
+            <InputText className="input-field" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름을 입력해주세요." />
           </div>
           <div className="input-container">
-          <p>핸드폰번호</p>
-            <InputText className="input-field" id="phone"  placeholder="핸드폰 번호를 입력해주세요." />
+            <p>핸드폰번호</p>
+            <InputText className="input-field" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="핸드폰 번호를 입력해주세요." />
             <div className='small-container'>
-              <small>*하이픈(-)을 포함하여 작성해주세요.</small>
+              {phoneError ? (
+                <small className="error-message">{phoneError}</small>
+              ) : error ? (
+                <small className="error-message">{error}</small>
+              ) : (
+                <small>*하이픈(-) 없이 작성해주세요.</small>
+              )}
             </div>
           </div>
           <div className="button-container">
             <Button label="취소" className="cancel-button" onClick={() => navigate('/')} />
-            <Link 
-              to="/login/idfind" 
-              className="find-button"
-              >
-              아이디 찾기
-              </Link>
+            <Button label="아이디 찾기" className="find-button" onClick={handleFindId} />
           </div>
         </Card>
       </div>

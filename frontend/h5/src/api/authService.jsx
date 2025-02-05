@@ -32,21 +32,69 @@ export const logout = async () => {
             console.warn("❌ 로그아웃 실패: 토큰이 없습니다.");
             return;
         }
-
-        console.log("📢 로그아웃 요청 보냄: ", accessToken);
-
-        // 서버에 로그아웃 요청 (Request Body에 `accessToken` 포함)
         const response = await api.post("/auth/logout", null, { 
             params:{token: accessToken}
          });
-
-        console.log("✅ 로그아웃 성공:", response.data);
-
         sessionStorage.removeItem("access_token");
-
         return response.data;
     } catch (error) {
         console.error("❌ 로그아웃 실패:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+// ✅ 학부모 이메일 찾기 API 요청
+export const findParentEmail = async (name, phone) => {
+    try {
+        const response = await api.post("/user/parent/find-id", {
+            name: name,
+            phone: phone
+        });
+        return response.data;
+    } catch (error) {
+        console.error("❌ 학부모 이메일 찾기 실패:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+// ✅ 상담사 이메일 찾기 API 요청
+export const findConsultantEmail = async (name, phone) => {
+    try {
+        const response = await api.post("/user/consultant/find-id", {
+            name: name,
+            phone: phone
+        });
+        return response.data;
+    } catch (error) {
+        console.error("❌ 상담사 이메일 찾기 실패:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+// ✅ 학부모 계정 임시 비밀번호 발급 API 요청
+export const requestParentTempPassword = async (name, email) => {
+    try {
+        const response = await api.post("/user/parent/temp-pwd", {
+            name: name,
+            email: email
+        });
+        return response.data;
+    } catch (error) {
+        console.error("❌ 학부모 임시 비밀번호 발급 실패:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+// ✅ 상담사 계정 임시 비밀번호 발급 API 요청
+export const requestConsultantTempPassword = async (name, email) => {
+    try {
+        const response = await api.post("/user/consultant/temp-pwd", {
+            name: name,
+            email: email
+        });
+        return response.data;
+    } catch (error) {
+        console.error("❌ 상담사 임시 비밀번호 발급 실패:", error.response ? error.response.data : error.message);
         throw error;
     }
 };

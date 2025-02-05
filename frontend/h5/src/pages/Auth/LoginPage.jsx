@@ -3,7 +3,7 @@ import { useState } from "react";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import './LoginPage.css';
-import { login } from "/src/api/authService"; // ✅ 로그인 API 불러오기
+import { login } from "/src/api/authService";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -21,11 +21,9 @@ const LoginPage = () => {
       const role = whoRU === 'parent' ? 'ROLE_PARENT' : 'ROLE_CONSULTANT';
       console.log("📢 로그인 시도:", { email, password, role });
 
-      // ✅ `authService.js`의 `login` 함수 호출
       const data = await login(email, password, role);
       console.log("🎉 로그인 성공!", data);
 
-      // ✅ 로그인 성공 후 페이지 이동
       navigate(whoRU === 'parent' ? '/parent' : '/counselor');
     } catch (err) {
       console.error("❌ 로그인 실패:", err.response ? err.response.data : err.message);

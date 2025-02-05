@@ -119,7 +119,7 @@ function ParentMyPage() {
           </div>
         </div>
 
-        {isPwdModalOpen && <PasswordChangeModal isOpen={isPwdModalOpen} onClose={() => setIsPwdModalOpen(false)} />}
+        {isPwdModalOpen && <PasswordChangeModal isOpen={isPwdModalOpen} onClose={() => setIsPwdModalOpen(false)} role="parent"/>}
       </div>
       <Footer />
     </div>
