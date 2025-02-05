@@ -5,13 +5,13 @@
   overflow: hidden;
 }
 
-.ch-chatbot-box{
+.ch-chatbot-box {
   position: absolute;
-  width: 90%;
-  height: 80%;
+  width: 75%;
+  height: 75%;
   top: 55%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -55%);
   border-radius: 2%;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
