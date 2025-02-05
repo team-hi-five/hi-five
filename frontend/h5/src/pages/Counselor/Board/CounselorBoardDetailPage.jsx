@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
@@ -21,6 +21,7 @@ const qnaData = [
 ];
 
 function CounselorBoardDetailPage() {
+  const editableRef = useRef(null);
   const navigate = useNavigate();
   const { type, no } = useParams();
   const [isEditing, setIsEditing] = useState(false);
@@ -28,7 +29,22 @@ function CounselorBoardDetailPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [answer, setAnswer] = useState("");
   const [answers, setAnswers] = useState([]);
-  const [isAnswerEditing, setIsAnswerEditing] = useState(false);
+  const [editingAnswerId, setEditingAnswerId] = useState(null);
+  const [editedAnswerContent, setEditedAnswerContent] = useState("");
+
+  useEffect(() => {
+    if (editingAnswerId && editableRef.current) {
+      editableRef.current.textContent = editedAnswerContent;
+      editableRef.current.focus();
+      // 커서를 끝으로 이동
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(editableRef.current);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }, [editingAnswerId]);
 
   const handleBack = () => {
     navigate(-1);
@@ -104,10 +120,22 @@ function CounselorBoardDetailPage() {
   };
 
   const handleAnswerEdit = (id) => {
-    setIsAnswerEditing(true);
-    const targetAnswer = answers.find(a => a.id === id);
-    if (targetAnswer) {
-      setAnswer(targetAnswer.content);
+  const targetAnswer = answers.find(a => a.id === id);
+  if (targetAnswer) {
+    setEditedAnswerContent(targetAnswer.content || ""); // 먼저 내용을 설정
+    setEditingAnswerId(id); // 그 다음 editing 상태를 변경
+  }
+};
+
+  const handleAnswerEditComplete = () => {
+    if (editedAnswerContent.trim()) {
+      setAnswers(answers.map(answer => 
+        answer.id === editingAnswerId 
+          ? { ...answer, content: editedAnswerContent }
+          : answer
+      ));
+      setEditingAnswerId(null);
+      setEditedAnswerContent("");
     }
   };
 
@@ -238,12 +266,20 @@ function CounselorBoardDetailPage() {
                   <h3 className="co-detail-answer-title">답변</h3>
                   {answers.length > 0 && (
                     <div className="co-detail-answer-buttons">
-                      <button onClick={() => handleAnswerEdit(answers[0].id)} className="co-detail-answer-edit">
-                        수정
-                      </button>
-                      <button onClick={() => handleAnswerDelete(answers[0].id)} className="co-detail-answer-delete">
-                        삭제
-                      </button>
+                      {editingAnswerId === answers[0].id ? (
+                        <button onClick={handleAnswerEditComplete} className="co-detail-answer-edit">
+                          수정완료
+                        </button>
+                      ) : (
+                        <>
+                          <button onClick={() => handleAnswerEdit(answers[0].id)} className="co-detail-answer-edit">
+                            수정
+                          </button>
+                          <button onClick={() => handleAnswerDelete(answers[0].id)} className="co-detail-answer-delete">
+                            삭제
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -272,12 +308,17 @@ function CounselorBoardDetailPage() {
                       <span className="co-detail-answer-writer">{answers[0].writer}</span>
                       <span className="co-detail-answer-time">{answers[0].time}</span>
                     </div>
-                    <div className="co-detail-answer-info-content">
-                      {answers[0].content}
+                    <div 
+                      ref={editableRef}
+                      contentEditable={editingAnswerId === answers[0].id}
+                      className="co-detail-answer-info-content"
+                      onInput={(e) => setEditedAnswerContent(e.target.textContent || "")}
+                      suppressContentEditableWarning={true}
+                    >
+                      {!editingAnswerId && answers[0].content}
                     </div>
                   </div>
                 )}
-                
               </div>
             </div>
           </div>

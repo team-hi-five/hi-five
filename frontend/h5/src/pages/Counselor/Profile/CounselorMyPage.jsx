@@ -1,36 +1,54 @@
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
 import Footer from "../../../components/common/footer";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PasswordChangeModal from "../../../components/modals/PasswordChangeModal";
 import '../Css/CounselorMyPage.css';
+import { getCounselorMyPage } from "/src/api/userCounselor";
 
 function CounselorMyPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [counselorData, setCounselorData] = useState(null);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const data = await getCounselorMyPage();
+                if (data) {
+                    setCounselorData(data);
+                }
+            } catch (error) {
+                console.error("데이터 불러오기 실패", error);
+            }
+        }
+        fetchData();
+    }, []);
 
     return (
         <>
-            <main className="co-my-container" >
+            <main className="co-my-container">
                 <CounselorHeader />
-                <div className="co_blankdefault" style={{marginTop: '64.49px'}}></div>
+                <div className="co_blankdefault" style={{ marginTop: '64.49px' }}></div>
                 <div className="co-mypage-container">
                     <div className="co-mypage-content">
                         <div className="co-profile-section">
                             <div className="co-profile-left">
                                 <div className="co-profile-image-container">
                                     <img 
-                                        src="/test/kid2.png" 
+                                        src={counselorData?.profileImgUrl || "/default-profile.png"} 
                                         alt="상담사 프로필" 
                                         className="co-profile-image"
                                     />
                                 </div>
-                                <button className="co-change-password-btn" onClick={() => setIsModalOpen(true)}>비밀 번호 변경</button>
+                                <button className="co-change-password-btn" onClick={() => setIsModalOpen(true)}>
+                                    비밀번호 변경
+                                </button>
                             </div>
                             <div className="co-profile-info">
                                 <div className="co-info-group">
                                     <label>상담사 이름</label>
                                     <input 
                                         type="text" 
-                                        value="정수연" 
+                                        value={counselorData?.name || ""} 
                                         readOnly 
                                         className="co-info-input"
                                     />
@@ -39,7 +57,7 @@ function CounselorMyPage() {
                                     <label>핸드폰 번호</label>
                                     <input 
                                         type="text" 
-                                        value="010-8888-8888" 
+                                        value={counselorData?.phone || ""} 
                                         readOnly 
                                         className="co-info-input"
                                     />
@@ -48,7 +66,7 @@ function CounselorMyPage() {
                                     <label>이메일</label>
                                     <input 
                                         type="email" 
-                                        value="wjfjejfa@naber.com" 
+                                        value={counselorData?.email || ""} 
                                         readOnly 
                                         className="co-info-input"
                                     />
@@ -57,7 +75,7 @@ function CounselorMyPage() {
                                     <label>소속기관명</label>
                                     <input 
                                         type="text" 
-                                        value="C205" 
+                                        value={counselorData?.centerName || ""} 
                                         readOnly 
                                         className="co-info-input"
                                     />

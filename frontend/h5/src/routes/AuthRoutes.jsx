@@ -11,7 +11,7 @@ function AuthRoutes(){
         <Routes>
             <Route path="/idsearch" element={<IdSearch />} />
             <Route path="/passwordsearch" element={<PasswordSearch />} />
-            <Route path="/idfind" element={<IdFind />} />
+            <Route path="/idfind/:name/:email" element={<IdFind />} />
             <Route path="/passwordfind" element={<PasswordFind />} />
             <Route path="/passwordchange" element={<PasswordChange />} />
         </Routes>

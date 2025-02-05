@@ -38,16 +38,12 @@ const CounselorMainPage = () => {
     </Card>
   );
 
-  const [page, setPage] = useState(0);
+  const [numVisible, setNumVisible] = useState(4);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const handlePageChange = (e) => {
-    setPage(e.page);
-  };
-
-  const [numVisible, setNumVisible] = useState(4); // 기본 값
+  const totalPages = Math.ceil(notices.length / numVisible);
 
   useEffect(() => {
-    // 화면 크기에 따라 numVisible 동적 설정
     const updateNumVisible = () => {
       const width = window.innerWidth;
       if (width <= 576) {
@@ -61,18 +57,13 @@ const CounselorMainPage = () => {
       }
     };
 
-    // 초기 설정 및 리사이즈 이벤트 추가
     updateNumVisible();
     window.addEventListener('resize', updateNumVisible);
 
-    // 컴포넌트 언마운트 시 이벤트 제거
     return () => {
       window.removeEventListener('resize', updateNumVisible);
     };
   }, []);
-
-  const totalPages = Math.ceil(notices.length / numVisible);
-  const currentPage = page + 1;
 
   const responsiveOptions = [
     {
@@ -99,51 +90,59 @@ const CounselorMainPage = () => {
 
   return (
     <>
-    <div className="co_page_wrapper" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <CounselorHeader />
-      <main style={{ flex: 1 }}>
-        <section className="co_hero_section">
-          <div className="co_inner_left">
-            <div className="co_hero_content">
-              <h1 className="co_service_title">
-                안녕하세요.
-              </h1>
-              <h2 className="co_counselor_intro">
-                <span className="co_highlight">박성원</span> 상담사님.
-              </h2>
-              <p className="co_service_subtitle">감정을 놀이로 전달하는 <span>HI 서비스</span> 입니다.</p>
-              <Button label="상담일정 보러가기" className="co_schedule_btn" onClick={() => navigate('/counselor/schedule')}/>
-            </div>
-          </div>
-          <div className="co_hero_image">
-            <img src="/메인이미지.png" alt="description" />
-          </div>
-        </section>
-        <div className="co_main_container">
-          <section className="co_notice_section">
-            <p className="co_notice_title">새소식</p>
-            <div className="carousel-container">
-              <Carousel 
-                value={notices} 
-                numVisible={numVisible} 
-                numScroll={numVisible} 
-                page={page}
-                onPageChange={handlePageChange}
-                itemTemplate={noticeTemplate}
-                showNavigators={true}
-                showIndicators={false}
-                className="co_carousel"
-                responsiveOptions={responsiveOptions}
-              />
-              <div className="custom-indicator">
-                {currentPage}/{totalPages}
+      <div className="co_page_wrapper" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <CounselorHeader />
+        <main className='co_main'>
+          <section className="co_hero_section">
+            <div className="co_inner_left">
+              <div className="co_hero_content">
+                <h1 className="co_service_title">
+                  안녕하세요.
+                </h1>
+                <h2 className="co_counselor_intro">
+                  <span className="co_highlight">박성원</span> 상담사님.
+                </h2>
+                <p className="co_service_subtitle">감정을 놀이로 전달하는 <span>HI 서비스</span> 입니다.</p>
+                <Button label="상담일정 보러가기" className="co_schedule_btn" onClick={() => navigate('/counselor/schedule')}/>
               </div>
             </div>
+            <div className="co_hero_image">
+              <img src="/메인이미지.png" alt="description" />
+            </div>
           </section>
-        </div>
-      </main>
-      <Footer />
-    </div>
+          <section className='co_notice_wrapper'>
+            <div className="co_main_container">
+              <section className="co_notice_section">
+                <div className="co_notice_header">
+                  <p className="co_notice_title">새소식</p>
+                  <div className="co_notice_line"></div>
+                </div>
+                <div className="carousel-container">
+                  <Carousel 
+                    value={notices} 
+                    numVisible={numVisible} 
+                    numScroll={numVisible}
+                    itemTemplate={noticeTemplate}
+                    showNavigators={true}
+                    showIndicators={false}
+                    className="co_carousel"
+                    responsiveOptions={responsiveOptions}
+                    autoplayInterval={3000}
+                    circular={true}
+                    autoPlay={true}
+                    // activeIndex={activeIndex}
+                    onPageChange={(e) => setActiveIndex(e.page)}
+                  />
+                  <div className="custom-indicator">
+                    {(activeIndex % totalPages) + 1}/{totalPages}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </div>
     </>
   );
 };

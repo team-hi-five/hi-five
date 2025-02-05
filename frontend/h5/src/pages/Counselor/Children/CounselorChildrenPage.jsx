@@ -228,7 +228,7 @@ function CounselorChildrenPage() {
                 <div className="no-results">등록된 아동이 없습니다.</div>
               ) : filteredChildren.length > 0 ? (
                 <div className="grid-container">
-                  <SimpleBar style={{ width: '100%', maxHeight: 480 }} autoHide={false}>
+                  <SimpleBar style={{ width: '100%', maxHeight: 500 }} autoHide={false}>
                     <div className="counselor-children-grid">
                       {filteredChildren.map((child) => (
                         <div key={child.id} className={`counselor-children-item ${filteredChildren.length === 1 ? 'single-item' : ''}`}>

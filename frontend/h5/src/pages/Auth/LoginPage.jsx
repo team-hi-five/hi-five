@@ -3,18 +3,31 @@ import { useState } from "react";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import './LoginPage.css';
+import { login } from "/src/api/authService";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [id, setId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [whoRU, setwhoRU] = useState('parent');
+  const [whoRU, setWhoRU] = useState('parent');
+  const [error, setError] = useState(null);
 
-  const handleLogin = () => {
-    if (whoRU === 'parent') {
-      navigate('/parent');
-    } else {
-      navigate('/counselor');
+  const handleUserTypeChange = (role) => {
+    setWhoRU(role);
+  };
+
+  const handleLogin = async () => {
+    try {
+      const role = whoRU === 'parent' ? 'ROLE_PARENT' : 'ROLE_CONSULTANT';
+      console.log("📢 로그인 시도:", { email, password, role });
+
+      const data = await login(email, password, role);
+      console.log("🎉 로그인 성공!", data);
+
+      navigate(whoRU === 'parent' ? '/parent' : '/counselor');
+    } catch (err) {
+      console.error("❌ 로그인 실패:", err.response ? err.response.data : err.message);
+      setError("로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.");
     }
   };
 
@@ -42,13 +55,13 @@ const LoginPage = () => {
           <div className="tabs">
             <button 
               className={`tab ${whoRU === 'parent' ? 'active' : ''}`} 
-              onClick={() => setwhoRU('parent')}
+              onClick={() => handleUserTypeChange('parent')}
             >
               학부모
             </button>
             <button 
               className={`tab ${whoRU === 'counselor' ? 'active' : ''}`}  
-              onClick={() => setwhoRU('counselor')}
+              onClick={() => handleUserTypeChange('counselor')}
             >
               상담사
             </button>
@@ -58,8 +71,8 @@ const LoginPage = () => {
             <span className="p-input-icon-left">
               <i className="pi pi-user" />
               <InputText
-                value={id}
-                onChange={(e) => setId(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="아이디를 입력해주세요"
                 className="login-input"
               />
@@ -80,6 +93,8 @@ const LoginPage = () => {
               <input type="checkbox" className="save-id-checkbox" />
               <span>아이디 저장하기</span>
             </div>
+
+            {error && <p className="error-message">{error}</p>} {/* 에러 메시지 표시 */}
 
             <Button label="로그인" className="login-button" onClick={handleLogin} />
             
