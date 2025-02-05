@@ -17,12 +17,11 @@ export const getCounselorMyPage = async () => {
 };
 
 // ✅ 상담사 계정 비밀번호 변경 API 요청
-export const changeConsultantPassword = async (email, oldPwd, newPwd) => {
+export const changeConsultantPassword = async ( oldPwd, newPwd) => {
     try {
-        console.log("📢 상담사 비밀번호 변경 요청:", { email, oldPwd, newPwd });
+        console.log("📢 상담사 비밀번호 변경 요청:", {  oldPwd, newPwd });
 
         const response = await api.post("/user/consultant/change-pwd", {
-            email: email,
             oldPwd: oldPwd,
             newPwd: newPwd
         });

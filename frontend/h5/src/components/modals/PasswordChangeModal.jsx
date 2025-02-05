@@ -34,10 +34,10 @@ const PasswordChangeModal = ({ isOpen, onClose, role }) => {
         try {
             // 비밀번호 변경 api
             if(role==="parent"){
-                await changeParentPassword(currentPassword, newPassword, confirmPassword);
+                await changeParentPassword(currentPassword, confirmPassword);
             }
             else{
-                await changeConsultantPassword(currentPassword, newPassword, confirmPassword);
+                await changeConsultantPassword(currentPassword, confirmPassword);
             }
             await SingleButtonAlert('비밀번호가 변경되었습니다.');
             onClose();

@@ -17,12 +17,11 @@ export const getParentMyPage = async () => {
 };
 
 // ✅ 학부모 계정 비밀번호 변경 API 요청
-export const changeParentPassword = async (email, oldPwd, newPwd) => {
+export const changeParentPassword = async (oldPwd, newPwd) => {
     try {
-        console.log("📢 학부모 비밀번호 변경 요청:", { email, oldPwd, newPwd });
+        console.log("📢 학부모 비밀번호 변경 요청:", { oldPwd, newPwd });
 
         const response = await api.post("/user/parent/change-pwd", {
-            email: email,
             oldPwd: oldPwd,
             newPwd: newPwd
         });
