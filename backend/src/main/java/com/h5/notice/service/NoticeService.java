@@ -3,6 +3,7 @@ package com.h5.notice.service;
 import com.h5.notice.dto.request.*;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
 import com.h5.notice.dto.response.NoticeListResponseDto;
+import com.h5.notice.dto.response.NoticeSaveResponseDto;
 
 public interface NoticeService {
 
@@ -13,7 +14,7 @@ public interface NoticeService {
     NoticeListResponseDto findByTitle(NoticeSearchRequestDto noticeSearchRequestDto);
 
     // 작성자로 검색 + 페이징
-    NoticeListResponseDto findByEmail(NoticeSearchRequestDto noticeSearchRequestDto);
+    NoticeListResponseDto findByName(NoticeSearchRequestDto noticeSearchRequestDto);
 
     // 상세글 보기
     NoticeDetailResponseDto findById(int noticeId);
@@ -22,11 +23,11 @@ public interface NoticeService {
     void updateViewCnt(int noticeId);
 
     // 글 등록
-    void createNotice(NoticeCreateRequestDto noticeCreateRequestDto);
+    NoticeSaveResponseDto createNotice(NoticeCreateRequestDto noticeCreateRequestDto);
 
     // 글 삭제
-    void deleteNotice(int noticeId);
+    NoticeSaveResponseDto deleteNotice(int noticeId);
 
     // 글 수정
-    int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto);
+    NoticeSaveResponseDto updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto);
 }

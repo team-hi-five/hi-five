@@ -39,8 +39,8 @@ public class QnaController {
 
     @GetMapping("/search-by-writer")
     @Operation(summary = "QnA 작성자로 검색", description = "작성자로 검색한 QnA 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(@ModelAttribute QnaSearchRequestDto qnaSearchRequestDto) {
-        QnaListResponseDto qnaResponseDto = qnaService.findByEmail(qnaSearchRequestDto);
+    public ResponseEntity<?> findByName(@ModelAttribute QnaSearchRequestDto qnaSearchRequestDto) {
+        QnaListResponseDto qnaResponseDto = qnaService.findByName(qnaSearchRequestDto);
         return ResponseEntity.ok(qnaResponseDto);
     }
 
@@ -54,14 +54,12 @@ public class QnaController {
     @PostMapping("/write")
     @Operation(summary = "QnA 작성", description = "새로운 QnA를 생성합니다.")
     public ResponseEntity<?> createQna(@RequestBody QnaCreateRequestDto qnaCreateRequestDto) {
-        qnaService.createQna(qnaCreateRequestDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(qnaService.createQna(qnaCreateRequestDto));
     }
 
     @PostMapping("/write-qna-comment")
      public ResponseEntity<?> createComment(@RequestBody QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
-        qnaService.createQnaComment(qnaCommentCreateRequestDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(qnaService.createQnaComment(qnaCommentCreateRequestDto));
     }
 
     @PostMapping("/delete/{qnaId}")
@@ -73,9 +71,9 @@ public class QnaController {
 
     @PutMapping("/update")
     @Operation(summary = "QnA 업데이트", description = "기존 QnA를 수정합니다.")
-    public ResponseEntity<String> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
-        qnaService.updateQna(qnaUpdateRequestDto);
-        return ResponseEntity.ok("QnA updated successfully with ID: " + qnaUpdateRequestDto.getId());
+    public ResponseEntity<Integer> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
+
+        return ResponseEntity.ok(qnaService.updateQna(qnaUpdateRequestDto));
     }
 
 }

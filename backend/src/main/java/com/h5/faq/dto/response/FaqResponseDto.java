@@ -10,7 +10,6 @@ import lombok.*;
 public class FaqResponseDto {
     private int id;
     private String title;
-    private String content;
-    private String consultantUserEmail;
+    private String name;
     private String faqAnswer;
 }

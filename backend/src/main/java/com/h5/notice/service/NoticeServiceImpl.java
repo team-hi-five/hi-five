@@ -120,7 +120,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public NoticeListResponseDto findByEmail(NoticeSearchRequestDto noticeSearchRequestDto) {
+    public NoticeListResponseDto findByName(NoticeSearchRequestDto noticeSearchRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -138,7 +138,7 @@ public class NoticeServiceImpl implements NoticeService {
         if ("ROLE_CONSULTANT".equals(role)) {
             ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
-            noticeEntityPage = noticeRepository.findByEmail(
+            noticeEntityPage = noticeRepository.findByName(
                     noticeSearchRequestDto.getKeyword(),
                     consultantUser.getId(),
                     null,
@@ -147,7 +147,7 @@ public class NoticeServiceImpl implements NoticeService {
         } else if ("ROLE_PARENT".equals(role)) {
             ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
-            noticeEntityPage = noticeRepository.findByEmail(
+            noticeEntityPage = noticeRepository.findByName(
                     noticeSearchRequestDto.getKeyword(),
                     null,
                     parentUser.getId(),
@@ -171,7 +171,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .id(noticeEntity.getId())
                 .title(noticeEntity.getTitle())
                 .content(noticeEntity.getContent())
-                .consultantUserEmail(noticeEntity.getConsultantUser().getEmail())
+                .name(noticeEntity.getConsultantUser().getName())
                 .viewCnt(noticeEntity.getViewCnt() + 1)
                 .createDttm(noticeEntity.getCreateDttm().toString())
                 .build();
@@ -183,7 +183,7 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     @Override
-    public void createNotice(NoticeCreateRequestDto noticeCreateRequestDto) {
+    public NoticeSaveResponseDto createNotice(NoticeCreateRequestDto noticeCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -205,10 +205,12 @@ public class NoticeServiceImpl implements NoticeService {
                 .build();
 
         noticeRepository.save(noticeEntity);
+
+        return NoticeSaveResponseDto.builder().noticeId(noticeEntity.getId()).build();
     }
 
     @Override
-    public void deleteNotice(int noticeId) {
+    public NoticeSaveResponseDto deleteNotice(int noticeId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -223,10 +225,12 @@ public class NoticeServiceImpl implements NoticeService {
         }
 
         noticeRepository.updateDeleteDttmById(noticeId);
+
+        return NoticeSaveResponseDto.builder().noticeId(noticeEntity.getId()).build();
     }
 
     @Override
-    public int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto) {
+    public NoticeSaveResponseDto updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -245,7 +249,7 @@ public class NoticeServiceImpl implements NoticeService {
 
         noticeRepository.save(noticeEntity);
 
-        return noticeEntity.getId();
+        return NoticeSaveResponseDto.builder().noticeId(noticeEntity.getId()).build();
     }
 
     private NoticeListResponseDto convertToResponseDto(Page<NoticeEntity> noticeEntityPage) {
@@ -253,7 +257,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .map(noticeEntity -> new NoticeResponseDto(
                         noticeEntity.getId(),
                         noticeEntity.getTitle(),
-                        noticeEntity.getConsultantUser().getEmail(),
+                        noticeEntity.getConsultantUser().getName(),
                         noticeEntity.getViewCnt(),
                         noticeEntity.getCreateDttm().toString()
                 )).toList();

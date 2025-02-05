@@ -9,7 +9,7 @@ import com.h5.qna.dto.response.QnaListResponseDto;
 
 public interface QnaService {
     //c
-    void createQna(QnaCreateRequestDto qnaCreateRequestDto);
+    int createQna(QnaCreateRequestDto qnaCreateRequestDto);
 
     //r
     //전체 글
@@ -19,7 +19,7 @@ public interface QnaService {
     QnaListResponseDto findByTitle(QnaSearchRequestDto qnaSearchRequestDto);
 
     //작성자로
-    QnaListResponseDto findByEmail(QnaSearchRequestDto qnaSearchRequestDto);
+    QnaListResponseDto findByName(QnaSearchRequestDto qnaSearchRequestDto);
 
     //상세
     QnaDetailResponseDto findById(int qnaId);
@@ -27,10 +27,17 @@ public interface QnaService {
     //u
     void updateViewCnt(int qnaId);
 
-    void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
+    int updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
 
     //d
     void deleteQna(int qnaId);
 
-    void createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto);
+
+    //comment
+    //c
+    int createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto);
+
+    //r
+
+    //d
 }

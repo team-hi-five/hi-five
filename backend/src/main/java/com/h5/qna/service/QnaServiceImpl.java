@@ -41,7 +41,7 @@ public class QnaServiceImpl implements QnaService {
     private final ParentUserRepository parentUserRepository;
 
     @Override
-    public void createQna(QnaCreateRequestDto qnaCreateRequestDto) {
+    public int createQna(QnaCreateRequestDto qnaCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -63,6 +63,7 @@ public class QnaServiceImpl implements QnaService {
                 .build();
 
         qnaRepository.save(qnaEntity);
+        return qnaEntity.getId();
     }
 
     // 전체 리스트 조회
@@ -139,7 +140,7 @@ public class QnaServiceImpl implements QnaService {
 
     // 작성자 검색
     @Override
-    public QnaListResponseDto findByEmail(QnaSearchRequestDto qnaSearchRequestDto) {
+    public QnaListResponseDto findByName(QnaSearchRequestDto qnaSearchRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -151,7 +152,7 @@ public class QnaServiceImpl implements QnaService {
                 qnaSearchRequestDto.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "createDttm")
         );
-        String searchEmail = qnaSearchRequestDto.getKeyword();
+        String searchName = qnaSearchRequestDto.getKeyword();
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
@@ -167,7 +168,7 @@ public class QnaServiceImpl implements QnaService {
                     .getId();
         }
 
-        Page<QnaEntity> qnaEntityPage = qnaRepository.findByEmail(role, parentUserId, consultantUserId, searchEmail, pageable);
+        Page<QnaEntity> qnaEntityPage = qnaRepository.findByName(role, parentUserId, consultantUserId, searchName, pageable);
 
         return convertToResponseDto(qnaEntityPage);
     }
@@ -188,7 +189,7 @@ public class QnaServiceImpl implements QnaService {
                         .id(qnaAnswerEntity.getId())
                         .content(qnaAnswerEntity.getContent())
                         .createDttm(qnaAnswerEntity.getCreateDttm().toString())
-                        .consultantEmail(qnaAnswerEntity.getConsultantUser().getEmail())
+                        .name(qnaAnswerEntity.getConsultantUser().getName())
                         .build()
                 : null;
 
@@ -196,7 +197,7 @@ public class QnaServiceImpl implements QnaService {
                 .id(qnaEntity.getId())
                 .title(qnaEntity.getTitle())
                 .content(qnaEntity.getContent())
-                .parentUserEmail(qnaEntity.getParentUser().getEmail())
+                .name(qnaEntity.getParentUser().getName())
                 .createDttm(qnaEntity.getCreateDttm().toString())
                 .viewCnt(qnaEntity.getViewCnt()+1)
                 .qnaAnswerResponseDto(qnaAnswerResponseDto)
@@ -211,7 +212,7 @@ public class QnaServiceImpl implements QnaService {
 
     //업데이트
     @Override
-    public void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
+    public int updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -228,6 +229,7 @@ public class QnaServiceImpl implements QnaService {
         qnaEntity.setContent(qnaUpdateRequestDto.getContent());
 
         qnaRepository.save(qnaEntity);
+        return qnaEntity.getId();
     }
 
     //글 삭제
@@ -250,7 +252,7 @@ public class QnaServiceImpl implements QnaService {
     }
 
     @Override
-    public void createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
+    public int createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
         QnaEntity qnaEntity = qnaRepository.findById(qnaCommentCreateRequestDto.getQnaId())
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
 
@@ -275,6 +277,7 @@ public class QnaServiceImpl implements QnaService {
                 .build();
 
         qnaAnswerRepository.save(qnaAnswerEntity);
+        return qnaAnswerEntity.getId();
     }
 
     private QnaListResponseDto convertToResponseDto(Page<QnaEntity> qnaEntityPage) {

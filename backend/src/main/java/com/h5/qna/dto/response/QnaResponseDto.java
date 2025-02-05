@@ -10,7 +10,7 @@ import lombok.*;
 public class QnaResponseDto {
     private int id;
     private String title;
-    private String parentUserEmail;
+    private String name;
     private int viewCnt;
     private String createDttm;
 }
