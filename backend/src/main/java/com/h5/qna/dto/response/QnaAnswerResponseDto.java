@@ -12,4 +12,5 @@ public class QnaAnswerResponseDto {
     private String content;
     private String createDttm;
     private String name;
+    private String profileImageUrl;
 }

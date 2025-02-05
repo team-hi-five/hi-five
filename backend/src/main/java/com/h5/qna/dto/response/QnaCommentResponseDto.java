@@ -1,4 +1,4 @@
-package com.h5.qna.dto.request;
+package com.h5.qna.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class QnaCommentCreateRequestDto {
+public class QnaCommentResponseDto {
+    private int qnaAnswerId;
     private int qnaId;
-    private String content;
 }

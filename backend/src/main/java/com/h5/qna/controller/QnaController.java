@@ -1,9 +1,6 @@
 package com.h5.qna.controller;
 
-import com.h5.qna.dto.request.QnaCommentCreateRequestDto;
-import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaSearchRequestDto;
-import com.h5.qna.dto.request.QnaUpdateRequestDto;
+import com.h5.qna.dto.request.*;
 import com.h5.qna.dto.response.QnaDetailResponseDto;
 import com.h5.qna.dto.response.QnaListResponseDto;
 import com.h5.qna.service.QnaService;
@@ -72,8 +69,16 @@ public class QnaController {
     @PutMapping("/update")
     @Operation(summary = "QnA 업데이트", description = "기존 QnA를 수정합니다.")
     public ResponseEntity<Integer> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
-
         return ResponseEntity.ok(qnaService.updateQna(qnaUpdateRequestDto));
     }
 
+    @PutMapping("/update-comment")
+    public ResponseEntity<?> updateComment(@RequestBody QnaCommentUpdateRequestDto qnaCommentUpdateRequestDto) {
+        return ResponseEntity.ok(qnaService.updateComment(qnaCommentUpdateRequestDto));
+    }
+
+    @PutMapping("/delete-comment/{qnaCommentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable int qnaCommentId) {
+        return ResponseEntity.ok(qnaService.deleteComment(qnaCommentId));
+    }
 }

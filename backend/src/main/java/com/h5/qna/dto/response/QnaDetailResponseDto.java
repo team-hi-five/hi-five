@@ -2,6 +2,8 @@ package com.h5.qna.dto.response;
 
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,5 +17,5 @@ public class QnaDetailResponseDto {
     private String createDttm;
     private int viewCnt;
 
-    private QnaAnswerResponseDto qnaAnswerResponseDto;
+    private List<QnaAnswerResponseDto> qnaAnswerResponseList;
 }

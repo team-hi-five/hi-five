@@ -208,7 +208,6 @@ public class FaqServiceImpl implements FaqService {
         }
 
         faqEntity.setTitle(faqUpdateRequestDto.getFaqTitle());
-        faqEntity.setContent(faqUpdateRequestDto.getFaqContent());
         faqEntity.setFaqAns(faqUpdateRequestDto.getFaqAnswer());
 
         faqRepository.save(faqEntity);
