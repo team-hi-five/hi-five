@@ -6,10 +6,11 @@ import { useState, useEffect } from 'react';
 import ParentHeader from "../../components/Parent/ParentHeader";
 import Footer from "../../components/common/footer";
 import '../Counselor/Css/CounselorMainPage.css';
+import { getParentChildren } from "/src/api/userParent";
 
 const CounselorMainPage = () => {
 
-  const ingredientsList = ["박성원", "정찬환"];
+  const [ingredientsList, setIngredientsList] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState("");
   const onIngredientChange = (e) => {
     setSelectedIngredient(e.checked ? e.value : "");
@@ -61,6 +62,16 @@ const handleOpenChildPage = () => {
   const [numVisible, setNumVisible] = useState(4); // 기본 값
 
   useEffect(() => {
+    async function fetchChildren() {
+      try {
+        const childrenData = await getParentChildren();
+        setIngredientsList(childrenData.map(child => child.childUserName)); // ✅ API 응답 데이터 적용
+      } catch (error) {
+        console.error("❌ 아이 목록 불러오기 실패:", error);
+      }
+    }
+    fetchChildren();
+    
     // 화면 크기에 따라 numVisible 동적 설정
     const updateNumVisible = () => {
       const width = window.innerWidth;
