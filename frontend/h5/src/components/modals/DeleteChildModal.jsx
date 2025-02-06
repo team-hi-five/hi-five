@@ -1,101 +1,116 @@
-import './DeleteChildModal.css'
+import { useState, useEffect } from 'react';
+import ChildDetailModal from './ChildDetailModal';
+import { getParentDeleteRequests, getConsultantChild } from "/src/api/userCounselor";
+import './DeleteChildModal.css';
 
-const DeleteChildModal = ({ isOpen, onClose }) => {
+const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
+  const [deleteRequests, setDeleteRequests] = useState([]);
+  const [selectedChild, setSelectedChild] = useState(null);
+  const [childData, setChildData] = useState(null);
+
+  // ✅ 탈퇴 요청 리스트 불러오기
+  useEffect(() => {
+    if (isOpen) {
+      fetchDeleteRequests();
+    }
+  }, [isOpen]);
+
+  const fetchDeleteRequests = async () => {
+    try {
+      const data = await getParentDeleteRequests();
+      setDeleteRequests(data);
+      onDeleteRequestsChange?.(data.length);
+    } catch (error) {
+      console.error("❌ 탈퇴 요청 리스트 불러오기 실패:", error);
+    }
+  };
+
+  const handleChildClick = async (childUserId) => {
+    try {
+      const data = await getConsultantChild(childUserId);
+      console.log("📢 변환 전 받아온 Child Data:", data);
+  
+      // ✅ ChildDetailModal에 맞게 데이터 변환
+      const formattedData = {
+        id: data.childUserId, // ✅ `id`로 변경
+        name: data.childName, // ✅ `name`으로 변경
+        age: data.age, 
+        birthDate: data.birth, // ✅ `birth` -> `birthDate`
+        gender: data.gender, 
+        imageUrl: data.profileImgUrl, // ✅ `profileImgUrl` -> `imageUrl`
+        parentName: data.parentName,
+        parentPhone: data.parentPhone,
+        parentEmail: data.parentEmail,
+        firstConsultDate: data.firstConsultDate, // ✅ 센터 첫 상담 날짜
+        interests: data.interest, // ✅ `interest` -> `interests`
+        notes: data.additionalInfo, // ✅ `additionalInfo` -> `notes`
+      };
+  
+      console.log("✅ 변환 후 Child Data:", formattedData);
+  
+      setChildData(formattedData);
+      setSelectedChild(true);
+    } catch (error) {
+      console.error("❌ 아이 정보 불러오기 실패:", error);
+    }
+  };
+  
+
+  // ✅ 상세 모달 닫기
+  const handleCloseDetail = () => {
+    setSelectedChild(null);
+    setChildData(null);
+  };
+
   if (!isOpen) return null;
-
-  const deleteRequests = [
-    {
-        id: 1,
-        childName: '김민준',
-        age: 7,
-        parentName: '이영희',
-        imageUrl: '/kid.png',
-        gender: '여',
-        birthDate: '1997.06.10',
-        parentPhone: '010-1111-1111',
-        parentEmail: 'dksajfie@naver.com',
-        treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-        firstConsultDate: '2024.05.06',
-        interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-        notes: 'ex) 참고해야 할 사항 등..'
-      },
-      {
-        id: 2,
-        childName: '박지우',
-        age: 8,
-        parentName: '이영희',
-        imageUrl: '/kid.png',
-        gender: '여',
-        birthDate: '1997.06.10',
-        parentPhone: '010-1111-1111',
-        parentEmail: 'dksajfie@naver.com',
-        treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-        firstConsultDate: '2024.05.06',
-        interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-        notes: 'ex) 참고해야 할 사항 등..'
-      },
-      {
-        id: 3,
-        childName: '박지우',
-        age: 6,
-        parentName: '이영희',
-        imageUrl: '/kid.png',
-        gender: '여',
-        birthDate: '1997.06.10',
-        parentPhone: '010-1111-1111',
-        parentEmail: 'dksajfie@naver.com',
-        treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-        firstConsultDate: '2024.05.06',
-        interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-        notes: 'ex) 참고해야 할 사항 등..'
-      },
-      {
-        id: 4,
-        childName: '박지웅',
-        age: 6,
-        parentName: '이영희',
-        imageUrl: '/kid.png',
-        gender: '남',
-        birthDate: '1997.06.10',
-        parentPhone: '010-1111-1111',
-        parentEmail: 'dksajfie@naver.com',
-        treatmentPeriod: '6개월(2024.06.01 ~ 2025.01.01)',
-        firstConsultDate: '2024.05.06',
-        interests: 'ex) 좋아하는 것, 싫어하는 것, 취미 등..',
-        notes: 'ex) 참고해야 할 사항 등..'
-      }
-  ];
 
   return (
     <div className="delete-modal-overlay">
-        <div className="delete-modal-content">
-            <div className="delete-modal-header">
-              <div className="header-title">탈퇴요청 리스트</div>
-              <button className="delete-close-button" onClick={onClose}>×</button>
-            </div>
-            <div className="delete-modal-body">
-              {deleteRequests.length === 0 ? (
-                <div className="no-requests-message">들어온 요청이 없습니다.</div>
-              ) : (
-                <div className="delete-requests-grid">
-                  {deleteRequests.map((request) => (
-                    <div key={request.id} className="delete-request-group">
-                      <div className="delete-photo-box">
-                        <img 
-                          src={request.imageUrl} 
-                          alt={request.childName} 
-                          className="delete-photo-image" 
-                        />
-                      </div>
-                      <div className="delete-info-box">
-                        {request.childName}({request.gender})&nbsp; {request.age}살
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+      <div className="delete-modal-content">
+        <div className="delete-modal-header">
+          <div className="header-title">탈퇴요청 리스트</div>
+          <button className="delete-close-button" onClick={onClose}>×</button>
         </div>
+        <div className="delete-modal-body">
+          {deleteRequests.length === 0 ? (
+            <div className="no-requests-message">들어온 요청이 없습니다.</div>
+          ) : (
+            <div className="delete-request-list">
+              <div className="delete-request-header">
+                <span>학부모 이름</span>
+                <span>아이 수</span>
+                <span>요청 날짜</span>
+              </div>
+              <div className="delete-request-scroll">
+                {deleteRequests.map((request) => (
+                  request.children.map((child) => (
+                    <div 
+                      key={child.childUserId} 
+                      className="delete-request-row"
+                      onClick={() => handleChildClick(child.childUserId)} 
+                      style={{ cursor: "pointer" }}
+                    >
+                      <span>{request.parentName}</span>
+                      <span>{request.children.length} 명</span>
+                      <span>{request.joinDate}</span>
+                    </div>
+                  ))
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ✅ ChildDetailModal 추가 */}
+      {selectedChild && childData && (
+        <ChildDetailModal
+          isOpen={true}
+          onClose={handleCloseDetail}
+          childData={childData}
+          isDeleteRequest={true}
+        />
+      )}
     </div>
   );
 };

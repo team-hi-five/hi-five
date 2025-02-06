@@ -1,0 +1,17 @@
+.ch-class-button{
+    margin-top: 60px;
+}
+
+.ch-class-container{
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    padding-top: 100px;
+    gap: 70px;
+    background: linear-gradient(to bottom, #DEF0FF, #FFFFFF 100%);
+}
+
+.ch-class-game-left,
+.ch-class-game-right {
+    width: 40%; 
+}

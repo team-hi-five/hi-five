@@ -1,0 +1,73 @@
+.ch-card-details-layout-container {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ch-card-details-title {
+  position: relative;
+  top: 100px;
+  text-align: center;
+  font-family: "Jua";
+  font-size: 3rem;
+}
+
+.ch-card-details-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; /* 양쪽 끝으로 배치 */
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  padding: 20px;
+}
+
+.ch-big-main-character {
+  flex: 0.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ch-big-main-character img {
+  width: 28rem;
+  height: auto;
+}
+
+.ch-card-deatils-list {
+  display: flex;
+  overflow: auto;
+  gap: 3 rem;
+  padding: 3 rem;
+  align-items: flex-end; /* 아래쪽 정렬 */
+  /* 스크롤바 숨기는 속성 필요해? */
+  /* -ms-overflow-style: none; 
+  scrollbar-width: none;  */
+}
+
+.ch-card-deatils-list img {
+  height: 40vh;
+  width: auto;
+  margin-left: 40px;
+  flex-shrink: 0;
+  transform-style: preserve-3d;
+  animation: rotate 2s linear infinite paused;
+}
+
+/*  마우스 를 대면   회전 */
+.ch-card-deatils-list img:hover {
+  animation-play-state: running;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}

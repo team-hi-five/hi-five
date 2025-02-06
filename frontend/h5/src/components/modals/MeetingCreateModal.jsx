@@ -1,21 +1,24 @@
 import { useState } from 'react';
 import './MeetingCreateModal.css';
 import SingleButtonAlert from '../common/SingleButtonAlert';
+import TimeSlotSelector from './TimeSlotSelector';
 import { Calendar } from 'primereact/calendar';
 
-const MeetingCreateModal = ({ onClose }) => {
-    const [formData, setFormData] = useState({
-        counselorName: '',
-        childName: '',
-        email: '',
-        parentName: '',
-        type: '',
-        date: null,
-        time: ''
-    });
-
+const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onScheduleUpdate = () => {}, bookedSlots = [] }) => {
+    const [searchTerm, setSearchTerm] = useState(editData?.counsultation_target || '');
     const [showDropdown, setShowDropdown] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+    
+    // formData 초기값 수정
+    const [formData, setFormData] = useState({
+        counselorName: editData?.counselor || '',
+        childName: editData?.counsultation_target || '',
+        email: editData?.email || '',
+        parentName: editData?.parentName || '',
+        type: editData?.counsultation_type === '게임' ? 'type1' : 
+              editData?.counsultation_type === '아동학습현황상담' ? 'type2' : '',
+        date: editData?.date || '',
+        time: editData?.time || ''
+    });
 
     // 임시 검색 결과 데이터
     const searchResults = [
@@ -29,9 +32,9 @@ const MeetingCreateModal = ({ onClose }) => {
         {
             id: 2,
             image: "/path/to/image2.jpg",
-            childName: "임남기",
-            parentName: "학부모이름ddddd",
-            email: "학부모이메일ddddd"
+            childName: "한승우",
+            parentName: "박성원",
+            email: "chanhoan01@naver.com"
         },
         {
             id: 3,
@@ -69,17 +72,35 @@ const MeetingCreateModal = ({ onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // 상담 생성 API 호출
-            // await createMeeting(formData);
-            
-            // 성공 알림
-            await SingleButtonAlert('상담 생성이 완료되었습니다.');
+            if (isEdit) {
+                // 수정된 데이터로 schedules 업데이트
+                const updatedSchedule = {
+                    time: formData.time,
+                    counselor: formData.counselorName,
+                    counsultation_target: formData.childName,
+                    counsultation_type: formData.type === 'type1' ? '게임' : '아동학습현황상담',
+                    date: formData.date,
+                    email: formData.email,
+                    parentName: formData.parentName,
+                    isLoading: false,
+                    isCompleted: false
+                };
+
+                // 부모 컴포넌트로 업데이트된 스케줄 전달
+                onScheduleUpdate(updatedSchedule, editData);
+                await SingleButtonAlert('상담이 수정되었습니다.');
+            } else {
+                // 생성 로직
+                await SingleButtonAlert('상담 생성이 완료되었습니다.');
+            }
             onClose();
         } catch (error) {
-            // 에러 발생 시 에러 알림
-            await SingleButtonAlert('상담 생성 중 오류가 발생했습니다.');
+            await SingleButtonAlert(
+                isEdit ? '상담 수정 중 오류가 발생했습니다.' : '상담 생성 중 오류가 발생했습니다.'
+            );
         }
     };
+
     
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -89,11 +110,18 @@ const MeetingCreateModal = ({ onClose }) => {
         }));
     };
 
+    const handleTimeSelect = (time) => {
+        setFormData(prev => ({
+            ...prev,
+            time: time
+        }));
+    };
+
     return (
         <div className="co-m-overlay">
             <div className="co-m-content">
                 <div className="co-m-header">
-                    <h2>상담일정 생성</h2>
+                    <h2>{isEdit ? '상담일정 수정' : '상담일정 생성'}</h2>
                     <button className="co-m-close" onClick={onClose}>×</button>
                 </div>
                 
@@ -198,11 +226,11 @@ const MeetingCreateModal = ({ onClose }) => {
 
                     <div className="co-m-form-group">
                         <label>상담 시간</label>
-                        <input
-                            type="time"
-                            name="time"
+                        <TimeSlotSelector
+                            selectedDate={formData.date}
+                            onTimeSelect={handleTimeSelect}
+                            bookedSlots={bookedSlots}
                             value={formData.time}
-                            onChange={handleChange}
                         />
                     </div>
 
@@ -211,7 +239,7 @@ const MeetingCreateModal = ({ onClose }) => {
                             취소
                         </button>
                         <button type="submit" className="co-m-submit-btn">
-                            상담 생성
+                            {isEdit ? '수정' : '상담 생성'}
                         </button>
                     </div>
                 </form>
