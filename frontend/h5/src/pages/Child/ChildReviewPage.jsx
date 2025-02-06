@@ -8,8 +8,8 @@ function ChildReviewPage() {
 
     const navigate = useNavigate()
     const items=[
-        {game_chapter_id:1, chapter_pic:"/test/sample1.jpg", title:"학교가는길"},
-        {game_chapter_id:2, chapter_pic:"/test/sample2.jpg", title:"집가는길"},
+        {game_chapter_id:1, chapter_pic:"/Child/chapter1Scene.png", title:"학교가는길"},
+        {game_chapter_id:2, chapter_pic:"/Child/chapter1.png", title:"집가는길"},
         {game_chapter_id:3, chapter_pic:"/test/sample3.jpg", title:"싸피피가는길"}
     ];
     

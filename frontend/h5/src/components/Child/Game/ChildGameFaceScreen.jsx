@@ -15,7 +15,7 @@ function ChildGameFaceScreen (){
             <div className="ch-game-bottom-section">
                 {/* 십자가버튼 */}
                 <div className="ch-game-button-left">
-                    <img src="/child/button-left.png" alt="button-left" />
+                    <img src="/Child/button-left.png" alt="button-left" />
                 </div>
 
                 {/* 상담사 화면 */}
@@ -24,7 +24,7 @@ function ChildGameFaceScreen (){
                 </Card>
                 {/* 컬러버튼 */}
                 <div className="ch-game-button-right">
-                    <img src="/child/button-right.png" alt="button-right" />
+                    <img src="/Child/button-right.png" alt="button-right" />
                 </div>    
             </div>
         </div>
