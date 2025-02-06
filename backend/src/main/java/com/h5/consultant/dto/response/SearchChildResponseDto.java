@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @Builder
 public class SearchChildResponseDto {
+    private int childUserId;
+    private String childProfileUrl;
     private String childUserName;
     private String parentUserName;
     private String parentUserEmail;

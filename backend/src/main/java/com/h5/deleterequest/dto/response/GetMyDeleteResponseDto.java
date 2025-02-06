@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Getter
@@ -13,5 +14,6 @@ public class GetMyDeleteResponseDto {
     public int deleteUserRequestId;
     public int parentUserId;
     public String parentName;
+    public String deleteRequestDttm;
     public Set<GetMyDeleteChildResponseDto> children;
 }
