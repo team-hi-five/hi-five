@@ -57,6 +57,9 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login").permitAll() // 로그인 API
                         .requestMatchers("/user/consultant/find-id", "/user/consultant/temp-pwd").permitAll()
                         .requestMatchers("/user/parent/find-id", "/user/parent/temp-pwd").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // WebSocket 경로 허용
+                        .requestMatchers("/app/**").permitAll() // STOMP 메시지 경로 허용
+                        .requestMatchers("/topic/**").permitAll() // WebSocket 메시지 브로커 경로 허용
                         .anyRequest().authenticated()
                 );
 

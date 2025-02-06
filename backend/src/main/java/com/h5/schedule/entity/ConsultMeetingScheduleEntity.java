@@ -5,6 +5,7 @@ import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.parent.entity.ParentUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -58,6 +59,10 @@ public class ConsultMeetingScheduleEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_user_id", nullable = false)
     private ChildUserEntity childUserEntity;
+
+    @Size(max = 255)
+    @Column(name = "session_id")
+    private String sessionId;
 
     @PrePersist
     protected void onCreate() {
