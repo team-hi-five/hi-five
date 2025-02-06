@@ -164,7 +164,8 @@ public class ParentUserServiceImpl implements ParentUserService {
         String parentEmail = authentication.getName();
 
         ParentUserEntity parentUserEntity = findParentByEmail(parentEmail);
-        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_Id(parentUserEntity.getId());
+        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_Id(parentUserEntity.getId())
+                .orElseThrow(UserNotFoundException::new);
 
         return myChildren.stream()
                 .map(child -> MyChildrenResponseDto.builder()

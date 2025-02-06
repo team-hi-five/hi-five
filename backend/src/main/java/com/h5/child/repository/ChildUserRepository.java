@@ -1,6 +1,7 @@
 package com.h5.child.repository;
 
 import com.h5.child.entity.ChildUserEntity;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -25,5 +26,7 @@ public interface ChildUserRepository extends JpaRepository<ChildUserEntity, Inte
 
     Optional<ChildUserEntity> findNameById(Integer childUserId);
 
-    List<ChildUserEntity> findAllByParentUserEntity_Id(Integer parentUserId);
+    Optional<List<ChildUserEntity>> findAllByParentUserEntity_Id(Integer parentUserId);
+
+    Optional<List<ChildUserEntity>> findALlByName(@NotNull String name);
 }

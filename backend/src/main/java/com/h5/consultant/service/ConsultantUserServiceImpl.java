@@ -2,11 +2,9 @@ package com.h5.consultant.service;
 
 import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
+import com.h5.consultant.dto.request.ModifyChildRequestDto;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
-import com.h5.consultant.dto.response.GetChildResponseDto;
-import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
-import com.h5.consultant.dto.response.MyProfileResponseDto;
-import com.h5.consultant.dto.response.RegisterParentAccountResponseDto;
+import com.h5.consultant.dto.response.*;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.file.entity.FileEntity;
@@ -29,6 +27,7 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ConsultantUserServiceImpl implements ConsultantUserService {
@@ -222,6 +221,39 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .phone(consultantUser.getPhone())
                 .centerName(consultantUser.getCenter().getCenterName())
                 .centerPhone(consultantUser.getCenter().getCenterContact())
+                .build();
+    }
+
+    @Override
+    public boolean emailCheck(String email) {
+        return consultantUserRepository.findByEmail(email).isPresent() || parentUserRepository.findByEmail(email).isPresent();
+    }
+
+    @Transactional
+    @Override
+    public List<SearchChildResponseDto> searchChild(String childUserName) {
+        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByName(childUserName)
+                .orElseThrow(UserNotFoundException::new);
+
+        return childUserEntities.stream()
+                .map(child -> SearchChildResponseDto.builder()
+                        .childUserName(child.getName())
+                        .parentUserName(child.getParentUserEntity().getName())
+                        .parentUserEmail(child.getParentUserEntity().getEmail())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ModifyChildResponseDto modifyChild(ModifyChildRequestDto modifyChildRequestDto) {
+        ChildUserEntity childUserEntity = childUserRepository.findById(modifyChildRequestDto.getChildUserId())
+                .orElseThrow(UserNotFoundException::new);
+
+        childUserEntity.setInterest(modifyChildRequestDto.getInterest());
+        childUserEntity.setAdditionalInfo(modifyChildRequestDto.getAdditionalInfo());
+
+        return ModifyChildResponseDto.builder()
+                .childUserId(childUserRepository.save(childUserEntity).getId())
                 .build();
     }
 }
