@@ -1,4 +1,5 @@
 import '../ChildCss/ChildGameFaceScreen.css'
+import VideoScreen from '../../common/VideoScreen'
 import { Card } from 'primereact/card';
 
 function ChildGameFaceScreen (){
@@ -7,7 +8,7 @@ function ChildGameFaceScreen (){
         <div className='ch-game-face-screen'>
             <Card className='ch-game-Top-section'>
                 <Card className='ch-game-child-screen'>
-                    아동 이미지
+                    <VideoScreen token='abc'/>
                 </Card>
             </Card>
             <div className='ch-game-middle-section'></div>
