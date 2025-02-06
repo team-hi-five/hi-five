@@ -30,9 +30,6 @@ public class SessionServiceImpl implements SessionService {
             GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findById(scheduleId)
                     .orElseThrow(ScheduleNotFoundException::new);
 
-            if(gameMeetingScheduleEntity.getSessionId() != null) {
-                throw new IllegalArgumentException("Meeting already started");
-            }
             if(gameMeetingScheduleEntity.getDeleteDttm() != null){
                 throw new IllegalArgumentException("Meeting already ended");
             }

@@ -7,10 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class JoinSessionRequestDto {
-    @NotNull
     private int sessionId;
 
-    @NotNull
     private int scheduleId;
 
     private String type;

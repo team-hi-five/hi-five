@@ -21,7 +21,7 @@ public class OpenViduServiceImpl implements OpenViduService {
     @Value("${openvidu.secret}")
     private String openviduSecret;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Override
     public String createSession() {
@@ -37,7 +37,8 @@ public class OpenViduServiceImpl implements OpenViduService {
         HttpEntity<String> request = new HttpEntity<>(payload, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
+        // HttpStatus.OK 외에 CREATED도 성공 상태로 인정합니다.
+        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.CREATED) {
             return customSessionId;
         } else {
             throw new RuntimeException("Failed to create OpenVidu session");
