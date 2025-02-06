@@ -32,9 +32,9 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
         {
             id: 2,
             image: "/path/to/image2.jpg",
-            childName: "임남기",
-            parentName: "학부모이름ddddd",
-            email: "학부모이메일ddddd"
+            childName: "한승우",
+            parentName: "박성원",
+            email: "chanhoan01@naver.com"
         },
         {
             id: 3,

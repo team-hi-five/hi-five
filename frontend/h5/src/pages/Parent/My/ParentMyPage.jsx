@@ -5,7 +5,7 @@ import PasswordChangeModal from "/src/components/modals/PasswordChangeModal";
 import DoubleButtonAlert from "/src/components/common/DoubleButtonAlert";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import { useState, useEffect } from "react";
-import { getParentMyPage } from "/src/api//userParent";
+import { getParentMyPage, requestParentAccountDeletion } from "/src/api//userParent";
 
 function ParentMyPage() {
   const [childrenData, setChildrenData] = useState([]);
@@ -35,9 +35,18 @@ function ParentMyPage() {
   const handleDelete = async () => {
     const result = await DoubleButtonAlert("탈퇴 요청을 보내시겠습니까?");
     if (result.isConfirmed) {
-      await SingleButtonAlert("탈퇴 요청이 완료되었습니다.");
+        try {
+            const response = await requestParentAccountDeletion();
+            console.log("✅ 탈퇴 요청 성공:", response);
+
+            await SingleButtonAlert("탈퇴 요청이 완료되었습니다.");
+        } catch (error) {
+            console.error("❌ 탈퇴 요청 실패:", error);
+            await SingleButtonAlert("탈퇴 요청 중 오류가 발생했습니다.");
+        }
     }
-  };
+};
+
 
   return (
     <div>

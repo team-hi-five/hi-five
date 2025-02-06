@@ -4,6 +4,8 @@ import './ChildDetailModal.css'
 import DoubleButtonAlert from '../common/DoubleButtonAlert';
 import SingleButtonAlert from '../common/SingleButtonAlert';
 import ProfileImageModal from './ProfileImageModal';
+import { approveDeleteRequest, rejectDeleteRequest } from "/src/api/userCounselor"; // ✅ API 호출 추가
+
 
 const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
     const [profileImage, setProfileImage] = useState(childData.imageUrl);
@@ -16,6 +18,11 @@ const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCa
       imageUrl: childData.imageUrl
     });
     const [editingField, setEditingField] = useState(null);
+
+    const firstConsultDate = new Date(childData.firstConsultDate);
+      const today = new Date();
+      const diffTime = Math.abs(today - firstConsultDate);
+      const diffMonths = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 30));
 
     useEffect(() => {
       if (isOpen) {
@@ -34,6 +41,37 @@ const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCa
       });
       setProfileImage(childData.imageUrl);
     }, [childData]);
+
+// ✅ 탈퇴 요청 승인 버튼 이벤트
+const handleApproveDelete = async () => {
+  try {
+      const result = await DoubleButtonAlert("정말 탈퇴 요청을 승인하시겠습니까?");
+      if (result.isConfirmed) {
+          await approveDeleteRequest(childData.deleteUserRequestId); // ✅ 올바른 값 전달
+          await SingleButtonAlert("회원 탈퇴가 승인되었습니다.");
+          onClose();
+      }
+  } catch (error) {
+      console.error("❌ 탈퇴 승인 중 오류 발생:", error);
+      await SingleButtonAlert("탈퇴 승인 중 오류가 발생했습니다.");
+  }
+};
+
+// ✅ 탈퇴 요청 거절 버튼 이벤트
+const handleRejectDelete = async () => {
+  try {
+      const result = await DoubleButtonAlert("정말 탈퇴 요청을 거절하시겠습니까?");
+      if (result.isConfirmed) {
+          await rejectDeleteRequest(childData.deleteUserRequestId); // ✅ 올바른 값 전달
+          await SingleButtonAlert("회원 탈퇴 요청이 거절되었습니다.");
+          onClose();
+      }
+  } catch (error) {
+      console.error("❌ 탈퇴 거절 중 오류 발생:", error);
+      await SingleButtonAlert("탈퇴 거절 중 오류가 발생했습니다.");
+  }
+};
+
 
     const handleProfileEdit = () => {
       setIsProfileModalOpen(true);
@@ -154,7 +192,7 @@ const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCa
                 </div>
                 <div className="info-row">
                   <span className="label">치료기간</span>
-                  <span className="value">{childData.treatmentPeriod}</span>
+                  <span className="value">{diffMonths}개월 ({childData.firstConsultDate} ~ {today.toISOString().split('T')[0]})</span>
                 </div>
                 <div className="info-row">
                   <span className="label">센터 첫 상담 날짜</span>
@@ -217,35 +255,36 @@ const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCa
               {!isEditing ? (
                 <div>
                   {isDeleteRequest ? (
-                    <>
-                      <button 
-                        className="btn-delete1" 
-                        onClick={() => onCancelRequest(childData.id)}
-                      >
-                        <strong>요청취소</strong>
-                      </button>
-                      <button 
-                        className="btn-delete2" 
-                        onClick={() => onDelete(childData.id)}
-                        disabled={isLoading}
-                      >
-                        <strong>{isLoading ? '삭제 중...' : '회원삭제'}</strong>
-                      </button>
-                    </>
+                      <>
+                          <button 
+                              className="btn-delete1" 
+                              onClick={handleRejectDelete} // ✅ 거절 API 연결
+                          >
+                              <strong>요청거절</strong>
+                          </button>
+                          <button 
+                              className="btn-delete2" 
+                              onClick={handleApproveDelete} // ✅ 승인 API 연결
+                              disabled={isLoading}
+                          >
+                              <strong>{isLoading ? '처리 중...' : '요청 승인'}</strong>
+                          </button>
+                      </>
                   ) : (
-                    <>
-                      <button className="btn-submit" onClick={handleEditClick}>
-                        <strong>수정</strong>
-                      </button>
-                      <button 
-                        className="btn-delete2" 
-                        onClick={handleDelete}
-                        disabled={isLoading}
-                      >
-                        <strong>{isLoading ? '삭제 중...' : '회원삭제'}</strong>
-                      </button>
-                    </>
+                      <>
+                          <button className="btn-submit" onClick={handleEditClick}>
+                              <strong>수정</strong>
+                          </button>
+                          <button 
+                              className="btn-delete2" 
+                              onClick={handleDelete}
+                              disabled={isLoading}
+                          >
+                              <strong>{isLoading ? '삭제 중...' : '회원삭제'}</strong>
+                          </button>
+                      </>
                   )}
+
                 </div>
               ) : (
                 <button className="btn-submit" onClick={handleSaveClick}>
