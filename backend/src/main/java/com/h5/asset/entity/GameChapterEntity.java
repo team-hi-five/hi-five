@@ -1,6 +1,5 @@
 package com.h5.asset.entity;
 
-import com.h5.emotion.entity.EmotionEntity;
 import com.h5.game.entity.ChildGameChapterEntity;
 import com.h5.study.entity.ChildStudyChapterEntity;
 import jakarta.persistence.*;
@@ -21,13 +20,8 @@ import java.util.Set;
 public class GameChapterEntity {
 
     @Id
-    @Column(name = "emotion_id", nullable = false)
+    @Column(name = "game_chapter_id", nullable = false)
     private Integer id;
-
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "emotion_id", nullable = false)
-    private EmotionEntity emotion;
 
     @Size(max = 100)
     @NotNull
@@ -39,13 +33,13 @@ public class GameChapterEntity {
     @Column(name = "chapter_pic", nullable = false, length = 100)
     private String chapterPic;
 
-    @OneToMany(mappedBy = "emotion")
+    @OneToMany(mappedBy = "gameChapterEntity")
     private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "emotion")
+    @OneToMany(mappedBy = "gameChapterEntity")
     private Set<ChildStudyChapterEntity> childStudyChapterEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "emotion")
+    @OneToMany(mappedBy = "gameChapterEntity")
     private Set<GameStageEntity> gameStageEntities = new LinkedHashSet<>();
 
 }

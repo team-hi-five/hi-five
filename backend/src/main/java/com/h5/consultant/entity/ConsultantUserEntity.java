@@ -51,10 +51,6 @@ public class ConsultantUserEntity {
     @Column(name = "update_dttm")
     private String updateDttm;
 
-    @Size(max = 255)
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "center_id", nullable = false)

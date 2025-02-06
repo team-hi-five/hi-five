@@ -11,13 +11,14 @@ import lombok.Setter;
 @Entity
 @Table(name = "card_asset")
 public class CardAssetEntity {
+
     @Id
     @Column(name = "game_stage_id", nullable = false)
     private Integer id;
 
     @MapsId
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_stage_id")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_stage_id", nullable = false)
     private GameStageEntity gameStageEntity;
 
     @Size(max = 255)

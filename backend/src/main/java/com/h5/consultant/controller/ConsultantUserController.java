@@ -6,10 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user/consultant")
@@ -36,15 +33,19 @@ public class ConsultantUserController {
 
     @PostMapping("/change-pwd")
     public ResponseEntity<?> updatePwd(@Valid @RequestBody UpdatePwdRequestDto updatePwdRequestDto) {
-        consultantUserService.updatePwd(updatePwdRequestDto.getEmail(),
-                updatePwdRequestDto.getOldPwd(),
+        consultantUserService.updatePwd(updatePwdRequestDto.getOldPwd(),
                 updatePwdRequestDto.getNewPwd());
         return ResponseEntity.ok("Password changed successfully.");
     }
 
     @PostMapping("/register-parent-account")
     public ResponseEntity<?> registerParentAccount(@Valid @RequestBody RegisterParentAccountDto registerParentAccountDto) {
-        return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto) ? "Success register parent user account" : "Fail register parent user account");
+        return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto));
+    }
+
+    @GetMapping("/email-check")
+    public ResponseEntity<?> emailCheck(@Valid @RequestParam String email) {
+        return ResponseEntity.ok(consultantUserService.emailCheck(email));
     }
 
     @PostMapping("/get-my-children")
@@ -52,14 +53,24 @@ public class ConsultantUserController {
         return ResponseEntity.ok(consultantUserService.getChildrenForAuthenticatedConsultant());
     }
 
-    @PostMapping("/get-child")
-    public ResponseEntity<?> getChild(@Valid @RequestBody GetChildRequestDto getChildRequestDto) {
-        return ResponseEntity.ok(consultantUserService.getChild(getChildRequestDto.getChildUserId()));
+    @GetMapping("/get-child")
+    public ResponseEntity<?> getChild(@Valid @RequestParam int childUserId) {
+        return ResponseEntity.ok(consultantUserService.getChild(childUserId));
     }
 
     @Transactional
     @PostMapping("/my-profile")
     public ResponseEntity<?> getMyProfile() {
         return ResponseEntity.ok(consultantUserService.getMyProfile());
+    }
+
+    @GetMapping("/search-child/{childUserName}")
+    public ResponseEntity<?> searchChild(@Valid @PathVariable String childUserName) {
+        return ResponseEntity.ok(consultantUserService.searchChild(childUserName));
+    }
+
+    @PostMapping("/modify-child")
+    public ResponseEntity<?> modifyChild(@Valid @RequestBody ModifyChildRequestDto modifyChildRequestDto) {
+        return ResponseEntity.ok(consultantUserService.modifyChild(modifyChildRequestDto));
     }
 }

@@ -11,13 +11,14 @@ import lombok.Setter;
 @Entity
 @Table(name = "game_asset")
 public class GameAssetEntity {
+
     @Id
     @Column(name = "game_stage_id", nullable = false)
     private Integer id;
 
     @MapsId
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_stage_id")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_stage_id", nullable = false)
     private GameStageEntity gameStageEntity;
 
     @Size(max = 255)
@@ -54,5 +55,10 @@ public class GameAssetEntity {
     @NotNull
     @Column(name = "opt_pic_3", nullable = false)
     private String optPic3;
+
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "situation", nullable = false)
+    private String situation;
 
 }

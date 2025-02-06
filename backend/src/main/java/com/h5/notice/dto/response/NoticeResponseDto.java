@@ -10,7 +10,7 @@ import lombok.*;
 public class NoticeResponseDto {
     private int id;
     private String title;
-    private String consultantUserEmail;
+    private String name;
     private int viewCnt;
     private String createDttm;
 

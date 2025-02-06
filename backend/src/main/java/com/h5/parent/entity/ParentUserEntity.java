@@ -46,7 +46,7 @@ public class ParentUserEntity {
     private String phone;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "create_dttm", nullable = false)
+    @Column(name = "create_dttm")
     private String createDttm;
 
     @Column(name = "delete_dttm")
@@ -55,10 +55,6 @@ public class ParentUserEntity {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "update_dttm", insertable = false, updatable = false)
     private String updateDttm;
-
-    @Size(max = 255)
-    @Column(name = "refresh_token")
-    private String refreshToken;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

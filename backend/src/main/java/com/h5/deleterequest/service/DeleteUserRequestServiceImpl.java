@@ -2,10 +2,11 @@ package com.h5.deleterequest.service;
 
 import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
-import com.h5.deleterequest.dto.response.GetMyDeleteChildResponseDto;
-import com.h5.deleterequest.dto.response.GetMyDeleteResponseDto;
+import com.h5.deleterequest.dto.response.*;
 import com.h5.deleterequest.entity.DeleteUserRequestEntity;
 import com.h5.deleterequest.repository.DeleteUserRequestRepository;
+import com.h5.file.entity.FileEntity;
+import com.h5.file.service.FileService;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
@@ -32,37 +33,47 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
     private final DeleteUserRequestRepository deleteUserRequestRepository;
     private final ParentUserRepository parentUserRepository;
     private final ChildUserRepository childUserRepository;
+    private final FileService fileService;
 
     @Autowired
     public DeleteUserRequestServiceImpl(DeleteUserRequestRepository deleteUserRequestRepository,
                                         ParentUserRepository parentUserRepository,
-                                        ChildUserRepository childUserRepository) {
+                                        ChildUserRepository childUserRepository,
+                                        FileService fileService) {
         this.deleteUserRequestRepository = deleteUserRequestRepository;
         this.parentUserRepository = parentUserRepository;
         this.childUserRepository = childUserRepository;
+        this.fileService = fileService;
     }
 
     @Transactional
     @Override
-    public DeleteUserRequestEntity deleteRequest() {
+    public DeleteRequestResponseDto deleteRequest() {
         String parentEmail = getAuthenticatedUserEmail();
-        ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(parentEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found for email: " + parentEmail));
+        ParentUserEntity parentUserEntity = parentUserRepository.findByEmailAndDeleteDttmIsNull(parentEmail)
+                .orElseThrow(UserNotFoundException::new);
 
-        return deleteUserRequestRepository.save(
+        DeleteUserRequestEntity deleteUserRequest = deleteUserRequestRepository.save(
                 DeleteUserRequestEntity.builder()
                         .status(DeleteUserRequestEntity.Status.P)
                         .parentUser(parentUserEntity)
                         .consultantUser(parentUserEntity.getConsultantUserEntity())
-                        .build()
-        );
+                        .deleteRequestDttm(LocalDateTime.now().toString())
+                        .build());
+
+        return DeleteRequestResponseDto.builder()
+                .deleteRequestId(deleteUserRequest.getId())
+                .status(deleteUserRequest.getStatus())
+                .deleteRequestDttm(deleteUserRequest.getDeleteRequestDttm())
+                .build();
+
     }
 
     @Transactional
     @Override
-    public DeleteUserRequestEntity deleteApprove(int deleteUserRequestId) {
+    public DeleteUserRequestAprproveResponseDto deleteApprove(int deleteUserRequestId) {
         DeleteUserRequestEntity deleteUserRequestEntity = deleteUserRequestRepository.findById(deleteUserRequestId)
-                .orElseThrow(() -> new UserNotFoundException("Delete request not found for delete_user_request_id: " + deleteUserRequestId));
+                .orElseThrow(UserNotFoundException::new);
 
         String deleteDttm = getDatetimeStr();
 
@@ -81,19 +92,31 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
         deleteUserRequestEntity.setDeleteConfirmDttm(deleteDttm);
         deleteUserRequestEntity.setStatus(DeleteUserRequestEntity.Status.A);
 
-        return deleteUserRequestRepository.save(deleteUserRequestEntity);
+        DeleteUserRequestEntity deleteUserRequest = deleteUserRequestRepository.save(deleteUserRequestEntity);
+
+        return DeleteUserRequestAprproveResponseDto.builder()
+                .deleteRequestId(deleteUserRequest.getId())
+                .deleteConfirmDttm(deleteUserRequest.getDeleteConfirmDttm())
+                .status(deleteUserRequest.getStatus())
+                .build();
     }
 
     @Transactional
     @Override
-    public DeleteUserRequestEntity deleteReject(int deleteUserRequestId) {
+    public DeleteUserRequestRejectResponseDto deleteReject(int deleteUserRequestId) {
         DeleteUserRequestEntity deleteUserRequestEntity = deleteUserRequestRepository.findById(deleteUserRequestId)
-                .orElseThrow(() -> new UserNotFoundException("Delete request not found for delete_user_request_id: " + deleteUserRequestId));
+                .orElseThrow(UserNotFoundException::new);
 
         deleteUserRequestEntity.setDeleteConfirmDttm(getDatetimeStr());
         deleteUserRequestEntity.setStatus(DeleteUserRequestEntity.Status.R);
 
-        return deleteUserRequestRepository.save(deleteUserRequestEntity);
+        DeleteUserRequestEntity deleteUserRequest = deleteUserRequestRepository.save(deleteUserRequestEntity);
+
+        return DeleteUserRequestRejectResponseDto.builder()
+                .deleteRequestId(deleteUserRequest.getId())
+                .status(deleteUserRequest.getStatus())
+                .deleteConfirmDttm(deleteUserRequest.getDeleteConfirmDttm())
+                .build();
     }
 
     @Transactional
@@ -107,17 +130,26 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
                     Set<GetMyDeleteChildResponseDto> childDtos = deleteUserRequestEntity.getParentUser().getChildUserEntities()
                             .stream()
                             .map(childUserEntity -> GetMyDeleteChildResponseDto.builder()
-                                    .child_user_id(childUserEntity.getId())
-                                    .child_name(childUserEntity.getName())
-                                    .child_age(getAge(childUserEntity.getBirth()))
+                                    .childUserId(childUserEntity.getId())
+                                    .childName(childUserEntity.getName())
+                                    .childUserProfileUrl(getFileUrl(childUserEntity.getId()))
                                     .gender(childUserEntity.getGender())
+                                    .age(getAge(childUserEntity.getBirth().toString()))
+                                    .parentUserPhone(childUserEntity.getParentUserEntity().getPhone())
+                                    .parentUserName(childUserEntity.getParentUserEntity().getName())
+                                    .birth(childUserEntity.getBirth().toString())
+                                    .parentUserEmail(childUserEntity.getParentUserEntity().getEmail())
+                                    .firConsultDt(childUserEntity.getFirstConsultDt().toString())
+                                    .interest(childUserEntity.getInterest())
+                                    .additionalInfo(childUserEntity.getAdditionalInfo())
                                     .build())
                             .collect(Collectors.toSet());
 
                     return GetMyDeleteResponseDto.builder()
-                            .delete_user_request_id(deleteUserRequestEntity.getId())
-                            .parent_user_id(deleteUserRequestEntity.getParentUser().getId())
-                            .parent_name(deleteUserRequestEntity.getParentUser().getName())
+                            .deleteUserRequestId(deleteUserRequestEntity.getId())
+                            .deleteRequestDttm(deleteUserRequestEntity.getDeleteRequestDttm())
+                            .parentUserId(deleteUserRequestEntity.getParentUser().getId())
+                            .parentName(deleteUserRequestEntity.getParentUser().getName())
                             .children(childDtos)
                             .build();
                 })
@@ -136,5 +168,9 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
 
     private String getDatetimeStr() {
         return LocalDateTime.now().format(DATETIME_FORMATTER);
+    }
+
+    private String getFileUrl(int tblId) {
+        return !fileService.getFileUrl(FileEntity.TblType.P, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl() : "Default Image";
     }
 }

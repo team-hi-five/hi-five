@@ -1,11 +1,19 @@
 package com.h5.child.entity;
 
 import com.h5.consultant.entity.ConsultantUserEntity;
+import com.h5.game.entity.ChildGameChapterEntity;
+import com.h5.game.entity.GameLogEntity;
 import com.h5.parent.entity.ParentUserEntity;
+import com.h5.statistic.entity.StatisticEntity;
+import com.h5.study.entity.ChildStudyChapterEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+
+import java.time.LocalDate;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -15,7 +23,6 @@ import lombok.*;
 @Builder
 @Table(name = "child_user")
 public class ChildUserEntity {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,11 +36,11 @@ public class ChildUserEntity {
 
     @NotNull
     @Column(name = "first_consult_dt", nullable = false)
-    private String firstConsultDt;
+    private LocalDate firstConsultDt;
 
     @NotNull
     @Column(name = "birth", nullable = false)
-    private String birth;
+    private LocalDate birth;
 
     @Lob
     @Column(name = "gender")
@@ -51,10 +58,6 @@ public class ChildUserEntity {
     @Column(name = "name", nullable = false, length = 10)
     private String name;
 
-    @Size(max = 255)
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parent_user_id", nullable = false)
@@ -67,5 +70,17 @@ public class ChildUserEntity {
 
     @Column(name = "delete_dttm")
     private String deleteDttm;
+
+    @OneToMany(mappedBy = "childUserEntity")
+    private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "childUserEntity")
+    private Set<ChildStudyChapterEntity> childStudyChapterEntities = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "childUserEntity")
+    private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "childUserEntity")
+    private Set<StatisticEntity> statisticEntities = new LinkedHashSet<>();
 
 }

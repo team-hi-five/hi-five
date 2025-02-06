@@ -1,34 +1,44 @@
 package com.h5.qna.service;
 
-import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaRequestDto;
-import com.h5.qna.dto.request.QnaUpdateRequestDto;
+import com.h5.qna.dto.request.*;
+import com.h5.qna.dto.response.QnaCommentResponseDto;
 import com.h5.qna.dto.response.QnaDetailResponseDto;
-import com.h5.qna.dto.response.QnaResponseDto;
-import org.springframework.data.domain.Page;
+import com.h5.qna.dto.response.QnaListResponseDto;
+import com.h5.qna.dto.response.QnaSaveResponseDto;
 
 public interface QnaService {
     //c
-    void createQna(QnaCreateRequestDto qnaCreateRequestDto, String authorizationHeader);
+    QnaSaveResponseDto createQna(QnaCreateRequestDto qnaCreateRequestDto);
 
     //r
     //전체 글
-    Page<QnaResponseDto> findAll(QnaRequestDto qnaRequestDto, String authorizationHeader);
+    QnaListResponseDto findAll(QnaSearchRequestDto qnaSearchRequestDto);
 
     //제목으로
-    Page<QnaResponseDto> findByTitle(QnaRequestDto qnaRequestDto, String authorizationHeader);
+    QnaListResponseDto findByTitle(QnaSearchRequestDto qnaSearchRequestDto);
 
     //작성자로
-    Page<QnaResponseDto> findByEmail(QnaRequestDto qnaRequestDto, String authorizationHeader);
+    QnaListResponseDto findByName(QnaSearchRequestDto qnaSearchRequestDto);
 
     //상세
     QnaDetailResponseDto findById(int qnaId);
 
     //u
-    void updateViewCnt(int qnaId);
 
-    void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto, String authorizationHeader);
+    QnaSaveResponseDto updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
 
     //d
-    void deleteQna(int qnaId, String authorizationHeader);
+    QnaSaveResponseDto deleteQna(int qnaId);
+
+
+    //comment
+    //c
+    QnaCommentResponseDto createQnaComment(QnaCommentCreateRequestDto qnaCommentSaveRequestDto);
+
+    //u
+    QnaCommentResponseDto updateComment(QnaCommentUpdateRequestDto qnaCommentSaveRequestDto);
+
+    //d
+    QnaCommentResponseDto deleteComment(int qnaCommentId);
+
 }

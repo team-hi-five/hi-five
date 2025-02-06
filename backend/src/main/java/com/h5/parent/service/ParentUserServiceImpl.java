@@ -12,6 +12,7 @@ import com.h5.global.util.PasswordUtil;
 import com.h5.parent.dto.info.ConsultantInfo;
 import com.h5.parent.dto.info.MyChildInfo;
 import com.h5.parent.dto.info.MyInfo;
+import com.h5.parent.dto.response.MyChildrenResponseDto;
 import com.h5.parent.dto.response.MyPageResponseDto;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
@@ -24,14 +25,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ParentUserServiceImpl implements ParentUserService {
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final ParentUserRepository parentUserRepository;
     private final ConsultantUserRepository consultantUserRepository;
@@ -77,7 +76,7 @@ public class ParentUserServiceImpl implements ParentUserService {
 
     private ParentUserEntity findParentByEmail(String email) {
         return parentUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Parent user not found for email: " + email));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     private MyInfo buildMyInfo(ParentUserEntity parentUserEntity) {
@@ -91,16 +90,17 @@ public class ParentUserServiceImpl implements ParentUserService {
 
     private List<MyChildInfo> buildMyChildInfos(int parentId) {
         List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentId)
-                .orElseThrow(() -> new UserNotFoundException("Children not found for parent ID: " + parentId));
+                .orElseThrow(UserNotFoundException::new);
 
         List<MyChildInfo> myChildInfos = new ArrayList<>();
         for (ChildUserEntity child : childUserEntities) {
-            LocalDate childBirthDate = LocalDate.parse(child.getBirth(), DATE_FORMATTER);
-            int age = Period.between(childBirthDate, LocalDate.now()).getYears();
+            int age = Period.between(child.getBirth(), LocalDate.now()).getYears();
+
+            String profileImgUrl = !fileService.getFileUrl(FileEntity.TblType.P, child.getId()).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, child.getId()).get(0).getUrl() : "Default Image";
 
             myChildInfos.add(MyChildInfo.builder()
                     .childId(child.getId())
-                    .profileImgUrl(fileService.getFileUrl(FileEntity.TblType.P, child.getId()).get(0).getUrl())
+                    .profileImgUrl(profileImgUrl)
                     .name(child.getName())
                     .age(age)
                     .gender(child.getGender())
@@ -111,10 +111,11 @@ public class ParentUserServiceImpl implements ParentUserService {
 
     private ConsultantInfo buildConsultantInfo(ParentUserEntity parentUserEntity) {
         ConsultantUserEntity consultant = consultantUserRepository.findById(parentUserEntity.getConsultantUserEntity().getId())
-                .orElseThrow(() -> new UserNotFoundException("Consultant not found for parent ID: " + parentUserEntity.getId()));
+                .orElseThrow(UserNotFoundException::new);
 
         return ConsultantInfo.builder()
                 .consultantId(consultant.getId())
+                .consultantName(consultant.getName())
                 .consultantPhone(consultant.getPhone())
                 .consultantEmail(consultant.getEmail())
                 .centerName(consultant.getCenter().getCenterName())
@@ -125,7 +126,7 @@ public class ParentUserServiceImpl implements ParentUserService {
     @Override
     public ParentUserEntity findId(String name, String phone) {
         return parentUserRepository.findEmailByNameAndPhone(name, phone)
-                .orElseThrow(() -> new UserNotFoundException("User not found for Name: " + name + ", Phone: " + phone));
+                .orElseThrow(UserNotFoundException::new);
     }
 
     @Override
@@ -141,7 +142,10 @@ public class ParentUserServiceImpl implements ParentUserService {
     }
 
     @Override
-    public void updatePwd(String email, String oldPwd, String newPwd) {
+    public void updatePwd(String oldPwd, String newPwd) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         ParentUserEntity parentUserEntity = findParentByEmail(email);
 
         if (!passwordEncoder.matches(oldPwd, parentUserEntity.getPwd())) {
@@ -152,5 +156,22 @@ public class ParentUserServiceImpl implements ParentUserService {
         parentUserEntity.setTempPwd(false);
 
         parentUserRepository.save(parentUserEntity);
+    }
+
+    @Override
+    public List<MyChildrenResponseDto> myChildren() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String parentEmail = authentication.getName();
+
+        ParentUserEntity parentUserEntity = findParentByEmail(parentEmail);
+        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_Id(parentUserEntity.getId())
+                .orElseThrow(UserNotFoundException::new);
+
+        return myChildren.stream()
+                .map(child -> MyChildrenResponseDto.builder()
+                        .childUserId(child.getId())
+                        .childUserName(child.getName())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

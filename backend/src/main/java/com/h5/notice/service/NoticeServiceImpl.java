@@ -3,174 +3,198 @@ package com.h5.notice.service;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.*;
-import com.h5.global.util.JwtUtil;
 import com.h5.notice.dto.request.*;
-import com.h5.notice.dto.response.NoticeDetailResponseDto;
-import com.h5.notice.dto.response.NoticeResponseDto;
+import com.h5.notice.dto.response.*;
 import com.h5.notice.entity.NoticeEntity;
 import com.h5.notice.repository.NoticeRepository;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-
 public class NoticeServiceImpl implements NoticeService {
 
     private final NoticeRepository noticeRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ParentUserRepository parentUserRepository;
-    private final JwtUtil jwtUtil;
 
-    //전체 글 리스트
     @Override
-    public Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public NoticeListResponseDto findAll(NoticeSearchRequestDto noticeSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
         Page<NoticeEntity> noticeEntityPage;
 
-        switch (role) {
-            case "ROLE_CONSULTANT":
-                ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new UserNotFoundException());
-                noticeEntityPage = noticeRepository.findAll(consultantUser.getId(), null, noticeListRequestDto.getPageable());
-                break;
-
-            case "ROLE_PARENT":
-                ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new UserNotFoundException());
-                noticeEntityPage = noticeRepository.findAll(null, parentUser.getId(), noticeListRequestDto.getPageable());
-                break;
-
-            default:
-                throw new RuntimeException("Invalid role: " + role);
-        }
-
-        return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
-                noticeEntity.getId(),
-                noticeEntity.getTitle(),
-                noticeEntity.getConsultantUser().getEmail(),
-                noticeEntity.getViewCnt(),
-                noticeEntity.getCreateDttm()
-        ));
-    }
-
-    //제목으로 검색
-    @Override
-    public Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
-
-        Page<NoticeEntity> noticeEntityPage;
-
-        switch (role) {
-            case "ROLE_CONSULTANT":
-                ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new UserNotFoundException());
-                noticeEntityPage = noticeRepository.findByTitle(
-                        noticeSearchRequestDto.getKeyword(),
-                        consultantUser.getId(),
-                        null,
-                        noticeSearchRequestDto.getPageable()
-                );
-                break;
-
-            case "ROLE_PARENT":
-                ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                        .orElseThrow(() -> new UserNotFoundException());
-                noticeEntityPage = noticeRepository.findByTitle(
-                        noticeSearchRequestDto.getKeyword(),
-                        null,
-                        parentUser.getId(),
-                        noticeSearchRequestDto.getPageable()
-                );
-                break;
-
-            default:
-                throw new UserNotFoundException();
-        }
-
-        return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
-                noticeEntity.getId(),
-                noticeEntity.getTitle(),
-                noticeEntity.getConsultantUser().getEmail(),
-                noticeEntity.getViewCnt(),
-                noticeEntity.getCreateDttm()
-        ));
-    }
-
-    //작성자 이메일로 검색
-    @Override
-    public Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-
-        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException());
-
-        Page<NoticeEntity> noticeEntityPage = noticeRepository.findByEmail(
-                consultantUser.getId(),
-                noticeSearchRequestDto.getPageable()
+        Pageable pageable = PageRequest.of(
+                noticeSearchRequestDto.getPageNumber(),
+                noticeSearchRequestDto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createDttm")
         );
 
-        return noticeEntityPage.map(noticeEntity -> new NoticeResponseDto(
-                noticeEntity.getId(),
-                noticeEntity.getTitle(),
-                noticeEntity.getConsultantUser().getEmail(),
-                noticeEntity.getViewCnt(),
-                noticeEntity.getCreateDttm()
-        ));
-    }
-
-    //글 상세 보기
-    @Override
-    public NoticeDetailResponseDto findById(int noticeId) {
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId);
-
-        if (noticeEntity == null) {
-            throw new BoardNotFoundException("notice");
+        if ("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findAll(
+                    consultantUser.getId(),
+                    null,
+                    pageable
+            );
+        } else if ("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findAll(
+                    null,
+                    parentUser.getId(),
+                    pageable
+            );
+        } else {
+            throw new UserNotFoundException();
         }
 
-        updateViewCnt(noticeId); //조회수 증가
-        
+
+        return convertToResponseDto(noticeEntityPage);
+    }
+
+
+    // 제목으로 검색
+    @Override
+    public NoticeListResponseDto findByTitle(NoticeSearchRequestDto noticeSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+
+        Page<NoticeEntity> noticeEntityPage;
+
+        Pageable pageable = PageRequest.of(
+                noticeSearchRequestDto.getPageNumber(),
+                noticeSearchRequestDto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createDttm")
+        );
+
+        if ("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByTitle(
+                    noticeSearchRequestDto.getKeyword(),
+                    consultantUser.getId(),
+                    null,
+                    pageable
+            );
+        } else if ("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByTitle(
+                    noticeSearchRequestDto.getKeyword(),
+                    null,
+                    parentUser.getId(),
+                    pageable
+            );
+        } else {
+            throw new UserNotFoundException();
+        }
+
+
+        return convertToResponseDto(noticeEntityPage);
+    }
+
+    @Override
+    public NoticeListResponseDto findByName(NoticeSearchRequestDto noticeSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+        Pageable pageable = PageRequest.of(
+                noticeSearchRequestDto.getPageNumber(),
+                noticeSearchRequestDto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createDttm")
+        );
+
+        Page<NoticeEntity> noticeEntityPage;
+
+        if ("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByName(
+                    noticeSearchRequestDto.getKeyword(),
+                    consultantUser.getId(),
+                    null,
+                    pageable
+            );
+        } else if ("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                    .orElseThrow(UserNotFoundException::new);
+            noticeEntityPage = noticeRepository.findByName(
+                    noticeSearchRequestDto.getKeyword(),
+                    null,
+                    parentUser.getId(),
+                    pageable
+            );
+        } else {
+            throw new UserNotFoundException();
+        }
+
+        return convertToResponseDto(noticeEntityPage);
+    }
+
+    @Override
+    public NoticeDetailResponseDto findById(int noticeId) {
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BoardNotFoundException("notice"));
+
+        updateViewCnt(noticeId); // 조회수 증가
+
         return NoticeDetailResponseDto.builder()
                 .id(noticeEntity.getId())
                 .title(noticeEntity.getTitle())
                 .content(noticeEntity.getContent())
-                .consultantUserEmail(noticeEntity.getConsultantUser().getEmail())
-                .viewCnt(noticeEntity.getViewCnt()+1)
-                .createDttm(noticeEntity.getCreateDttm())
+                .name(noticeEntity.getConsultantUser().getName())
+                .viewCnt(noticeEntity.getViewCnt() + 1)
+                .createDttm(noticeEntity.getCreateDttm().toString())
                 .build();
-
     }
 
-    // 조회수 증가
     @Override
     public void updateViewCnt(int id) {
         noticeRepository.updateViewCnt(id);
     }
 
     @Override
-    public void createNotice(NoticeCreateRequestDto noticeCreateRequestDto, String authorizationHeader) {
-        String token = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(token);
-        String role = jwtUtil.getRoleFromToken(token);
+    public NoticeSaveResponseDto createNotice(NoticeCreateRequestDto noticeCreateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException());
+                .orElseThrow(UserNotFoundException::new);
 
-        if(!role.equals("ROLE_CONSULTANT")) {
+        if (!"ROLE_CONSULTANT".equals(role)) {
             throw new BoardAccessDeniedException("notice");
         }
 
@@ -181,41 +205,42 @@ public class NoticeServiceImpl implements NoticeService {
                 .build();
 
         noticeRepository.save(noticeEntity);
+
+        return NoticeSaveResponseDto.builder().noticeId(noticeEntity.getId()).build();
     }
 
     @Override
-    public void deleteNotice(int noticeId, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public NoticeSaveResponseDto deleteNotice(int noticeId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException());
+                .orElseThrow(UserNotFoundException::new);
 
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeId);
-        if(noticeEntity == null) {
-            throw new BoardNotFoundException("notice");
-        }
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BoardNotFoundException("notice"));
 
-        if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
+        if (!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
             throw new BoardAccessDeniedException("notice");
         }
-        noticeRepository.deleteById(noticeId);
+
+        noticeRepository.updateDeleteDttmById(noticeId);
+
+        return NoticeSaveResponseDto.builder().noticeId(noticeEntity.getId()).build();
     }
 
     @Override
-    public int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public NoticeSaveResponseDto updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ConsultantUserEntity loginUser = consultantUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException());
+                .orElseThrow(UserNotFoundException::new);
 
-        NoticeEntity noticeEntity = noticeRepository.findById(noticeUpdateRequestDto.getId());
-        if(noticeEntity == null) {
-            throw new BoardNotFoundException("notice");
-        }
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeUpdateRequestDto.getId())
+                .orElseThrow(() -> new BoardNotFoundException("notice"));
 
-        if(!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
+        if (!Objects.equals(loginUser.getId(), noticeEntity.getConsultantUser().getId())) {
             throw new BoardAccessDeniedException("notice");
         }
 
@@ -224,8 +249,26 @@ public class NoticeServiceImpl implements NoticeService {
 
         noticeRepository.save(noticeEntity);
 
-        return noticeEntity.getId();
+        return NoticeSaveResponseDto.builder().noticeId(noticeEntity.getId()).build();
     }
 
+    private NoticeListResponseDto convertToResponseDto(Page<NoticeEntity> noticeEntityPage) {
+        List<NoticeResponseDto> noticeResponses = noticeEntityPage.getContent().stream()
+                .map(noticeEntity -> new NoticeResponseDto(
+                        noticeEntity.getId(),
+                        noticeEntity.getTitle(),
+                        noticeEntity.getConsultantUser().getName(),
+                        noticeEntity.getViewCnt(),
+                        noticeEntity.getCreateDttm().toString()
+                )).toList();
 
+        PaginationResponseDto pagination = new PaginationResponseDto(
+                noticeEntityPage.getNumber(),
+                noticeEntityPage.getSize(),
+                noticeEntityPage.getTotalPages(),
+                noticeEntityPage.getTotalElements()
+        );
+
+        return new NoticeListResponseDto(noticeResponses, pagination);
+    }
 }

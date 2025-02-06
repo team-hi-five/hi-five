@@ -11,7 +11,7 @@ public class NoticeDetailResponseDto {
     private int id;
     private String title;
     private String content;
-    private String consultantUserEmail;
+    private String name;
     private String createDttm;
     private int viewCnt;
 

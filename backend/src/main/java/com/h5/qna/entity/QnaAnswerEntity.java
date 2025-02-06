@@ -3,13 +3,10 @@ package com.h5.qna.entity;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -17,7 +14,9 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "qna_answer")
+@Builder
 public class QnaAnswerEntity {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,24 +31,36 @@ public class QnaAnswerEntity {
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "create_dttm", nullable = false)
-    private String createDttm;
+    private LocalDateTime createDttm;
 
     @NotNull
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "update_dttm", nullable = false)
-    private String updateDttm;
+    private LocalDateTime updateDttm;
 
     @Column(name = "delete_dttm")
-    private String deleteDttm;
+    private LocalDateTime deleteDttm;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "board_id", nullable = false)
-    private QnaEntity board;
+    private QnaEntity qnaEntity;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "consultant_user_id", nullable = false)
     private ConsultantUserEntity consultantUser;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createDttm = LocalDateTime.now();
+        this.updateDttm = LocalDateTime.now();
+
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updateDttm = LocalDateTime.now();
+    }
 
 }

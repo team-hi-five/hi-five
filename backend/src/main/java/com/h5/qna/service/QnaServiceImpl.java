@@ -1,18 +1,18 @@
 package com.h5.qna.service;
 
+import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.file.dto.response.GetFileUrlResponseDto;
+import com.h5.file.entity.FileEntity;
+import com.h5.file.service.FileService;
 import com.h5.global.exception.BoardAccessDeniedException;
 import com.h5.global.exception.BoardNotFoundException;
+import com.h5.global.exception.UserAccessDeniedException;
 import com.h5.global.exception.UserNotFoundException;
-import com.h5.global.util.JwtUtil;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
-import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaRequestDto;
-import com.h5.qna.dto.request.QnaUpdateRequestDto;
-import com.h5.qna.dto.response.QnaAnswerResponseDto;
-import com.h5.qna.dto.response.QnaDetailResponseDto;
-import com.h5.qna.dto.response.QnaResponseDto;
+import com.h5.qna.dto.request.*;
+import com.h5.qna.dto.response.*;
 import com.h5.qna.entity.QnaAnswerEntity;
 import com.h5.qna.entity.QnaEntity;
 import com.h5.qna.repository.QnaAnswerRepository;
@@ -20,10 +20,18 @@ import com.h5.qna.repository.QnaRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,20 +41,23 @@ public class QnaServiceImpl implements QnaService {
     private final QnaAnswerRepository qnaAnswerRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ParentUserRepository parentUserRepository;
-    private final JwtUtil jwtUtil;
+    private final FileService fileService;
 
     @Override
-    public void createQna(QnaCreateRequestDto qnaCreateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public QnaSaveResponseDto createQna(QnaCreateRequestDto qnaCreateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
-        ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(()-> new UserNotFoundException());
-
-        if(!role.equals("ROLE_PARENT")){
+        if(!"ROLE_PARENT".equals(role)){
             throw new BoardAccessDeniedException("qna");
         }
+
+        ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
 
         QnaEntity qnaEntity = QnaEntity.builder()
                 .title(qnaCreateRequestDto.getTitle())
@@ -55,111 +66,114 @@ public class QnaServiceImpl implements QnaService {
                 .build();
 
         qnaRepository.save(qnaEntity);
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     // 전체 리스트 조회
     @Override
-    public Page<QnaResponseDto> findAll(QnaRequestDto qnaRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
+    public QnaListResponseDto findAll(QnaSearchRequestDto qnaSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
-        Pageable pageable = qnaRequestDto.getPageable();
+        Pageable pageable = PageRequest.of(
+                qnaSearchRequestDto.getPageNumber(),
+                qnaSearchRequestDto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createDttm")
+        );
+
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException())
+                    .orElseThrow(UserNotFoundException::new)
                     .getId();
-        }
-
-        if ("ROLE_CONSULTANT".equals(role)) {
+        } else if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException())
+                    .orElseThrow(UserNotFoundException::new)
                     .getId();
+        }else{
+            throw new UserAccessDeniedException();
         }
 
         Page<QnaEntity> qnaEntityPage = qnaRepository.findAll(role, parentUserId, consultantUserId, pageable);
 
-        return qnaEntityPage.map(qnaEntity -> new QnaResponseDto(
-                qnaEntity.getId(),
-                qnaEntity.getTitle(),
-                qnaEntity.getParentUser().getEmail(),
-                qnaEntity.getViewCnt(),
-                qnaEntity.getCreateDttm()
-        ));
+        return convertToResponseDto(qnaEntityPage);
     }
 
 
     // 제목 검색
     @Override
-    public Page<QnaResponseDto> findByTitle(QnaRequestDto qnaRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
-
-        Pageable pageable = qnaRequestDto.getPageable();
-        String title = qnaRequestDto.getKeyword();
+    public QnaListResponseDto findByTitle(QnaSearchRequestDto qnaSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+        Pageable pageable = PageRequest.of(
+                qnaSearchRequestDto.getPageNumber(),
+                qnaSearchRequestDto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createDttm")
+        );
+        String title = qnaSearchRequestDto.getKeyword();
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException())
+                    .orElseThrow(UserNotFoundException::new)
                     .getId();
-        }
-
-        if ("ROLE_CONSULTANT".equals(role)) {
+        } else if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException())
+                    .orElseThrow(UserNotFoundException::new)
                     .getId();
+        }else{
+            throw new UserAccessDeniedException();
         }
 
         Page<QnaEntity> qnaEntityPage = qnaRepository.findByTitle(role, parentUserId, consultantUserId, title, pageable);
 
-        return qnaEntityPage.map(qnaEntity -> new QnaResponseDto(
-                qnaEntity.getId(),
-                qnaEntity.getTitle(),
-                qnaEntity.getParentUser().getEmail(),
-                qnaEntity.getViewCnt(),
-                qnaEntity.getCreateDttm()
-        ));
+        return convertToResponseDto(qnaEntityPage);
     }
 
     // 작성자 검색
     @Override
-    public Page<QnaResponseDto> findByEmail(QnaRequestDto qnaRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
-        String role = jwtUtil.getRoleFromToken(accessToken);
-
-        Pageable pageable = qnaRequestDto.getPageable();
-        String searchEmail = qnaRequestDto.getKeyword();
+    public QnaListResponseDto findByName(QnaSearchRequestDto qnaSearchRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+        Pageable pageable = PageRequest.of(
+                qnaSearchRequestDto.getPageNumber(),
+                qnaSearchRequestDto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createDttm")
+        );
+        String searchName = qnaSearchRequestDto.getKeyword();
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
         if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException())
+                    .orElseThrow(UserNotFoundException::new)
                     .getId();
         }
 
         if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException())
+                    .orElseThrow(UserNotFoundException::new)
                     .getId();
         }
 
-        Page<QnaEntity> qnaEntityPage = qnaRepository.findByEmail(role, parentUserId, consultantUserId, searchEmail, pageable);
+        Page<QnaEntity> qnaEntityPage = qnaRepository.findByName(role, parentUserId, consultantUserId, searchName, pageable);
 
-        return qnaEntityPage.map(qnaEntity -> new QnaResponseDto(
-                qnaEntity.getId(),
-                qnaEntity.getTitle(),
-                qnaEntity.getParentUser().getEmail(),
-                qnaEntity.getViewCnt(),
-                qnaEntity.getCreateDttm()
-        ));
+        return convertToResponseDto(qnaEntityPage);
     }
 
     //상세조회
@@ -168,45 +182,43 @@ public class QnaServiceImpl implements QnaService {
         QnaEntity qnaEntity = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        QnaAnswerEntity qnaAnswerEntity = qnaAnswerRepository.findByBoardId(qnaId)
-                        .orElse(null);
+        List<QnaAnswerEntity> qnaAnswerEntityList = qnaAnswerRepository.findByQnaEntity_IdAndDeleteDttmIsNull(qnaId);
 
-        updateViewCnt(qnaId);
+        List<QnaAnswerResponseDto> qnaAnswerResponseList = qnaAnswerEntityList.stream()
+                .map(answer -> {
+                    List<GetFileUrlResponseDto> profileImages = fileService.getFileUrl(FileEntity.TblType.P, answer.getConsultantUser().getId());
 
-        QnaAnswerResponseDto qnaAnswerResponseDto = (qnaAnswerEntity != null) ?
-                QnaAnswerResponseDto.builder()
-                        .id(qnaAnswerEntity.getId())
-                        .content(qnaAnswerEntity.getContent())
-                        .createDttm(qnaAnswerEntity.getCreateDttm())
-                        .consultantEmail(qnaAnswerEntity.getConsultantUser().getEmail())
-                        .build()
-                : null;
+                    String profileImageUrl = profileImages.isEmpty() ? null : profileImages.get(0).getUrl();
+
+                    return QnaAnswerResponseDto.builder()
+                            .id(answer.getId())
+                            .content(answer.getContent())
+                            .createDttm(answer.getCreateDttm().toString())
+                            .name(answer.getConsultantUser().getName())
+                            .profileImageUrl(profileImageUrl)
+                            .build();
+                })
+                .toList();
 
         return QnaDetailResponseDto.builder()
                 .id(qnaEntity.getId())
                 .title(qnaEntity.getTitle())
                 .content(qnaEntity.getContent())
-                .parentUserEmail(qnaEntity.getParentUser().getEmail())
-                .createDttm(qnaEntity.getCreateDttm())
-                .viewCnt(qnaEntity.getViewCnt()+1)
-                .qnaAnswerResponseDto(qnaAnswerResponseDto)
+                .name(qnaEntity.getParentUser().getName())
+                .createDttm(qnaEntity.getCreateDttm().toString())
+                .answerCnt(qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId()))
+                .qnaAnswerResponseList(qnaAnswerResponseList)
                 .build();
-    }
-
-    //조회수 +1
-    @Override
-    public void updateViewCnt(int qnaId) {
-        qnaRepository.updateViewCnt(qnaId);
     }
 
     //업데이트
     @Override
-    public void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public QnaSaveResponseDto updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException());
+                .orElseThrow(UserNotFoundException::new);
         QnaEntity qnaEntity = qnaRepository.findById(qnaUpdateRequestDto.getId())
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
 
@@ -218,16 +230,17 @@ public class QnaServiceImpl implements QnaService {
         qnaEntity.setContent(qnaUpdateRequestDto.getContent());
 
         qnaRepository.save(qnaEntity);
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     //글 삭제
     @Override
-    public void deleteQna(int qnaId, String authorizationHeader) {
-        String accessToken = authorizationHeader.replace("Bearer ", "");
-        String email = jwtUtil.getEmailFromToken(accessToken);
+    public QnaSaveResponseDto deleteQna(int qnaId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException());
+                .orElseThrow(UserNotFoundException::new);
 
         QnaEntity qnaEntity = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
@@ -237,5 +250,87 @@ public class QnaServiceImpl implements QnaService {
         }
 
         qnaRepository.delete(qnaEntity);
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
+    }
+
+    @Override
+    public QnaCommentResponseDto createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
+        QnaEntity qnaEntity = qnaRepository.findById(qnaCommentCreateRequestDto.getQnaId())
+                .orElseThrow(() -> new BoardNotFoundException("qna"));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
+
+        if(!"ROLE_CONSULTANT".equals(role)) {
+            throw new UserAccessDeniedException();
+        }
+
+        ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+
+        QnaAnswerEntity qnaAnswerEntity = new QnaAnswerEntity().builder()
+                .content(qnaCommentCreateRequestDto.getContent())
+                .qnaEntity(qnaEntity)
+                .consultantUser(consultantUser)
+                .build();
+
+        qnaAnswerRepository.save(qnaAnswerEntity);
+
+        return QnaCommentResponseDto.builder()
+                .qnaAnswerId(qnaAnswerEntity.getId())
+                .qnaId(qnaEntity.getId())
+                .build();
+    }
+
+    @Override
+    public QnaCommentResponseDto updateComment(QnaCommentUpdateRequestDto qnaCommentUpdateRequestDto) {
+        QnaAnswerEntity qnaAnswerEntity = qnaAnswerRepository.findById(qnaCommentUpdateRequestDto.getQnaCommentId())
+                .orElseThrow(() -> new BoardNotFoundException("qna_Answer"));
+
+        qnaAnswerEntity.setContent(qnaCommentUpdateRequestDto.getContent());
+        qnaAnswerRepository.save(qnaAnswerEntity);
+
+        return QnaCommentResponseDto.builder()
+                .qnaAnswerId(qnaAnswerEntity.getId())
+                .qnaId(qnaAnswerEntity.getQnaEntity().getId())
+                .build();
+    }
+
+    @Override
+    public QnaCommentResponseDto deleteComment(int qnaCommentId) {
+        QnaAnswerEntity qnaAnswerEntity = qnaAnswerRepository.findById(qnaCommentId)
+                .orElseThrow(() -> new BoardAccessDeniedException("qna_Answer"));
+        qnaAnswerEntity.setDeleteDttm(LocalDateTime.now());
+        qnaAnswerRepository.save(qnaAnswerEntity);
+
+        return QnaCommentResponseDto.builder()
+                .qnaAnswerId(qnaAnswerEntity.getId())
+                .qnaId(qnaAnswerEntity.getQnaEntity().getId())
+                .build();
+    }
+
+    private QnaListResponseDto convertToResponseDto(Page<QnaEntity> qnaEntityPage) {
+        List<QnaResponseDto> qnaResponses = qnaEntityPage.getContent().stream()
+                .map(qnaEntity -> new QnaResponseDto(
+                        qnaEntity.getId(),
+                        qnaEntity.getTitle(),
+                        qnaEntity.getParentUser().getName(),
+                        qnaEntity.getCreateDttm().toString(),
+                        qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId())
+                ))
+                .collect(Collectors.toList());
+
+        PaginationResponseDto pagination = new PaginationResponseDto(
+                qnaEntityPage.getNumber(),
+                qnaEntityPage.getSize(),
+                qnaEntityPage.getTotalPages(),
+                qnaEntityPage.getTotalElements()
+        );
+
+        return new QnaListResponseDto(qnaResponses, pagination);
     }
 }

@@ -1,16 +1,17 @@
 package com.h5.faq.dto.request;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.domain.Pageable;
+import lombok.Setter;
 
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class FaqSearchRequestDto {
     private String keyword;
-    private Pageable pageable;
+    private int pageNumber = 0;
+    private int pageSize = 10;
+
 }

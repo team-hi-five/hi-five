@@ -1,7 +1,11 @@
 package com.h5.child.repository;
 
 import com.h5.child.entity.ChildUserEntity;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,7 +20,13 @@ public interface ChildUserRepository extends JpaRepository<ChildUserEntity, Inte
 
     Optional<List<ChildUserEntity>> findByParentUserEntity_Id(Integer parentUserEntityId);
 
-    void updateDeleteDttmForChildUsers(Set<Integer> childUserIds, String deleteDttm);
+    @Modifying
+    @Query("UPDATE ChildUserEntity c SET c.deleteDttm = :deleteDttm WHERE c.id IN :ids")
+    void updateDeleteDttmForChildUsers(@Param("ids") Set<Integer> ids, @Param("deleteDttm") String deleteDttm);
 
     Optional<ChildUserEntity> findNameById(Integer childUserId);
+
+    Optional<List<ChildUserEntity>> findAllByParentUserEntity_Id(Integer parentUserId);
+
+    Optional<List<ChildUserEntity>> findALlByName(@NotNull String name);
 }

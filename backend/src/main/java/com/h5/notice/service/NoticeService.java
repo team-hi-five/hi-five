@@ -2,33 +2,32 @@ package com.h5.notice.service;
 
 import com.h5.notice.dto.request.*;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
-import com.h5.notice.dto.response.NoticeResponseDto;
-import org.springframework.data.domain.Page;
+import com.h5.notice.dto.response.NoticeListResponseDto;
+import com.h5.notice.dto.response.NoticeSaveResponseDto;
 
 public interface NoticeService {
 
-    //전체 글 + 페이징
-    Page<NoticeResponseDto> findAll(NoticeListRequestDto noticeListRequestDto, String authorizationHeader);
+    // 전체 글 + 페이징
+    NoticeListResponseDto findAll(NoticeSearchRequestDto noticeSearchRequestDto);
 
-    //제목으로 검색 + 페이징
-    Page<NoticeResponseDto> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader);
+    // 제목으로 검색 + 페이징
+    NoticeListResponseDto findByTitle(NoticeSearchRequestDto noticeSearchRequestDto);
 
-    //작성자로 검색 + 페이징
-    Page<NoticeResponseDto> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto, String authorizationHeader);
+    // 작성자로 검색 + 페이징
+    NoticeListResponseDto findByName(NoticeSearchRequestDto noticeSearchRequestDto);
 
-    //상세글 보기
+    // 상세글 보기
     NoticeDetailResponseDto findById(int noticeId);
 
     // 조회수 증가
     void updateViewCnt(int noticeId);
 
-    //글 등록
-    void createNotice(NoticeCreateRequestDto noticeCreateRequestDto, String authorizationHeader);
+    // 글 등록
+    NoticeSaveResponseDto createNotice(NoticeCreateRequestDto noticeCreateRequestDto);
 
-    //글 삭제
-    void deleteNotice(int noticeId, String authorizationHeader);
+    // 글 삭제
+    NoticeSaveResponseDto deleteNotice(int noticeId);
 
-    //글 수정
-    int updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto, String authorizationHeader);
-
+    // 글 수정
+    NoticeSaveResponseDto updateNotice(NoticeUpdateRequestDto noticeUpdateRequestDto);
 }

@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Instant;
-
 @Getter
 @Setter
 @Entity
@@ -19,7 +17,7 @@ public class StudyLogEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "child_study_stage_id")
-    private ChildStudyStageEntity childStudyStage;
+    private ChildStudyStageEntity childStudyStageEntity;
 
     @NotNull
     @Lob
@@ -77,10 +75,10 @@ public class StudyLogEntity {
     private String stt;
 
     @NotNull
-    @Column(name = "start_dttm", nullable = false)
-    private Instant startDttm;
+    @Column(name = "start_dttm")
+    private String startDttm;
 
     @Column(name = "end_dttm")
-    private Instant endDttm;
+    private String endDttm;
 
 }

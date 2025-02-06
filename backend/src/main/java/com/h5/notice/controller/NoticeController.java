@@ -1,15 +1,13 @@
 package com.h5.notice.controller;
 
 import com.h5.notice.dto.request.NoticeCreateRequestDto;
-import com.h5.notice.dto.request.NoticeListRequestDto;
 import com.h5.notice.dto.request.NoticeSearchRequestDto;
 import com.h5.notice.dto.request.NoticeUpdateRequestDto;
 import com.h5.notice.dto.response.NoticeDetailResponseDto;
-import com.h5.notice.dto.response.NoticeResponseDto;
+import com.h5.notice.dto.response.NoticeListResponseDto;
 import com.h5.notice.service.NoticeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,60 +23,45 @@ public class NoticeController {
 
     private final NoticeService noticeService;
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     @Operation(summary = "공지 목록 조회", description = "삭제되지 않은 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findAll(NoticeListRequestDto noticeListRequestDto,
-                                     @RequestHeader("Authorization") String authorizationHeader) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findAll(noticeListRequestDto, authorizationHeader);
-        return ResponseEntity.ok(noticeResponseDto);
+    public ResponseEntity<NoticeListResponseDto> findAll(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
+        return ResponseEntity.ok(noticeService.findAll(noticeSearchRequestDto));
     }
 
-    @PostMapping("/search-by-title")
+    @GetMapping("/search-by-title")
     @Operation(summary = "공지사항 제목 검색", description = "제목으로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByTitle(NoticeSearchRequestDto noticeSearchRequestDto,
-                                         @RequestHeader("Authorization") String authorizationHeader) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByTitle(noticeSearchRequestDto, authorizationHeader);
-        return ResponseEntity.ok(noticeResponseDto);
+    public ResponseEntity<NoticeListResponseDto> findByTitle(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
+        return ResponseEntity.ok(noticeService.findByTitle(noticeSearchRequestDto));
     }
 
-    @PostMapping("/search-by-writer")
+    @GetMapping("/search-by-writer")
     @Operation(summary = "공지사항 작성자로 검색", description = "작성자로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(NoticeSearchRequestDto noticeSearchRequestDto,
-                                         @RequestHeader("Authorization") String authorizationHeader) {
-        Page<NoticeResponseDto> noticeResponseDto = noticeService.findByEmail(noticeSearchRequestDto, authorizationHeader);
-        return ResponseEntity.ok(noticeResponseDto);
-
+    public ResponseEntity<NoticeListResponseDto> findByName(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
+        return ResponseEntity.ok(noticeService.findByName(noticeSearchRequestDto));
     }
 
     @GetMapping("/{noticeId}")
     @Operation(summary = "공지사항 글 상세", description = "공지사항 글 상세내용을 조회합니다.")
-    public ResponseEntity<?> findByNoticeId(@PathVariable int noticeId) {
-        NoticeDetailResponseDto noticeDetailResponseDto = noticeService.findById(noticeId);
-        return ResponseEntity.ok(noticeDetailResponseDto);
+    public ResponseEntity<NoticeDetailResponseDto> findByNoticeId(@PathVariable int noticeId) {
+        return ResponseEntity.ok(noticeService.findById(noticeId));
     }
 
     @PostMapping("/write")
     @Operation(summary = "공지사항 작성", description = "새로운 공지사항을 생성합니다.")
-    public ResponseEntity<?> createNotice(NoticeCreateRequestDto noticeCreateRequestDto,
-                                          @RequestHeader("Authorization") String authorizationHeader) {
-        noticeService.createNotice(noticeCreateRequestDto, authorizationHeader);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> createNotice(@RequestBody NoticeCreateRequestDto noticeCreateRequestDto) {
+        return ResponseEntity.ok(noticeService.createNotice(noticeCreateRequestDto));
     }
 
     @PostMapping("/delete/{noticeId}")
     @Operation(summary = "공지사항 삭제", description = "특정 공지사항 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteNotice(@PathVariable int noticeId,
-                                             @RequestHeader("Authorization") String authorizationHeader) {
-        noticeService.deleteNotice(noticeId, authorizationHeader);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteNotice(@PathVariable int noticeId) {
+        return ResponseEntity.ok(noticeService.deleteNotice(noticeId));
     }
 
     @PutMapping("/update")
     @Operation(summary = "공지사항 업데이트", description = "기존 공지사항을 수정합니다.")
-    public ResponseEntity<String> updateNotice(@RequestBody NoticeUpdateRequestDto noticeUpdateRequestDto,
-                                               @RequestHeader("Authorization")String authorizationHeader) {
-        int updatedNoticeId = noticeService.updateNotice(noticeUpdateRequestDto, authorizationHeader);
-        return ResponseEntity.ok("Notice updated successfully with ID: " + updatedNoticeId);
+    public ResponseEntity<?> updateNotice(@RequestBody NoticeUpdateRequestDto noticeUpdateRequestDto) {
+        return ResponseEntity.ok(noticeService.updateNotice(noticeUpdateRequestDto));
     }
-
 }

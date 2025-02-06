@@ -10,13 +10,14 @@ import lombok.Setter;
 @Entity
 @Table(name = "ai_log")
 public class AiLogEntity {
+
     @Id
     @Column(name = "game_log_id", nullable = false)
     private Integer id;
 
     @MapsId
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_log_id")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "game_log_id", nullable = false)
     private GameLogEntity gameLogEntity;
 
     @NotNull

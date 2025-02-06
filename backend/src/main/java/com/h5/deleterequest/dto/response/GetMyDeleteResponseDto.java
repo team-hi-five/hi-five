@@ -10,8 +10,9 @@ import java.util.Set;
 @Setter
 @Builder
 public class GetMyDeleteResponseDto {
-    public int delete_user_request_id;
-    public int parent_user_id;
-    public String parent_name;
+    public int deleteUserRequestId;
+    public int parentUserId;
+    public String parentName;
+    public String deleteRequestDttm;
     public Set<GetMyDeleteChildResponseDto> children;
 }

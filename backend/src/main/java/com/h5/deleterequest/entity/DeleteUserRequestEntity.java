@@ -5,7 +5,6 @@ import com.h5.parent.entity.ParentUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Getter
@@ -32,10 +31,9 @@ public class DeleteUserRequestEntity {
     }
 
     @NotNull
-    @ColumnDefault("'P'")
-    @Lob
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private  Status status;
+    private Status status;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
