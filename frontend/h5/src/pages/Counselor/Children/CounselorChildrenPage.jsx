@@ -19,26 +19,26 @@ function CounselorChildrenPage() {
   const [searchText, setSearchText] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    async function fetchChildren() {
-      try {
-        const childrenList = await getConsultantChildren();
-  
-        // 각 아이의 상세 정보를 가져오기 위한 Promise 배열
-        const childrenDetailsPromises = childrenList.map(child =>
-          getConsultantChild(child.childUserID)
-        );
-  
-        // 모든 아이의 상세 정보를 병렬로 가져옴
-        const childrenDetails = await Promise.all(childrenDetailsPromises);
-  
-        // 가져온 상세 정보를 childrenData 상태에 저장
-        setChildrenData(childrenDetails);
-      } catch (error) {
-        console.error("아동 정보 불러오기 실패:", error);
-      }
+  async function fetchChildren() {
+    try {
+      const childrenList = await getConsultantChildren();
+
+      // 각 아이의 상세 정보를 가져오기 위한 Promise 배열
+      const childrenDetailsPromises = childrenList.map(child =>
+        getConsultantChild(child.childUserID)
+      );
+
+      // 모든 아이의 상세 정보를 병렬로 가져옴
+      const childrenDetails = await Promise.all(childrenDetailsPromises);
+
+      // 가져온 상세 정보를 childrenData 상태에 저장
+      setChildrenData(childrenDetails);
+    } catch (error) {
+      console.error("아동 정보 불러오기 실패:", error);
     }
-  
+  }
+
+  useEffect(() => {
     fetchChildren();
   }, []);
   
@@ -63,6 +63,7 @@ function CounselorChildrenPage() {
   };
 
   const closeModal = () => {
+    fetchChildren();
     setIsModalOpen(false);
   };
 

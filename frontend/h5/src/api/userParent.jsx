@@ -38,3 +38,16 @@ export const getParentChildren = async () => {
         throw error;
     }
 };
+
+// ✅ 부모 계정 삭제 요청 API
+export const requestParentAccountDeletion = async () => {
+    try {
+        console.log("📢 부모 계정 삭제 요청");
+        const response = await api.post("/user/delete/request");
+        console.log("✅ 부모 계정 삭제 요청 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 부모 계정 삭제 요청 실패:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
