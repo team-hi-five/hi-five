@@ -5,9 +5,12 @@ const API_URL = import.meta.env.VITE_SERVER_API_URL || "https://i12c205.p.ssafy.
 
 // ✅ 토큰 갱신이 필요 없는 API 엔드포인트 목록
 const noAuthEndpoints = [
-  "/auth/login",    // 로그인
-  "/auth/logout",   // 로그아웃
-  "/auth/parent/find-id",  // 부모 계정 아이디 찾기
+  "/auth/login",
+  "/auth/logout",
+  "/auth/parent/find-id",
+  "/user/parent/temp-pwd",
+  "/user/consultant/find-id",
+  "/user/consultant/temp-pwd",
 ];
 
 // Axios 인스턴스 생성
