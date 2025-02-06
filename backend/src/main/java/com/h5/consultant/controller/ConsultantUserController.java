@@ -43,6 +43,11 @@ public class ConsultantUserController {
         return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto));
     }
 
+    @GetMapping("/email-check")
+    public ResponseEntity<?> emailCheck(@Valid @RequestParam String email) {
+        return ResponseEntity.ok(consultantUserService.emailCheck(email));
+    }
+
     @PostMapping("/get-my-children")
     public ResponseEntity<?> getMyChildren() {
         return ResponseEntity.ok(consultantUserService.getChildrenForAuthenticatedConsultant());
@@ -57,5 +62,15 @@ public class ConsultantUserController {
     @PostMapping("/my-profile")
     public ResponseEntity<?> getMyProfile() {
         return ResponseEntity.ok(consultantUserService.getMyProfile());
+    }
+
+    @GetMapping("/search-child/{childUserName}")
+    public ResponseEntity<?> searchChild(@Valid @PathVariable String childUserName) {
+        return ResponseEntity.ok(consultantUserService.searchChild(childUserName));
+    }
+
+    @PostMapping("/modify-child")
+    public ResponseEntity<?> modifyChild(@Valid @RequestBody ModifyChildRequestDto modifyChildRequestDto) {
+        return ResponseEntity.ok(consultantUserService.modifyChild(modifyChildRequestDto));
     }
 }

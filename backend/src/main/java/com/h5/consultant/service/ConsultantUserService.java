@@ -1,10 +1,8 @@
 package com.h5.consultant.service;
 
+import com.h5.consultant.dto.request.ModifyChildRequestDto;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
-import com.h5.consultant.dto.response.GetChildResponseDto;
-import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
-import com.h5.consultant.dto.response.MyProfileResponseDto;
-import com.h5.consultant.dto.response.RegisterParentAccountResponseDto;
+import com.h5.consultant.dto.response.*;
 import com.h5.consultant.entity.ConsultantUserEntity;
 
 import java.util.List;
@@ -27,4 +25,10 @@ public interface ConsultantUserService {
     GetChildResponseDto getChild(int childUserid);
 
     MyProfileResponseDto getMyProfile();
+
+    boolean emailCheck(String email);
+
+    List<SearchChildResponseDto> searchChild(String childUserName);
+
+    ModifyChildResponseDto modifyChild(ModifyChildRequestDto modifyChildRequestDto);
 }
