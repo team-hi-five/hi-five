@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +44,7 @@ public class QnaServiceImpl implements QnaService {
     private final FileService fileService;
 
     @Override
-    public int createQna(QnaCreateRequestDto qnaCreateRequestDto) {
+    public QnaSaveResponseDto createQna(QnaCreateRequestDto qnaCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -65,7 +66,7 @@ public class QnaServiceImpl implements QnaService {
                 .build();
 
         qnaRepository.save(qnaEntity);
-        return qnaEntity.getId();
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     // 전체 리스트 조회
@@ -181,9 +182,7 @@ public class QnaServiceImpl implements QnaService {
         QnaEntity qnaEntity = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        List<QnaAnswerEntity> qnaAnswerEntityList = qnaAnswerRepository.findByQnaEntity_Id(qnaId);
-
-        updateViewCnt(qnaId);
+        List<QnaAnswerEntity> qnaAnswerEntityList = qnaAnswerRepository.findByQnaEntity_IdAndDeleteDttmIsNull(qnaId);
 
         List<QnaAnswerResponseDto> qnaAnswerResponseList = qnaAnswerEntityList.stream()
                 .map(answer -> {
@@ -207,20 +206,14 @@ public class QnaServiceImpl implements QnaService {
                 .content(qnaEntity.getContent())
                 .name(qnaEntity.getParentUser().getName())
                 .createDttm(qnaEntity.getCreateDttm().toString())
-                .viewCnt(qnaEntity.getViewCnt()+1)
+                .answerCnt(qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId()))
                 .qnaAnswerResponseList(qnaAnswerResponseList)
                 .build();
     }
 
-    //조회수 +1
-    @Override
-    public void updateViewCnt(int qnaId) {
-        qnaRepository.updateViewCnt(qnaId);
-    }
-
     //업데이트
     @Override
-    public int updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
+    public QnaSaveResponseDto updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -237,12 +230,12 @@ public class QnaServiceImpl implements QnaService {
         qnaEntity.setContent(qnaUpdateRequestDto.getContent());
 
         qnaRepository.save(qnaEntity);
-        return qnaEntity.getId();
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     //글 삭제
     @Override
-    public void deleteQna(int qnaId) {
+    public QnaSaveResponseDto deleteQna(int qnaId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -257,6 +250,7 @@ public class QnaServiceImpl implements QnaService {
         }
 
         qnaRepository.delete(qnaEntity);
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     @Override
@@ -324,10 +318,11 @@ public class QnaServiceImpl implements QnaService {
                 .map(qnaEntity -> new QnaResponseDto(
                         qnaEntity.getId(),
                         qnaEntity.getTitle(),
-                        qnaEntity.getParentUser().getEmail(),
-                        qnaEntity.getViewCnt(),
-                        qnaEntity.getCreateDttm().toString()
-                )).toList();
+                        qnaEntity.getParentUser().getName(),
+                        qnaEntity.getCreateDttm().toString(),
+                        qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId())
+                ))
+                .collect(Collectors.toList());
 
         PaginationResponseDto pagination = new PaginationResponseDto(
                 qnaEntityPage.getNumber(),

@@ -61,14 +61,13 @@ public class QnaController {
 
     @PostMapping("/delete/{qnaId}")
     @Operation(summary = "QnA 삭제", description = "특정 QnA 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteQna(@PathVariable int qnaId) {
-        qnaService.deleteQna(qnaId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteQna(@PathVariable int qnaId) {
+        return ResponseEntity.ok(qnaService.deleteQna(qnaId));
     }
 
     @PutMapping("/update")
     @Operation(summary = "QnA 업데이트", description = "기존 QnA를 수정합니다.")
-    public ResponseEntity<Integer> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
+    public ResponseEntity<?> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
         return ResponseEntity.ok(qnaService.updateQna(qnaUpdateRequestDto));
     }
 

@@ -26,11 +26,6 @@ public class FaqEntity {
 
     @NotNull
     @Lob
-    @Column(name = "content", nullable = false)
-    private String content;
-
-    @NotNull
-    @Lob
     @Column(name = "faq_ans", nullable = false)
     private String faqAns;
 
@@ -39,4 +34,14 @@ public class FaqEntity {
     @JoinColumn(name = "consultant_user_id", nullable = false)
     private ConsultantUserEntity consultantUser;
 
+    @NotNull
+    @Lob
+    @Column(name = "type", nullable = false)
+    private String type;
+
+    enum type{
+        usage,
+        child,
+        center
+    }
 }
