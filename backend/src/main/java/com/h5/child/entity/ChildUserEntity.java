@@ -58,10 +58,6 @@ public class ChildUserEntity {
     @Column(name = "name", nullable = false, length = 10)
     private String name;
 
-    @Size(max = 255)
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parent_user_id", nullable = false)

@@ -73,32 +73,41 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // JWT 유효성 검증
-            if (!jwtUtil.validateToken(token)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid JWT token");
-                return;
-            }
+            if (requestURI.equals("/auth/refresh")) {
+                email = jwtUtil.getEmailFromExpiredToken(token);
+                role = jwtUtil.getRoleFromExpiredToken(token);
 
-            // 토큰에서 이메일과 역할 추출
-            email = jwtUtil.getEmailFromToken(token);
-            role = jwtUtil.getRoleFromToken(token);
+                setSecurityContext(email, role);
+            } else {
+                // 일반 요청에서는 유효한 JWT인지 검사
+                if (!jwtUtil.validateToken(token)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.getWriter().write("Invalid JWT token");
+                    return;
+                }
+                email = jwtUtil.getEmailFromToken(token);
+                role = jwtUtil.getRoleFromToken(token);
+            }
         }
 
         // 인증 정보 설정
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails;
-            if ("ROLE_CONSULTANT".equals(role)) {
-                userDetails = consultantCustomUserDetailService.loadUserByUsername(email);
-            } else {
-                userDetails = parentCustomUserDetailService.loadUserByUsername(email);
-            }
-
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(email, null, userDetails.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+            setSecurityContext(email, role);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void setSecurityContext(String email, String role) {
+        UserDetails userDetails;
+        if ("ROLE_CONSULTANT".equals(role)) {
+            userDetails = consultantCustomUserDetailService.loadUserByUsername(email);
+        } else {
+            userDetails = parentCustomUserDetailService.loadUserByUsername(email);
+        }
+
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authToken);
     }
 }

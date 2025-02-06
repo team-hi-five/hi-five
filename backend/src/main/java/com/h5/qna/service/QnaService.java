@@ -1,15 +1,14 @@
 package com.h5.qna.service;
 
-import com.h5.qna.dto.request.QnaCommentCreateRequestDto;
-import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaSearchRequestDto;
-import com.h5.qna.dto.request.QnaUpdateRequestDto;
+import com.h5.qna.dto.request.*;
+import com.h5.qna.dto.response.QnaCommentResponseDto;
 import com.h5.qna.dto.response.QnaDetailResponseDto;
 import com.h5.qna.dto.response.QnaListResponseDto;
+import com.h5.qna.dto.response.QnaSaveResponseDto;
 
 public interface QnaService {
     //c
-    void createQna(QnaCreateRequestDto qnaCreateRequestDto);
+    QnaSaveResponseDto createQna(QnaCreateRequestDto qnaCreateRequestDto);
 
     //r
     //전체 글
@@ -19,18 +18,27 @@ public interface QnaService {
     QnaListResponseDto findByTitle(QnaSearchRequestDto qnaSearchRequestDto);
 
     //작성자로
-    QnaListResponseDto findByEmail(QnaSearchRequestDto qnaSearchRequestDto);
+    QnaListResponseDto findByName(QnaSearchRequestDto qnaSearchRequestDto);
 
     //상세
     QnaDetailResponseDto findById(int qnaId);
 
     //u
-    void updateViewCnt(int qnaId);
 
-    void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
+    QnaSaveResponseDto updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
 
     //d
-    void deleteQna(int qnaId);
+    QnaSaveResponseDto deleteQna(int qnaId);
 
-    void createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto);
+
+    //comment
+    //c
+    QnaCommentResponseDto createQnaComment(QnaCommentCreateRequestDto qnaCommentSaveRequestDto);
+
+    //u
+    QnaCommentResponseDto updateComment(QnaCommentUpdateRequestDto qnaCommentSaveRequestDto);
+
+    //d
+    QnaCommentResponseDto deleteComment(int qnaCommentId);
+
 }

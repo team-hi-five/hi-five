@@ -2,16 +2,16 @@ package com.h5.qna.service;
 
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.file.dto.response.GetFileUrlResponseDto;
+import com.h5.file.entity.FileEntity;
+import com.h5.file.service.FileService;
 import com.h5.global.exception.BoardAccessDeniedException;
 import com.h5.global.exception.BoardNotFoundException;
 import com.h5.global.exception.UserAccessDeniedException;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
-import com.h5.qna.dto.request.QnaCommentCreateRequestDto;
-import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaSearchRequestDto;
-import com.h5.qna.dto.request.QnaUpdateRequestDto;
+import com.h5.qna.dto.request.*;
 import com.h5.qna.dto.response.*;
 import com.h5.qna.entity.QnaAnswerEntity;
 import com.h5.qna.entity.QnaEntity;
@@ -28,8 +28,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,9 +41,10 @@ public class QnaServiceImpl implements QnaService {
     private final QnaAnswerRepository qnaAnswerRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ParentUserRepository parentUserRepository;
+    private final FileService fileService;
 
     @Override
-    public void createQna(QnaCreateRequestDto qnaCreateRequestDto) {
+    public QnaSaveResponseDto createQna(QnaCreateRequestDto qnaCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -63,6 +66,7 @@ public class QnaServiceImpl implements QnaService {
                 .build();
 
         qnaRepository.save(qnaEntity);
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     // 전체 리스트 조회
@@ -139,7 +143,7 @@ public class QnaServiceImpl implements QnaService {
 
     // 작성자 검색
     @Override
-    public QnaListResponseDto findByEmail(QnaSearchRequestDto qnaSearchRequestDto) {
+    public QnaListResponseDto findByName(QnaSearchRequestDto qnaSearchRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -151,7 +155,7 @@ public class QnaServiceImpl implements QnaService {
                 qnaSearchRequestDto.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "createDttm")
         );
-        String searchEmail = qnaSearchRequestDto.getKeyword();
+        String searchName = qnaSearchRequestDto.getKeyword();
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
@@ -167,7 +171,7 @@ public class QnaServiceImpl implements QnaService {
                     .getId();
         }
 
-        Page<QnaEntity> qnaEntityPage = qnaRepository.findByEmail(role, parentUserId, consultantUserId, searchEmail, pageable);
+        Page<QnaEntity> qnaEntityPage = qnaRepository.findByName(role, parentUserId, consultantUserId, searchName, pageable);
 
         return convertToResponseDto(qnaEntityPage);
     }
@@ -178,40 +182,38 @@ public class QnaServiceImpl implements QnaService {
         QnaEntity qnaEntity = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        QnaAnswerEntity qnaAnswerEntity = qnaAnswerRepository.findByQnaEntity_Id(qnaId)
-                        .orElse(null);
+        List<QnaAnswerEntity> qnaAnswerEntityList = qnaAnswerRepository.findByQnaEntity_IdAndDeleteDttmIsNull(qnaId);
 
-        updateViewCnt(qnaId);
+        List<QnaAnswerResponseDto> qnaAnswerResponseList = qnaAnswerEntityList.stream()
+                .map(answer -> {
+                    List<GetFileUrlResponseDto> profileImages = fileService.getFileUrl(FileEntity.TblType.P, answer.getConsultantUser().getId());
 
-        QnaAnswerResponseDto qnaAnswerResponseDto = (qnaAnswerEntity != null) ?
-                QnaAnswerResponseDto.builder()
-                        .id(qnaAnswerEntity.getId())
-                        .content(qnaAnswerEntity.getContent())
-                        .createDttm(qnaAnswerEntity.getCreateDttm().toString())
-                        .consultantEmail(qnaAnswerEntity.getConsultantUser().getEmail())
-                        .build()
-                : null;
+                    String profileImageUrl = profileImages.isEmpty() ? null : profileImages.get(0).getUrl();
+
+                    return QnaAnswerResponseDto.builder()
+                            .id(answer.getId())
+                            .content(answer.getContent())
+                            .createDttm(answer.getCreateDttm().toString())
+                            .name(answer.getConsultantUser().getName())
+                            .profileImageUrl(profileImageUrl)
+                            .build();
+                })
+                .toList();
 
         return QnaDetailResponseDto.builder()
                 .id(qnaEntity.getId())
                 .title(qnaEntity.getTitle())
                 .content(qnaEntity.getContent())
-                .parentUserEmail(qnaEntity.getParentUser().getEmail())
+                .name(qnaEntity.getParentUser().getName())
                 .createDttm(qnaEntity.getCreateDttm().toString())
-                .viewCnt(qnaEntity.getViewCnt()+1)
-                .qnaAnswerResponseDto(qnaAnswerResponseDto)
+                .answerCnt(qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId()))
+                .qnaAnswerResponseList(qnaAnswerResponseList)
                 .build();
-    }
-
-    //조회수 +1
-    @Override
-    public void updateViewCnt(int qnaId) {
-        qnaRepository.updateViewCnt(qnaId);
     }
 
     //업데이트
     @Override
-    public void updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
+    public QnaSaveResponseDto updateQna(QnaUpdateRequestDto qnaUpdateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -228,11 +230,12 @@ public class QnaServiceImpl implements QnaService {
         qnaEntity.setContent(qnaUpdateRequestDto.getContent());
 
         qnaRepository.save(qnaEntity);
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     //글 삭제
     @Override
-    public void deleteQna(int qnaId) {
+    public QnaSaveResponseDto deleteQna(int qnaId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -247,10 +250,11 @@ public class QnaServiceImpl implements QnaService {
         }
 
         qnaRepository.delete(qnaEntity);
+        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     @Override
-    public void createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
+    public QnaCommentResponseDto createQnaComment(QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
         QnaEntity qnaEntity = qnaRepository.findById(qnaCommentCreateRequestDto.getQnaId())
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
 
@@ -275,6 +279,38 @@ public class QnaServiceImpl implements QnaService {
                 .build();
 
         qnaAnswerRepository.save(qnaAnswerEntity);
+
+        return QnaCommentResponseDto.builder()
+                .qnaAnswerId(qnaAnswerEntity.getId())
+                .qnaId(qnaEntity.getId())
+                .build();
+    }
+
+    @Override
+    public QnaCommentResponseDto updateComment(QnaCommentUpdateRequestDto qnaCommentUpdateRequestDto) {
+        QnaAnswerEntity qnaAnswerEntity = qnaAnswerRepository.findById(qnaCommentUpdateRequestDto.getQnaCommentId())
+                .orElseThrow(() -> new BoardNotFoundException("qna_Answer"));
+
+        qnaAnswerEntity.setContent(qnaCommentUpdateRequestDto.getContent());
+        qnaAnswerRepository.save(qnaAnswerEntity);
+
+        return QnaCommentResponseDto.builder()
+                .qnaAnswerId(qnaAnswerEntity.getId())
+                .qnaId(qnaAnswerEntity.getQnaEntity().getId())
+                .build();
+    }
+
+    @Override
+    public QnaCommentResponseDto deleteComment(int qnaCommentId) {
+        QnaAnswerEntity qnaAnswerEntity = qnaAnswerRepository.findById(qnaCommentId)
+                .orElseThrow(() -> new BoardAccessDeniedException("qna_Answer"));
+        qnaAnswerEntity.setDeleteDttm(LocalDateTime.now());
+        qnaAnswerRepository.save(qnaAnswerEntity);
+
+        return QnaCommentResponseDto.builder()
+                .qnaAnswerId(qnaAnswerEntity.getId())
+                .qnaId(qnaAnswerEntity.getQnaEntity().getId())
+                .build();
     }
 
     private QnaListResponseDto convertToResponseDto(Page<QnaEntity> qnaEntityPage) {
@@ -282,10 +318,11 @@ public class QnaServiceImpl implements QnaService {
                 .map(qnaEntity -> new QnaResponseDto(
                         qnaEntity.getId(),
                         qnaEntity.getTitle(),
-                        qnaEntity.getParentUser().getEmail(),
-                        qnaEntity.getViewCnt(),
-                        qnaEntity.getCreateDttm().toString()
-                )).toList();
+                        qnaEntity.getParentUser().getName(),
+                        qnaEntity.getCreateDttm().toString(),
+                        qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId())
+                ))
+                .collect(Collectors.toList());
 
         PaginationResponseDto pagination = new PaginationResponseDto(
                 qnaEntityPage.getNumber(),

@@ -1,10 +1,8 @@
 package com.h5.consultant.service;
 
+import com.h5.consultant.dto.request.ModifyChildRequestDto;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
-import com.h5.consultant.dto.response.GetChildResponseDto;
-import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
-import com.h5.consultant.dto.response.MyProfileResponseDto;
-import com.h5.consultant.dto.response.RegisterParentAccountResponseDto;
+import com.h5.consultant.dto.response.*;
 import com.h5.consultant.entity.ConsultantUserEntity;
 
 import java.util.List;
@@ -18,7 +16,7 @@ public interface ConsultantUserService {
     void updateToTempPwd(String name, String email);
 
     // 임시 비밀번호에서 입력한 비밀번호로 변경
-    void updatePwd(String email, String oldPwd, String newPwd);
+    void updatePwd(String oldPwd, String newPwd);
 
     RegisterParentAccountResponseDto registerParentAccount(RegisterParentAccountDto registerParentAccountDto);
 
@@ -27,4 +25,10 @@ public interface ConsultantUserService {
     GetChildResponseDto getChild(int childUserid);
 
     MyProfileResponseDto getMyProfile();
+
+    boolean emailCheck(String email);
+
+    List<SearchChildResponseDto> searchChild(String childUserName);
+
+    ModifyChildResponseDto modifyChild(ModifyChildRequestDto modifyChildRequestDto);
 }

@@ -1,6 +1,6 @@
-package com.h5.statistic.repository;
+package com.h5.chatbot.repository;
 
-import com.h5.statistic.entity.ChatBotDocument;
+import com.h5.chatbot.document.ChatBotDocument;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -12,4 +12,6 @@ import java.util.Optional;
 @Repository
 public interface ChatbotRepository extends MongoRepository<ChatBotDocument, String> {
     Optional<List<ChatBotDocument>> findByChildUserIdAndChatBotUseDttmBetween(@NotNull Integer childUserId, LocalDateTime chatBotUseDttmStart, LocalDateTime chatBotUseDttmEnd);
+
+    Optional<List<ChatBotDocument>> findByChatbotIdOrderByMessageIndexAsc(@NotNull String chatbotId);
 }

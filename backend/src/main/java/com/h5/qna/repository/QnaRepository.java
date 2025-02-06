@@ -1,12 +1,9 @@
 package com.h5.qna.repository;
 
-import com.h5.notice.entity.NoticeEntity;
-import com.h5.qna.entity.QnaAnswerEntity;
 import com.h5.qna.entity.QnaEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,9 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
-    //c
-    //알아서 될거고
-
     //r
     //전체 목록
     @Query("SELECT q FROM QnaEntity q " +
@@ -50,8 +44,8 @@ public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
             "WHERE (:role = 'ROLE_PARENT' AND q.parentUser.id = :parentUserId " +
             "       OR :role = 'ROLE_CONSULTANT' AND q.parentUser.consultantUserEntity.id = :consultantUserId) " +
             "AND q.deleteDttm IS NULL " +
-            "AND (:writer IS NULL OR q.parentUser.email LIKE %:writer%)")
-    Page<QnaEntity> findByEmail(
+            "AND (:writer IS NULL OR q.parentUser.name LIKE %:writer%)")
+    Page<QnaEntity> findByName(
             @Param("role") String role,
             @Param("parentUserId") Integer parentUserId,
             @Param("consultantUserId") Integer consultantUserId,
@@ -63,15 +57,4 @@ public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
     //상세정보 조회
     Optional<QnaEntity> findById(int qnaId);
 
-    @Modifying
-    @Query("UPDATE QnaEntity n SET n.viewCnt = n.viewCnt + 1 where n.id = :qnaId")
-    void updateViewCnt(@Param("qnaId")int qnaId);
-
-
-
-    //u
-    //알아될거고
-
-    //d
-    //얘도 알아 될거임
 }

@@ -56,4 +56,9 @@ public class GameAssetEntity {
     @Column(name = "opt_pic_3", nullable = false)
     private String optPic3;
 
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "situation", nullable = false)
+    private String situation;
+
 }

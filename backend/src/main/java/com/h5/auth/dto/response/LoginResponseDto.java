@@ -10,6 +10,5 @@ import lombok.Setter;
 public class LoginResponseDto {
     private String name;
     private String accessToken;
-    private String refreshToken;
     private boolean pwdChanged;
 }

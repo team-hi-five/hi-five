@@ -45,7 +45,7 @@ public interface FaqRepository extends JpaRepository<FaqEntity, Integer> {
             "(SELECT p.consultantUserEntity.center.id FROM ParentUserEntity p WHERE p.id = :parentUserId)) " +
             "OR (:role = 'ROLE_CONSULTANT' AND f.consultantUser.center.id = " +
             "(SELECT c.center.id FROM ConsultantUserEntity c WHERE c.id = :consultantUserId)) " +
-            "AND f.consultantUser.email LIKE %:writer%")
+            "AND f.consultantUser.name LIKE %:writer%")
     Page<FaqEntity> findByEmail(
             @Param("role") String role,
             @Param("parentUserId") Integer parentUserId,

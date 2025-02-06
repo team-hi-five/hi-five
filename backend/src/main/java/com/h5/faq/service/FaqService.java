@@ -5,11 +5,12 @@ import com.h5.faq.dto.request.FaqSearchRequestDto;
 import com.h5.faq.dto.request.FaqUpdateRequestDto;
 import com.h5.faq.dto.response.FaqDetailResponseDto;
 import com.h5.faq.dto.response.FaqListResponseDto;
+import com.h5.faq.dto.response.FaqSaveResponseDto;
 
 
 public interface FaqService {
     //c
-    void createFaq(FaqCreateRequestDto faqCreateRequestDto);
+    FaqSaveResponseDto createFaq(FaqCreateRequestDto faqCreateRequestDto);
     //r
     //전체
     FaqListResponseDto findAll(FaqSearchRequestDto faqSearchRequestDto);
@@ -22,8 +23,8 @@ public interface FaqService {
 
     FaqDetailResponseDto findById(int id);
     //u
-    void updateFaq(FaqUpdateRequestDto faqUpdateRequestDto);
+    FaqSaveResponseDto updateFaq(FaqUpdateRequestDto faqUpdateRequestDto);
 
     //d
-    void deleteFaq(int id);
+    FaqSaveResponseDto deleteFaq(int id);
 }

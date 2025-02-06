@@ -1,9 +1,6 @@
 package com.h5.qna.controller;
 
-import com.h5.qna.dto.request.QnaCommentCreateRequestDto;
-import com.h5.qna.dto.request.QnaCreateRequestDto;
-import com.h5.qna.dto.request.QnaSearchRequestDto;
-import com.h5.qna.dto.request.QnaUpdateRequestDto;
+import com.h5.qna.dto.request.*;
 import com.h5.qna.dto.response.QnaDetailResponseDto;
 import com.h5.qna.dto.response.QnaListResponseDto;
 import com.h5.qna.service.QnaService;
@@ -39,8 +36,8 @@ public class QnaController {
 
     @GetMapping("/search-by-writer")
     @Operation(summary = "QnA 작성자로 검색", description = "작성자로 검색한 QnA 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<?> findByEmail(@ModelAttribute QnaSearchRequestDto qnaSearchRequestDto) {
-        QnaListResponseDto qnaResponseDto = qnaService.findByEmail(qnaSearchRequestDto);
+    public ResponseEntity<?> findByName(@ModelAttribute QnaSearchRequestDto qnaSearchRequestDto) {
+        QnaListResponseDto qnaResponseDto = qnaService.findByName(qnaSearchRequestDto);
         return ResponseEntity.ok(qnaResponseDto);
     }
 
@@ -54,28 +51,33 @@ public class QnaController {
     @PostMapping("/write")
     @Operation(summary = "QnA 작성", description = "새로운 QnA를 생성합니다.")
     public ResponseEntity<?> createQna(@RequestBody QnaCreateRequestDto qnaCreateRequestDto) {
-        qnaService.createQna(qnaCreateRequestDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(qnaService.createQna(qnaCreateRequestDto));
     }
 
     @PostMapping("/write-qna-comment")
      public ResponseEntity<?> createComment(@RequestBody QnaCommentCreateRequestDto qnaCommentCreateRequestDto) {
-        qnaService.createQnaComment(qnaCommentCreateRequestDto);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(qnaService.createQnaComment(qnaCommentCreateRequestDto));
     }
 
     @PostMapping("/delete/{qnaId}")
     @Operation(summary = "QnA 삭제", description = "특정 QnA 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteQna(@PathVariable int qnaId) {
-        qnaService.deleteQna(qnaId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteQna(@PathVariable int qnaId) {
+        return ResponseEntity.ok(qnaService.deleteQna(qnaId));
     }
 
     @PutMapping("/update")
     @Operation(summary = "QnA 업데이트", description = "기존 QnA를 수정합니다.")
-    public ResponseEntity<String> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
-        qnaService.updateQna(qnaUpdateRequestDto);
-        return ResponseEntity.ok("QnA updated successfully with ID: " + qnaUpdateRequestDto.getId());
+    public ResponseEntity<?> updateQna(@RequestBody QnaUpdateRequestDto qnaUpdateRequestDto) {
+        return ResponseEntity.ok(qnaService.updateQna(qnaUpdateRequestDto));
     }
 
+    @PutMapping("/update-comment")
+    public ResponseEntity<?> updateComment(@RequestBody QnaCommentUpdateRequestDto qnaCommentUpdateRequestDto) {
+        return ResponseEntity.ok(qnaService.updateComment(qnaCommentUpdateRequestDto));
+    }
+
+    @PutMapping("/delete-comment/{qnaCommentId}")
+    public ResponseEntity<?> deleteComment(@PathVariable int qnaCommentId) {
+        return ResponseEntity.ok(qnaService.deleteComment(qnaCommentId));
+    }
 }

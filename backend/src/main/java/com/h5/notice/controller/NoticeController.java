@@ -37,8 +37,8 @@ public class NoticeController {
 
     @GetMapping("/search-by-writer")
     @Operation(summary = "공지사항 작성자로 검색", description = "작성자로 검색한 공지사항 목록을 페이징 형태로 반환합니다.")
-    public ResponseEntity<NoticeListResponseDto> findByEmail(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
-        return ResponseEntity.ok(noticeService.findByEmail(noticeSearchRequestDto));
+    public ResponseEntity<NoticeListResponseDto> findByName(@ModelAttribute NoticeSearchRequestDto noticeSearchRequestDto) {
+        return ResponseEntity.ok(noticeService.findByName(noticeSearchRequestDto));
     }
 
     @GetMapping("/{noticeId}")
@@ -49,22 +49,19 @@ public class NoticeController {
 
     @PostMapping("/write")
     @Operation(summary = "공지사항 작성", description = "새로운 공지사항을 생성합니다.")
-    public ResponseEntity<Void> createNotice(@RequestBody NoticeCreateRequestDto noticeCreateRequestDto) {
-        noticeService.createNotice(noticeCreateRequestDto);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> createNotice(@RequestBody NoticeCreateRequestDto noticeCreateRequestDto) {
+        return ResponseEntity.ok(noticeService.createNotice(noticeCreateRequestDto));
     }
 
     @PostMapping("/delete/{noticeId}")
     @Operation(summary = "공지사항 삭제", description = "특정 공지사항 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteNotice(@PathVariable int noticeId) {
-        noticeService.deleteNotice(noticeId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteNotice(@PathVariable int noticeId) {
+        return ResponseEntity.ok(noticeService.deleteNotice(noticeId));
     }
 
     @PutMapping("/update")
     @Operation(summary = "공지사항 업데이트", description = "기존 공지사항을 수정합니다.")
-    public ResponseEntity<String> updateNotice(@RequestBody NoticeUpdateRequestDto noticeUpdateRequestDto) {
-        int updatedNoticeId = noticeService.updateNotice(noticeUpdateRequestDto);
-        return ResponseEntity.ok("Notice updated successfully with ID: " + updatedNoticeId);
+    public ResponseEntity<?> updateNotice(@RequestBody NoticeUpdateRequestDto noticeUpdateRequestDto) {
+        return ResponseEntity.ok(noticeService.updateNotice(noticeUpdateRequestDto));
     }
 }

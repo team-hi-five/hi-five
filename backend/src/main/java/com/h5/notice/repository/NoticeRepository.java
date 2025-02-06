@@ -66,7 +66,7 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Integer> {
     //작성자로 검색 + 페이징
     @Query("SELECT n FROM NoticeEntity n " +
             "JOIN ConsultantUserEntity cu ON n.consultantUser.id = cu.id " +
-            "WHERE cu.email LIKE %:email% " +
+            "WHERE cu.name LIKE %:writer% " +
             "AND n.deleteDttm IS NULL " +
             "AND (" +
             "   (:consultantUserId IS NOT NULL AND cu.center.id = (" +
@@ -81,8 +81,8 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Integer> {
             "       WHERE p.id = :parentUserId" +
             "   ))" +
             ")")
-    Page<NoticeEntity> findByEmail(
-            @Param("email") String email,
+    Page<NoticeEntity> findByName(
+            @Param("writer") String writer,
             @Param("consultantUserId") Integer consultantUserId,
             @Param("parentUserId") Integer parentUserId,
             Pageable pageable

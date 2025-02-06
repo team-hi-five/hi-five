@@ -9,8 +9,16 @@ import lombok.Setter;
 @Builder
 public class GetMyDeleteChildResponseDto {
 
-    public int childUserId;
+    private int childUserId;
     public String childName;
+    private String childUserProfileUrl;
     public String gender;
-    public int childAge;
+    private int age;
+    private String parentUserName;
+    private String birth;
+    private String parentUserPhone;
+    private String parentUserEmail;
+    private String firConsultDt;
+    private String interest;
+    private String additionalInfo;
 }

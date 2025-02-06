@@ -12,6 +12,7 @@ import com.h5.global.util.PasswordUtil;
 import com.h5.parent.dto.info.ConsultantInfo;
 import com.h5.parent.dto.info.MyChildInfo;
 import com.h5.parent.dto.info.MyInfo;
+import com.h5.parent.dto.response.MyChildrenResponseDto;
 import com.h5.parent.dto.response.MyPageResponseDto;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
@@ -26,6 +27,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ParentUserServiceImpl implements ParentUserService {
@@ -113,6 +115,7 @@ public class ParentUserServiceImpl implements ParentUserService {
 
         return ConsultantInfo.builder()
                 .consultantId(consultant.getId())
+                .consultantName(consultant.getName())
                 .consultantPhone(consultant.getPhone())
                 .consultantEmail(consultant.getEmail())
                 .centerName(consultant.getCenter().getCenterName())
@@ -139,7 +142,10 @@ public class ParentUserServiceImpl implements ParentUserService {
     }
 
     @Override
-    public void updatePwd(String email, String oldPwd, String newPwd) {
+    public void updatePwd(String oldPwd, String newPwd) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         ParentUserEntity parentUserEntity = findParentByEmail(email);
 
         if (!passwordEncoder.matches(oldPwd, parentUserEntity.getPwd())) {
@@ -150,5 +156,22 @@ public class ParentUserServiceImpl implements ParentUserService {
         parentUserEntity.setTempPwd(false);
 
         parentUserRepository.save(parentUserEntity);
+    }
+
+    @Override
+    public List<MyChildrenResponseDto> myChildren() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String parentEmail = authentication.getName();
+
+        ParentUserEntity parentUserEntity = findParentByEmail(parentEmail);
+        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_Id(parentUserEntity.getId())
+                .orElseThrow(UserNotFoundException::new);
+
+        return myChildren.stream()
+                .map(child -> MyChildrenResponseDto.builder()
+                        .childUserId(child.getId())
+                        .childUserName(child.getName())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

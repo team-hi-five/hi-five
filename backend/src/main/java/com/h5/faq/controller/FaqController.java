@@ -5,6 +5,7 @@ import com.h5.faq.dto.request.FaqSearchRequestDto;
 import com.h5.faq.dto.request.FaqUpdateRequestDto;
 import com.h5.faq.dto.response.FaqDetailResponseDto;
 import com.h5.faq.dto.response.FaqListResponseDto;
+import com.h5.faq.dto.response.FaqSaveResponseDto;
 import com.h5.faq.service.FaqService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,7 +38,7 @@ public class FaqController {
     }
 
     @GetMapping("/search-by-writer")
-    @Operation(summary = "FAQ 작성자로 검색", description = "작성자로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
+    @Operation(summary = "FAQ 작성자로 검색", description = "작성자 이름로 검색한 FAQ 목록을 페이징 형태로 반환합니다.")
     public ResponseEntity<?> findByEmail(@ModelAttribute FaqSearchRequestDto faqSearchRequestDto) {
         FaqListResponseDto faqResponseDto = faqService.findByEmail(faqSearchRequestDto);
         return ResponseEntity.ok(faqResponseDto);
@@ -53,21 +54,20 @@ public class FaqController {
     @PostMapping("/write")
     @Operation(summary = "FAQ 작성", description = "새로운 FAQ를 생성합니다.")
     public ResponseEntity<?> createFaq(@RequestBody FaqCreateRequestDto faqCreateRequestDto) {
-        faqService.createFaq(faqCreateRequestDto);
-        return ResponseEntity.ok().build();
+        FaqSaveResponseDto faqSaveResponseDto = faqService.createFaq(faqCreateRequestDto);
+        return ResponseEntity.ok(faqSaveResponseDto);
     }
 
     @PostMapping("/delete/{faqId}")
     @Operation(summary = "FAQ 삭제", description = "특정 FAQ 글을 삭제합니다.")
-    public ResponseEntity<Void> deleteFaq(@PathVariable int faqId) {
-        faqService.deleteFaq(faqId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteFaq(@PathVariable int faqId) {
+        return ResponseEntity.ok(faqService.deleteFaq(faqId));
     }
 
     @PutMapping("/update")
     @Operation(summary = "FAQ 업데이트", description = "기존 FAQ를 수정합니다.")
-    public ResponseEntity<String> updateFaq(@RequestBody FaqUpdateRequestDto faqUpdateRequestDto) {
-        faqService.updateFaq(faqUpdateRequestDto);
-        return ResponseEntity.ok("FAQ updated successfully with ID: " + faqUpdateRequestDto.getFaqId());
+    public ResponseEntity<?> updateFaq(@RequestBody FaqUpdateRequestDto faqUpdateRequestDto) {
+        FaqSaveResponseDto faqSaveResponseDto = faqService.updateFaq(faqUpdateRequestDto);
+        return ResponseEntity.ok(faqSaveResponseDto);
     }
 }

@@ -33,8 +33,7 @@ public class ConsultantUserController {
 
     @PostMapping("/change-pwd")
     public ResponseEntity<?> updatePwd(@Valid @RequestBody UpdatePwdRequestDto updatePwdRequestDto) {
-        consultantUserService.updatePwd(updatePwdRequestDto.getEmail(),
-                updatePwdRequestDto.getOldPwd(),
+        consultantUserService.updatePwd(updatePwdRequestDto.getOldPwd(),
                 updatePwdRequestDto.getNewPwd());
         return ResponseEntity.ok("Password changed successfully.");
     }
@@ -42,6 +41,11 @@ public class ConsultantUserController {
     @PostMapping("/register-parent-account")
     public ResponseEntity<?> registerParentAccount(@Valid @RequestBody RegisterParentAccountDto registerParentAccountDto) {
         return ResponseEntity.ok(consultantUserService.registerParentAccount(registerParentAccountDto));
+    }
+
+    @GetMapping("/email-check")
+    public ResponseEntity<?> emailCheck(@Valid @RequestParam String email) {
+        return ResponseEntity.ok(consultantUserService.emailCheck(email));
     }
 
     @PostMapping("/get-my-children")
@@ -58,5 +62,15 @@ public class ConsultantUserController {
     @PostMapping("/my-profile")
     public ResponseEntity<?> getMyProfile() {
         return ResponseEntity.ok(consultantUserService.getMyProfile());
+    }
+
+    @GetMapping("/search-child/{childUserName}")
+    public ResponseEntity<?> searchChild(@Valid @PathVariable String childUserName) {
+        return ResponseEntity.ok(consultantUserService.searchChild(childUserName));
+    }
+
+    @PostMapping("/modify-child")
+    public ResponseEntity<?> modifyChild(@Valid @RequestBody ModifyChildRequestDto modifyChildRequestDto) {
+        return ResponseEntity.ok(consultantUserService.modifyChild(modifyChildRequestDto));
     }
 }

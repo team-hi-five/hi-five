@@ -2,11 +2,9 @@ package com.h5.consultant.service;
 
 import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
+import com.h5.consultant.dto.request.ModifyChildRequestDto;
 import com.h5.consultant.dto.request.RegisterParentAccountDto;
-import com.h5.consultant.dto.response.GetChildResponseDto;
-import com.h5.consultant.dto.response.GetMyChildrenResponseDto;
-import com.h5.consultant.dto.response.MyProfileResponseDto;
-import com.h5.consultant.dto.response.RegisterParentAccountResponseDto;
+import com.h5.consultant.dto.response.*;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.file.entity.FileEntity;
@@ -29,6 +27,8 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ConsultantUserServiceImpl implements ConsultantUserService {
@@ -93,7 +93,10 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     }
 
     @Override
-    public void updatePwd(String email, String oldPwd, String newPwd) {
+    public void updatePwd(String oldPwd, String newPwd) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -114,17 +117,31 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
                 .orElseThrow(UserNotFoundException::new);
 
-        String initPwd = passwordUtil.generatePassword();
-        ParentUserEntity parentUser = ParentUserEntity.builder()
-                .name(registerParentAccountDto.getParentName())
-                .email(registerParentAccountDto.getParentEmail())
-                .pwd(passwordEncoder.encode(initPwd))
-                .phone(registerParentAccountDto.getParentPhone())
-                .tempPwd(true)
-                .consultantUserEntity(consultantUser)
-                .build();
+        Optional<ParentUserEntity> optionalParentUser = parentUserRepository.findByEmail(registerParentAccountDto.getParentEmail());
+        ParentUserEntity parentUser;
+        String initPwd = null;
 
-        int parentUserId = parentUserRepository.save(parentUser).getId();
+        if (optionalParentUser.isPresent()) {
+            parentUser = optionalParentUser.get();
+        } else {
+            initPwd = passwordUtil.generatePassword();
+            parentUser = ParentUserEntity.builder()
+                    .name(registerParentAccountDto.getParentName())
+                    .email(registerParentAccountDto.getParentEmail())
+                    .pwd(passwordEncoder.encode(initPwd))
+                    .phone(registerParentAccountDto.getParentPhone())
+                    .tempPwd(true)
+                    .consultantUserEntity(consultantUser)
+                    .build();
+            parentUser = parentUserRepository.save(parentUser);
+
+            try {
+                mailUtil.sendRegistrationEmail(registerParentAccountDto.getParentEmail(),
+                        registerParentAccountDto.getParentEmail(), initPwd);
+            } catch (Exception e) {
+                throw new ParentAccountRegistrationException("Failed to send registration email", e);
+            }
+        }
 
         ChildUserEntity childUser = ChildUserEntity.builder()
                 .name(registerParentAccountDto.getChildName())
@@ -137,17 +154,11 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .consultantUserEntity(consultantUser)
                 .build();
 
-        int childUserId = childUserRepository.save(childUser).getId();
-
-        try {
-            mailUtil.sendRegistrationEmail(registerParentAccountDto.getParentEmail(), registerParentAccountDto.getParentEmail(), initPwd);
-        } catch (Exception e) {
-            throw new ParentAccountRegistrationException("Failed to send registration email", e);
-        }
+        childUser = childUserRepository.save(childUser);
 
         return RegisterParentAccountResponseDto.builder()
-                .parentUserId(parentUserId)
-                .childUserId(childUserId)
+                .parentUserId(parentUser.getId())
+                .childUserId(childUser.getId())
                 .build();
     }
 
@@ -194,6 +205,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .profileImgUrl(getFileUrl(childUser.getId()))
                 .childName(childUser.getName())
                 .age(calculateAge(String.valueOf(childUser.getBirth())))
+                .gender(childUser.getGender().equals("M") ? "남" : "여")
                 .birth(String.valueOf(childUser.getBirth()))
                 .firstConsultDate(String.valueOf(childUser.getFirstConsultDt()))
                 .interest(childUser.getInterest())
@@ -218,6 +230,41 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .phone(consultantUser.getPhone())
                 .centerName(consultantUser.getCenter().getCenterName())
                 .centerPhone(consultantUser.getCenter().getCenterContact())
+                .build();
+    }
+
+    @Override
+    public boolean emailCheck(String email) {
+        return consultantUserRepository.findByEmail(email).isPresent() || parentUserRepository.findByEmail(email).isPresent();
+    }
+
+    @Transactional
+    @Override
+    public List<SearchChildResponseDto> searchChild(String childUserName) {
+        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByName(childUserName)
+                .orElseThrow(UserNotFoundException::new);
+
+        return childUserEntities.stream()
+                .map(child -> SearchChildResponseDto.builder()
+                        .childUserId(child.getId())
+                        .childProfileUrl(getFileUrl(child.getId()))
+                        .childUserName(child.getName())
+                        .parentUserName(child.getParentUserEntity().getName())
+                        .parentUserEmail(child.getParentUserEntity().getEmail())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ModifyChildResponseDto modifyChild(ModifyChildRequestDto modifyChildRequestDto) {
+        ChildUserEntity childUserEntity = childUserRepository.findById(modifyChildRequestDto.getChildUserId())
+                .orElseThrow(UserNotFoundException::new);
+
+        childUserEntity.setInterest(modifyChildRequestDto.getInterest());
+        childUserEntity.setAdditionalInfo(modifyChildRequestDto.getAdditionalInfo());
+
+        return ModifyChildResponseDto.builder()
+                .childUserId(childUserRepository.save(childUserEntity).getId())
                 .build();
     }
 }

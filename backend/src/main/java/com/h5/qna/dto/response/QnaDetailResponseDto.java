@@ -1,7 +1,8 @@
 package com.h5.qna.dto.response;
 
-import com.h5.qna.entity.QnaAnswerEntity;
 import lombok.*;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,9 +13,9 @@ public class QnaDetailResponseDto {
     private int id;
     private String title;
     private String content;
-    private String parentUserEmail;
+    private String name;
     private String createDttm;
-    private int viewCnt;
+    private int answerCnt;
 
-    private QnaAnswerResponseDto qnaAnswerResponseDto;
+    private List<QnaAnswerResponseDto> qnaAnswerResponseList;
 }

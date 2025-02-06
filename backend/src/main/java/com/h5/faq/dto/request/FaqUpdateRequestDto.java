@@ -12,6 +12,5 @@ import lombok.NoArgsConstructor;
 public class FaqUpdateRequestDto {
     private int faqId;
     private String faqTitle;
-    private String faqContent;
     private String faqAnswer;
 }
