@@ -57,7 +57,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 403 && !originalRequest._retry) {
+    if (error.response?.status === 413 && !originalRequest._retry) {
       originalRequest._retry = true; // 무한 루프 방지
 
       try {

@@ -1,30 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
+import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
+import { getNoticeDetail } from '../../../api/boardNotice';
+import { getFaqDetail } from '../../../api/boardFaq';
+import { getQnaDetail, updateQna } from '../../../api/boardQna';
 import '/src/pages/counselor/Css/CounselorBoardDetailPage.css';
-
-// 샘플 데이터
-const noticeData = [
-  { no: 11, title: "새로운 기능 안내", writer: "운영자", views: 128, date: "2025-01-22", content: "새로운 기능에 대한 공지사항 내용입니다." },
-  { no: 10, title: "점검 공지", writer: "운영자", views: 99, date: "2025-01-18", content: "사이트 점검 관련 공지사항 내용입니다." },
-];
-
-const faqData = [
-  { no: 2, title: "자주 묻는 질문 TOP5", writer: "운영자", content: "자주 묻는 질문에 대한 답변입니다." },
-  { no: 1, title: "계정 관련 FAQ", writer: "운영자", content: "계정 관련 질문에 대한 답변입니다." },
-];
-
-const qnaData = [
-  { no: 3, title: "문의드립니다", writer: "홍길동", status: "미답변", date: "2025-01-23", content: "문의드립니다." },
-  { no: 2, title: "결제 관련 문의", writer: "김철수", status: "답변완료", date: "2025-01-17", content: "결제 관련 문의입니다." },
-];
 
 function CounselorBoardDetailPage() {
   const navigate = useNavigate();
   const { type, no } = useParams();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
+
+  const [noticeData, setNoticeData] = useState(null);
+  const [faqData, setFaqData] = useState(null);
+  const [qnaData, setQnaData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const answers = [
     {
@@ -47,11 +40,6 @@ function CounselorBoardDetailPage() {
     }
   ];
   
-
-  const handleBack = () => {
-    navigate(-1);
-  };
-
   const handleEdit = () => {
     setIsEditing(true);
     setEditedContent(postData.content);
@@ -59,28 +47,11 @@ function CounselorBoardDetailPage() {
 
   const handleEditComplete = async () => {
     try {
-      // API 호출이 들어갈 자리
-      // 예: await updatePost(type, no, { content: editedContent, file: selectedFile });
-      
-      // 임시로 데이터 직접 수정 (API 연동 시 제거)
-      if (type === "notice") {
-        const postIndex = noticeData.findIndex(post => post.no === Number(no));
-        if (postIndex !== -1) {
-          noticeData[postIndex] = {
-            ...noticeData[postIndex],
-            content: editedContent
-          };
-        }
-      } else if (type === "faq") {
-        const postIndex = faqData.findIndex(post => post.no === Number(no));
-        if (postIndex !== -1) {
-          faqData[postIndex] = {
-            ...faqData[postIndex],
-            content: editedContent
-          };
-        }
+      if (type === "qna") {
+        const updatedQna = await updateQna(no, qnaData.title, editedContent);
+        setQnaData(updatedQna);
       }
-
+  
       setIsEditing(false);
       setSelectedFile(null);
     } catch (error) {
@@ -101,6 +72,97 @@ function CounselorBoardDetailPage() {
     }
   };
 
+ // 상세 데이터 가져오기
+ useEffect(() => {
+  const fetchData = async () => {
+    if (type === "notice") {
+      try {
+        setIsLoading(true);
+        const response = await getNoticeDetail(no);
+        
+        const formattedData = {
+          no: response.id,
+          title: response.title,
+          content: response.content,
+          writer: response.name || "운영자",
+          views: response.viewCnt || 0,
+          date: new Date(response.createDttm).toISOString().split('T')[0]
+        };
+        
+        setNoticeData(formattedData);
+      } catch (error) {
+        console.error("공지사항 상세 조회 실패:", error);
+        await SingleButtonAlert(
+          error.response?.data?.message || '공지사항을 불러오는데 실패했습니다.'
+        );
+        navigate(-1);
+      } finally {
+        setIsLoading(false);
+      }
+    } else if (type === "faq") {
+      try {
+        setIsLoading(true);
+        const response = await getFaqDetail(no);
+        
+        // API 응답 데이터 포맷팅
+        const formattedData = {
+          no: response.id,
+          title: response.title,
+          content: response.faqAnswer,
+          type: response.type === "usage"
+            ? "이용안내"
+            : response.type === "child"
+            ? "아동상담/문의"
+            : response.type === "center"
+            ? "센터이용/문의"
+            : "기타"
+        };
+        
+        setFaqData(formattedData);
+      } catch (error) {
+        console.error("FAQ 상세 조회 실패:", error);
+        await SingleButtonAlert(
+          error.response?.data?.message || 'FAQ를 불러오는데 실패했습니다.'
+        );
+        navigate(-1);
+      } finally {
+        setIsLoading(false);
+      }
+    } else if (type === "qna") {
+      try {
+        setIsLoading(true);
+        const response = await getQnaDetail(no);
+
+        // API 응답 데이터 포맷팅
+        const formattedData = {
+          no: response.id,
+          title: response.title,
+          content: response.content,
+          writer: response.writerName,
+          status: response.answerYn ? "답변완료" : "미답변",
+          date: new Date(response.createDttm).toISOString().split('T')[0]
+        };
+
+        setQnaData(formattedData);
+      } catch (error) {
+        console.error("QnA 상세 조회 실패:", error);
+        await SingleButtonAlert(
+          error.response?.data?.message || 'QnA를 불러오는데 실패했습니다.'
+        );
+        navigate(-1);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  fetchData();
+}, [type, no]);
+
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -111,11 +173,26 @@ function CounselorBoardDetailPage() {
   // 해당하는 게시판 데이터를 가져옴
   let postData;
   if (type === "notice") {
-    postData = noticeData.find((post) => post.no === Number(no));
+    postData = noticeData;
   } else if (type === "faq") {
-    postData = faqData.find((post) => post.no === Number(no));
+    postData = faqData;
   } else if (type === "qna") {
-    postData = qnaData.find((post) => post.no === Number(no));
+    postData = qnaData;
+  }
+
+  // 로딩 중 표시
+  if (isLoading) {
+    return (
+      <div className="co-detail-page">
+        <CounselorHeader />
+        <div className="co-detail-container">
+          <div className="co-detail-loading">
+            <div className="co-detail-loading-spinner"></div>
+            <p>데이터를 불러오는 중입니다...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // 데이터가 없을 경우 처리
@@ -180,28 +257,31 @@ function CounselorBoardDetailPage() {
 
             </div>
 
-            {type === "notice" || type === "qna" ? (
+            {(type === "notice" || type === "qna") && (
               <div className="co-detail-info-text">
                 <span><strong>작성자:</strong> {postData.writer}</span>
                 {type === "qna" && <span> | <strong>답변 상태:</strong> {postData.status}</span>}
                 <span> | <strong>작성일:</strong> {postData.date}</span>
                 {type === "notice" && <span> | <strong>조회수:</strong> {postData.views}회</span>}
               </div>
-            ) : (
-              <div className="co-detail-info-text">
-                <strong>작성자:</strong> {postData.writer}
-              </div>
             )}
 
             <div className="co-detail-content">
-              <div
-                contentEditable={isEditing}
-                suppressContentEditableWarning={true}
-                onInput={(e) => setEditedContent(e.currentTarget.textContent || "")}
-                className={isEditing ? "co-detail-content-editable" : ""}
-              >
-                {postData.content}
-              </div>
+              {isEditing ? (
+                <div
+                  contentEditable={true}
+                  suppressContentEditableWarning={true}
+                  onInput={(e) => setEditedContent(e.currentTarget.textContent || "")}
+                  className="co-detail-content-editable"
+                >
+                  {postData.content}
+                </div>
+              ) : (
+                <div 
+                  className="co-detail-content-text"
+                  dangerouslySetInnerHTML={{ __html: postData.content }}
+                />
+              )}
             </div>
 
             <div className="co-detail-file">

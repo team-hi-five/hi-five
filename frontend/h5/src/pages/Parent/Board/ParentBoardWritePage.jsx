@@ -12,7 +12,7 @@ import "/src/pages/Parent/ParentCss/ParentBoardWritePage.css";
 
 function ParentBoardWritePage() {
   const [title, setTitle] = useState("");
-  const [text, setText] = useState("");
+  const [content, setContent] = useState(""); // text -> content로 변경
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useRef(null);
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ function ParentBoardWritePage() {
       showToast('warn', '알림', '제목을 입력해주세요.');
       return false;
     }
-    if (!text.trim()) {
+    if (!content.trim()) {
       showToast('warn', '알림', '내용을 입력해주세요.');
       return false;
     }
@@ -50,7 +50,7 @@ function ParentBoardWritePage() {
         }
         setIsSubmitting(true);
   
-        await createQna(title, text);
+        await createQna(title, content);
         
         // SingleButtonAlert로 성공 메시지 표시
         await SingleButtonAlert('질문이 등록되었습니다.');
@@ -68,7 +68,7 @@ function ParentBoardWritePage() {
   
 
     const handleCancel = async () => {
-      if (title.trim() || text.trim()) {
+      if (title.trim() || content.trim()) {
         // DoubleButtonAlert로 확인
         const result = await DoubleButtonAlert(
           '작성 중인 내용이 있습니다. 정말 취소하시겠습니까?',
@@ -102,8 +102,8 @@ function ParentBoardWritePage() {
 
         <label className="pa-write-label">내용</label>
         <Editor
-          value={text}
-          onTextChange={(e) => setText(e.htmlValue)}
+          value={content}
+          onTextChange={(e) => setContent(e.htmlValue)}
           style={{ height: "180px" }}
         />
 

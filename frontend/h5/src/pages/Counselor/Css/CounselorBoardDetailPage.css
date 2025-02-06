@@ -344,3 +344,12 @@
   content: attr(placeholder);
   color: #adb5bd;
 }
+
+.co-detail-post-title-input {
+  font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #1A2A4D;
+    border: none;
+}
+

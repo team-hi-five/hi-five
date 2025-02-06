@@ -28,7 +28,7 @@ function AppParent(){
 
             {/* BoardPage에서 이동가능한 페이지지 */}
             <Route path="/board/:type/:no" element={<ParentBoardDetailPage />} />
-            <Route path="board/write" element={<ParentBoardWritePage />} />
+            <Route path="/board/write" element={<ParentBoardWritePage />} />
         </Routes>
     
     )
