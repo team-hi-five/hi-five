@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Toast } from 'primereact/toast';
 import { Editor } from "primereact/editor";
 import { FileUpload } from 'primereact/fileupload';
 import { Dropdown } from 'primereact/dropdown';
+import { useNavigate } from 'react-router-dom';
+import { useBoardStore } from '../../../store/boardStore';
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
+import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
+// import { createFaq } from "../../../api/boardFaq";
 import '../Css/CounselorBoardFaqWritePage.css';
 
 function CounselorBoardFaqWritePage() {
   const [title, setTitle] = useState("");
-  const [text, setText] = useState("");
+  const [content, setContent] = useState("");
+  const [faqAnswer, setFaqAnswer] = useState("");
   const [selectedType, setSelectedType] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useRef(null);
+  const navigate = useNavigate();
+  const setPaActiveTab = useBoardStore(state => state.setPaActiveTab);
 
   const faqTypeOptions = [
     { label: '이용안내', value: 'usage' },
@@ -17,12 +27,76 @@ function CounselorBoardFaqWritePage() {
     { label: '센터이용/문의', value: 'center' }
   ];
 
-  const handleSubmit = async () => {
-    await SingleButtonAlert('질문 등록이 완료되었습니다.');
+  const showToast = (severity, summary, detail) => {
+    toast.current.show({
+      severity: severity,
+      summary: summary,
+      detail: detail,
+      life: 3000
+    });
   };
 
-  const handleCancel = () => {
-    window.history.back(); // 브라우저 내장 뒤로가기
+  const validateForm = () => {
+    if (!title.trim()) {
+      showToast('warn', '알림', '제목을 입력해주세요.');
+      return false;
+    }
+    if (!selectedType) {
+      showToast('warn', '알림', '유형을 선택해주세요.');
+      return false;
+    }
+    if (!content.trim()) {
+      showToast('warn', '알림', '질문 내용을 입력해주세요.');
+      return false;
+    }
+    if (!faqAnswer.trim()) {
+      showToast('warn', '알림', '답변을 입력해주세요.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      if (!validateForm()) {
+        return;
+      }
+
+      if (isSubmitting) {
+        return;
+      }
+      setIsSubmitting(true);
+
+      await createFaq(title, content, faqAnswer);
+      
+      await SingleButtonAlert('FAQ가 등록되었습니다.');
+      
+      setPaActiveTab("faq");
+      navigate('/counselor/board');
+
+    } catch (error) {
+      await SingleButtonAlert(error.response?.data?.message || 'FAQ 등록에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleCancel = async () => {
+    if (title.trim() || content.trim() || faqAnswer.trim()) {
+      const result = await DoubleButtonAlert(
+        '작성 중인 내용이 있습니다. 정말 취소하시겠습니까?',
+        '예',
+        '아니오'
+      );
+      
+      if (result) {
+        setPaActiveTab("faq");
+        navigate('/counselor/board');
+      }
+    } else {
+      setPaActiveTab("faq");
+      navigate('/counselor/board');
+    }
   };
 
   return (
@@ -47,10 +121,10 @@ function CounselorBoardFaqWritePage() {
           className="co-write-dropdown"
         />
           
-        <label className="co-write-label">내용</label>
+        <label className="co-write-label">답변</label>
         <Editor
-          value={text}
-          onTextChange={(e) => setText(e.htmlValue)}
+          value={faqAnswer}
+          onTextChange={(e) => setFaqAnswer(e.htmlValue)}
           style={{ height: "180px" }}
         />
 
@@ -67,7 +141,13 @@ function CounselorBoardFaqWritePage() {
         </div>
 
         <div className="co-write-buttons">
-          <button className="co-write-submit" onClick={handleSubmit}>등록</button>
+          <button 
+            className="co-write-submit" 
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? '등록 중...' : '등록'}
+          </button>
           <button className="co-write-cancel" onClick={handleCancel}>
             취소
           </button>
