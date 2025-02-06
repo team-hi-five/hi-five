@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Emotion Analysis</title>
+  <!-- face-api.js 로드 (CDN 사용) -->
+  <script defer src="https://unpkg.com/face-api.js"></script>
+  <style>
+    canvas {
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Emotion Analysis</h1>
+  <p>
+    키보드 명령어: <br>
+    <strong>스페이스바</strong>: 일시정지/재개 &nbsp;&nbsp;
+    <strong>T</strong>: 감정 분석 및 녹화 시작/종료 &nbsp;&nbsp;
+    <strong>Q</strong>: 종료
+  </p>
+  <!-- video 요소는 화면에 보이지 않도록 함 (캔버스에 그립니다.) -->
+  <video id="video" width="640" height="480" autoplay muted style="display: none;"></video>
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <!-- 녹화 파일 다운로드 링크 표시 -->
+  <div id="downloadLink"></div>
+
+  <script>
+    // 전역 변수들
+    let isPaused = false;
+    let isAnalyzing = false;
+    let accumulatedEmotions = { angry: 0, fear: 0, happy: 0, sad: 0, surprise: 0 };
+    let frameCount = 0;
+    let videoStream = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let animationFrameId;
+
+    // 분석할 감정 목록 (Python의 target_emotions와 유사)
+    const targetEmotions = ['angry', 'fear', 'happy', 'sad', 'surprise'];
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const downloadLinkDiv = document.getElementById('downloadLink');
+
+    // face-api.js 모델 로드
+    Promise.all([
+      // 모델은 /models 폴더에 미리 두어야 합니다.
+      faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+      faceapi.nets.faceExpressionNet.loadFromUri('/models')
+    ]).then(startVideo)
+      .catch(e => {
+        console.error('모델 로드 실패:', e);
+      });
+
+    // 웹캠 영상 시작
+    function startVideo() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        videoStream = stream;
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          video.play();
+          // 영상이 준비되면 매 프레임 처리 시작
+          processFrame();
+        };
+      })
+      .catch(err => {
+        console.error("비디오 스트림을 가져올 수 없습니다:", err);
+      });
+    }
+
+    // 매 프레임마다 호출 (requestAnimationFrame 사용)
+    async function processFrame() {
+      if (!isPaused) {
+        // 현재 비디오 프레임을 캔버스에 그림
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if (isAnalyzing) {
+          // face-api.js를 이용하여 얼굴 및 감정 분석 수행
+          // tinyFaceDetector 옵션 사용
+          const detection = await faceapi
+            .detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
+            .withFaceExpressions();
+
+          let text = "";
+          if (detection && detection.expressions) {
+            const expressions = detection.expressions;
+            // face-api.js의 expressions 객체에는 다음 키가 있습니다:
+            // angry, disgusted, fearful, happy, neutral, sad, surprised
+            // Python 예제의 감정과 매핑:
+            // - angry → angry
+            // - fear → fearful
+            // - happy → happy
+            // - sad → sad
+            // - surprise → surprised
+            let extracted = {
+              angry: expressions.angry ? expressions.angry * 100 : 0,
+              fear: expressions.fearful ? expressions.fearful * 100 : 0,
+              happy: expressions.happy ? expressions.happy * 100 : 0,
+              sad: expressions.sad ? expressions.sad * 100 : 0,
+              surprise: expressions.surprised ? expressions.surprised * 100 : 0
+            };
+
+            let total = extracted.angry + extracted.fear + extracted.happy + extracted.sad + extracted.surprise;
+            if (total < 1e-6) {
+              text = "No face / no confidence";
+            } else {
+              // 누적합산
+              targetEmotions.forEach(emo => {
+                accumulatedEmotions[emo] += extracted[emo];
+              });
+              frameCount++;
+              // 현재 프레임 결과 문자열 생성
+              text = targetEmotions.map(emo => `${emo}: ${extracted[emo].toFixed(1)}%`).join("  ");
+            }
+          } else {
+            text = "No face / no confidence";
+          }
+          console.log(text);
+
+          // 캔버스 상단에 텍스트 오버레이
+          ctx.font = "16px Arial";
+          ctx.fillStyle = "red";
+          ctx.fillText(text, 10, 20);
+        }
+      }
+      // 다음 프레임 요청
+      animationFrameId = requestAnimationFrame(processFrame);
+    }
+
+    // 키보드 이벤트 처리
+    document.addEventListener('keydown', event => {
+      if (event.key === ' ') {
+        // 스페이스바: 일시정지/재개
+        isPaused = !isPaused;
+        console.log(isPaused ? "=== 일시정지 ===" : "=== 재개 ===");
+      } else if (event.key.toLowerCase() === 't') {
+        // T 키: 감정 분석 및 녹화 토글
+        if (!isAnalyzing) {
+          // 시작
+          console.log(">>> 감정 분석 시작!");
+          isAnalyzing = true;
+          accumulatedEmotions = { angry: 0, fear: 0, happy: 0, sad: 0, surprise: 0 };
+          frameCount = 0;
+          startRecording();
+        } else {
+          // 종료
+          isAnalyzing = false;
+          console.log(">>> 감정 분석 종료");
+          stopRecording();
+          // 평균 감정 계산
+          if (frameCount > 0) {
+            let averagedEmotions = {};
+            targetEmotions.forEach(emo => {
+              averagedEmotions[emo] = accumulatedEmotions[emo] / frameCount;
+            });
+            let textFinal = "Recorded Emotion Summary:";
+            targetEmotions.forEach(emo => {
+              textFinal += ` ${emo}: ${averagedEmotions[emo].toFixed(2)}%`;
+            });
+            console.log(textFinal);
+            alert(textFinal);
+          } else {
+            console.log("분석된 프레임이 없습니다.");
+            alert("분석된 프레임이 없습니다.");
+          }
+        }
+      } else if (event.key.toLowerCase() === 'q') {
+        // Q 키: 종료
+        console.log("종료합니다.");
+        stopAll();
+      }
+    });
+
+    // MediaRecorder를 이용한 녹화 시작
+    function startRecording() {
+      if (!videoStream) return;
+      recordedChunks = [];
+      try {
+        mediaRecorder = new MediaRecorder(videoStream, { mimeType: "video/webm" });
+      } catch (e) {
+        console.error("MediaRecorder 생성 실패:", e);
+        return;
+      }
+      mediaRecorder.ondataavailable = event => {
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+      mediaRecorder.onstop = () => {
+        // 녹화 종료 후 Blob 생성 및 다운로드 링크 제공
+        const blob = new Blob(recordedChunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.style.display = "block";
+        a.href = url;
+        // 파일명에 현재 날짜-시간 사용 (콜론(:)은 파일명에서 제거)
+        a.download = `recorded_${new Date().toISOString().replace(/:/g, '-')}.webm`;
+        a.textContent = "녹화 파일 다운로드";
+        downloadLinkDiv.innerHTML = "";
+        downloadLinkDiv.appendChild(a);
+      };
+      mediaRecorder.start();
+      console.log("녹화 시작");
+    }
+
+    // 녹화 중지
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        console.log("녹화 종료");
+      }
+    }
+
+    // 모든 동작 종료 (애니메이션, 스트림 중지 등)
+    function stopAll() {
+      cancelAnimationFrame(animationFrameId);
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+      }
+    }
+  </script>
+</body>
+</html>

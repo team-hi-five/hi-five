@@ -37,7 +37,7 @@ if ret_init:
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 else:
     # 웹캠이 아예 안 켜진 경우 등 처리
-    height, width = 480, 640  # 기본값
+    height, width /= 480, 640  # 기본값
 
 while True:
     # 일시정지 상태가 아니면 새 프레임 읽어오기

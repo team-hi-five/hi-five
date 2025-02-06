@@ -2,3 +2,5 @@
 data
 exclude
 save_videos
+emotion-app
+.idea

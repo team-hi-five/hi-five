@@ -2,3 +2,6 @@ __pycache__
 .venv
 .mypy_cache
 .pytest_cache
+.idea
+.env
+node_modules

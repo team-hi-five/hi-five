@@ -1,0 +1,51 @@
+Collecting flax
+  Using cached flax-0.10.2-py3-none-any.whl.metadata (11 kB)
+Collecting jax>=0.4.27 (from flax)
+  Using cached jax-0.5.0-py3-none-any.whl.metadata (22 kB)
+Requirement already satisfied: msgpack in c:\ssafy\venvs\py3107_3\lib\site-packages (from flax) (1.1.0)
+Collecting optax (from flax)
+  Using cached optax-0.2.4-py3-none-any.whl.metadata (8.3 kB)
+Collecting orbax-checkpoint (from flax)
+  Using cached orbax_checkpoint-0.11.2-py3-none-any.whl.metadata (1.9 kB)
+Requirement already satisfied: tensorstore in c:\ssafy\venvs\py3107_3\lib\site-packages (from flax) (0.1.71)
+Requirement already satisfied: rich>=11.1 in c:\ssafy\venvs\py3107_3\lib\site-packages (from flax) (13.9.4)
+Requirement already satisfied: typing-extensions>=4.2 in c:\ssafy\venvs\py3107_3\lib\site-packages (from flax) (4.12.2)
+Requirement already satisfied: PyYAML>=5.4.1 in c:\ssafy\venvs\py3107_3\lib\site-packages (from flax) (6.0.2)
+Collecting jaxlib<=0.5.0,>=0.5.0 (from jax>=0.4.27->flax)
+  Using cached jaxlib-0.5.0-cp310-cp310-win_amd64.whl.metadata (1.0 kB)
+Requirement already satisfied: ml_dtypes>=0.4.0 in c:\ssafy\venvs\py3107_3\lib\site-packages (from jax>=0.4.27->flax) (0.5.1)
+Requirement already satisfied: numpy>=1.25 in c:\ssafy\venvs\py3107_3\lib\site-packages (from jax>=0.4.27->flax) (1.26.4)
+Requirement already satisfied: opt_einsum in c:\ssafy\venvs\py3107_3\lib\site-packages (from jax>=0.4.27->flax) (3.4.0)
+Requirement already satisfied: scipy>=1.11.1 in c:\ssafy\venvs\py3107_3\lib\site-packages (from jax>=0.4.27->flax) (1.15.1)
+Requirement already satisfied: markdown-it-py>=2.2.0 in c:\ssafy\venvs\py3107_3\lib\site-packages (from rich>=11.1->flax) (3.0.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in c:\ssafy\venvs\py3107_3\lib\site-packages (from rich>=11.1->flax) (2.19.1)
+Requirement already satisfied: absl-py>=0.7.1 in c:\ssafy\venvs\py3107_3\lib\site-packages (from optax->flax) (2.1.0)
+Collecting chex>=0.1.87 (from optax->flax)
+  Using cached chex-0.1.88-py3-none-any.whl.metadata (17 kB)
+Requirement already satisfied: etils[epy] in c:\ssafy\venvs\py3107_3\lib\site-packages (from optax->flax) (1.11.0)
+Requirement already satisfied: nest_asyncio in c:\ssafy\venvs\py3107_3\lib\site-packages (from orbax-checkpoint->flax) (1.6.0)
+Requirement already satisfied: protobuf in c:\ssafy\venvs\py3107_3\lib\site-packages (from orbax-checkpoint->flax) (3.19.6)
+Requirement already satisfied: humanize in c:\ssafy\venvs\py3107_3\lib\site-packages (from orbax-checkpoint->flax) (4.11.0)
+Requirement already satisfied: simplejson>=3.16.0 in c:\ssafy\venvs\py3107_3\lib\site-packages (from orbax-checkpoint->flax) (3.19.3)
+Requirement already satisfied: toolz>=0.9.0 in c:\ssafy\venvs\py3107_3\lib\site-packages (from chex>=0.1.87->optax->flax) (1.0.0)
+Requirement already satisfied: mdurl~=0.1 in c:\ssafy\venvs\py3107_3\lib\site-packages (from markdown-it-py>=2.2.0->rich>=11.1->flax) (0.1.2)
+Requirement already satisfied: fsspec in c:\ssafy\venvs\py3107_3\lib\site-packages (from etils[epath,epy]->orbax-checkpoint->flax) (2025.2.0)
+Requirement already satisfied: importlib_resources in c:\ssafy\venvs\py3107_3\lib\site-packages (from etils[epath,epy]->orbax-checkpoint->flax) (6.5.2)
+Requirement already satisfied: zipp in c:\ssafy\venvs\py3107_3\lib\site-packages (from etils[epath,epy]->orbax-checkpoint->flax) (3.21.0)
+Using cached flax-0.10.2-py3-none-any.whl (424 kB)
+Using cached jax-0.5.0-py3-none-any.whl (2.3 MB)
+Using cached optax-0.2.4-py3-none-any.whl (319 kB)
+Using cached orbax_checkpoint-0.11.2-py3-none-any.whl (433 kB)
+Using cached chex-0.1.88-py3-none-any.whl (99 kB)
+Downloading jaxlib-0.5.0-cp310-cp310-win_amd64.whl (63.9 MB)
+   ---------------------------------------- 63.9/63.9 MB 6.1 MB/s eta 0:00:00
+Installing collected packages: jaxlib, jax, orbax-checkpoint, chex, optax, flax
+  Attempting uninstall: jaxlib
+    Found existing installation: jaxlib 0.4.14
+    Uninstalling jaxlib-0.4.14:
+      Successfully uninstalled jaxlib-0.4.14
+  Attempting uninstall: jax
+    Found existing installation: jax 0.4.14
+    Uninstalling jax-0.4.14:
+      Successfully uninstalled jax-0.4.14
+Successfully installed chex-0.1.88 flax-0.10.2 jax-0.5.0 jaxlib-0.5.0 optax-0.2.4 orbax-checkpoint-0.11.2
