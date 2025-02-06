@@ -4,10 +4,11 @@ import com.h5.qna.dto.request.*;
 import com.h5.qna.dto.response.QnaCommentResponseDto;
 import com.h5.qna.dto.response.QnaDetailResponseDto;
 import com.h5.qna.dto.response.QnaListResponseDto;
+import com.h5.qna.dto.response.QnaSaveResponseDto;
 
 public interface QnaService {
     //c
-    int createQna(QnaCreateRequestDto qnaCreateRequestDto);
+    QnaSaveResponseDto createQna(QnaCreateRequestDto qnaCreateRequestDto);
 
     //r
     //전체 글
@@ -23,12 +24,11 @@ public interface QnaService {
     QnaDetailResponseDto findById(int qnaId);
 
     //u
-    void updateViewCnt(int qnaId);
 
-    int updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
+    QnaSaveResponseDto updateQna(QnaUpdateRequestDto qnaUpdateRequestDto);
 
     //d
-    void deleteQna(int qnaId);
+    QnaSaveResponseDto deleteQna(int qnaId);
 
 
     //comment

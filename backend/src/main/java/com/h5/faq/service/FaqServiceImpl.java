@@ -52,9 +52,9 @@ public class FaqServiceImpl implements FaqService {
 
         FaqEntity faqEntity = FaqEntity.builder()
                 .title(faqCreateRequestDto.getTitle())
-                .content(faqCreateRequestDto.getContent())
                 .faqAns(faqCreateRequestDto.getFaqAnswer())
                 .consultantUser(consultantUser)
+                .type(faqCreateRequestDto.getType())
                 .build();
 
         faqRepository.save(faqEntity);
@@ -188,6 +188,7 @@ public class FaqServiceImpl implements FaqService {
                 .title(faqEntity.getTitle())
                 .faqAnswer(faqEntity.getFaqAns())
                 .name(faqEntity.getConsultantUser().getName())
+                .type(faqEntity.getType())
                 .build();
     }
 
@@ -242,7 +243,8 @@ public class FaqServiceImpl implements FaqService {
                         faqEntity.getId(),
                         faqEntity.getTitle(),
                         faqEntity.getConsultantUser().getName(),
-                        faqEntity.getFaqAns()
+                        faqEntity.getFaqAns(),
+                        faqEntity.getType()
                 )).toList();
 
         PaginationResponseDto pagination = new PaginationResponseDto(

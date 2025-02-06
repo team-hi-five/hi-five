@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
@@ -26,11 +25,6 @@ public class QnaEntity {
     @NotNull
     @Column(name = "title", nullable = false, length = 200)
     private String title;
-
-    @NotNull
-    @ColumnDefault("0")
-    @Column(name = "view_cnt", nullable = false)
-    private Integer viewCnt = 0;
 
     @NotNull
     @Lob
@@ -57,9 +51,7 @@ public class QnaEntity {
     protected void onCreate() {
         this.createDttm = LocalDateTime.now();
         this.updateDttm = LocalDateTime.now();
-        if(this.viewCnt == null){
-            this.viewCnt = 0;
-        }
+
     }
 
     @PreUpdate

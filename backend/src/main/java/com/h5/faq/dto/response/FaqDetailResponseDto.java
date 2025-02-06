@@ -12,4 +12,5 @@ public class FaqDetailResponseDto {
     private String title;
     private String faqAnswer;
     private String name;
+    private String type;
 }
