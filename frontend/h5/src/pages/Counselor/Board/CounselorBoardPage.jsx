@@ -3,14 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
 import Footer from "../../../components/common/footer";
 import { getNoticePosts, searchNotices } from '../../../api/boardNotice';
+import { getFaqList, searchFaqs } from '../../../api/boardFaq';
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import '../Css/CounselorBoardPage.css';
 
-// FAQ에서 '유형(type)' 사용 (조회수, 작성일 제외)
-const faqData = [
-  { no: 2, type: "사이트 이용", title: "자주 묻는 질문 TOP5", writer: "운영자", date: "2025-01-21" },
-  { no: 1, type: "계정", title: "계정 관련 FAQ", writer: "운영자", date: "2025-01-08" },
-];
 
 // QnA: 번호, 제목, 작성자, 답변상태(status), 작성일 (조회수 대신 status)
 const qnaData = [
@@ -25,9 +21,12 @@ function CounselorBoardPage() {
     const [isSearching, setIsSearching] = useState(false);  // 검색 모드인지 여부
     const [paSearchTerm, setPaSearchTerm] = useState("");
     const [paCurrentPage, setPaCurrentPage] = useState(1);
+
     const [noticeData, setNoticeData] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    const [faqData, setFaqData] = useState([]);
+    const [faqLoading, setFaqLoading] = useState(false);
     const paItemsPerPage = 6;
   
     const navigate = useNavigate();
@@ -38,41 +37,63 @@ function CounselorBoardPage() {
             await SingleButtonAlert('검색어를 입력해주세요.');
             return;
         }
-
+    
         try {
-            setIsLoading(true);
-            setIsSearching(true);
-
             const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
-            const response = await searchNotices(
-                paSearchTerm,
-                searchType,
-                paCurrentPage - 1,
-                paItemsPerPage,
-                // Request Body 데이터 추가 (실제 값은 로그인 정보에서 가져와야 함)
-                'user@example.com',  // email
-                'password123',       // pwd
-                'ROLE_CONSULTANT'    // role
-            );
-
-            const formattedData = response.notices.map(item => ({
-                no: item.id || "9999",
-                title: item.title,
-                writer: item.consultantUserEmail || "운영자",
-                views: item.viewCnt || 0,
-                date: new Date(item.createDttm).toISOString().split('T')[0]
-            }));
-
-            setNoticeData(formattedData);
-            setTotalPages(response.pagination.totalPages);
-
+            
+            if (paActiveTab === "notice") {
+                setIsLoading(true);
+                setIsSearching(true);
+    
+                const response = await searchNotices(
+                    paSearchTerm,
+                    searchType,
+                    paCurrentPage - 1,
+                    paItemsPerPage
+                );
+    
+                const formattedData = response.notices.map(item => ({
+                    no: item.id || "9999",
+                    title: item.title,
+                    writer: item.name || "운영자",
+                    views: item.viewCnt || 0,
+                    date: new Date(item.createDttm).toISOString().split('T')[0]
+                }));
+    
+                setNoticeData(formattedData);
+                setTotalPages(response.pagination.totalPages);
+                setIsLoading(false);
+            } else if (paActiveTab === "faq") {
+                setFaqLoading(true);
+                setIsSearching(true);
+    
+                const response = await searchFaqs(
+                    paSearchTerm,
+                    searchType,
+                    paCurrentPage - 1,
+                    paItemsPerPage
+                );
+    
+                const formattedData = response.faqs.map(item => ({
+                    no: item.id || "9999",
+                    type: item.type || "기타",
+                    title: item.title,
+                    writer: item.name || "운영자"
+                }));
+    
+                setFaqData(formattedData);
+                setTotalPages(response.pagination.totalPages);
+                setFaqLoading(false);
+            }
+    
         } catch (error) {
             console.error("검색 에러:", error);
             await SingleButtonAlert(
                 error.response?.data?.message || '검색 중 오류가 발생했습니다.'
             );
         } finally {
-            setIsLoading(false);
+            if (paActiveTab === "notice") setIsLoading(false);
+            if (paActiveTab === "faq") setFaqLoading(false);
         }
     };
 
@@ -107,11 +128,41 @@ function CounselorBoardPage() {
       }
     };
 
+    const fetchFaqData = async () => {
+        try {
+          setFaqLoading(true);
+          const response = await getFaqList(paCurrentPage - 1, paItemsPerPage);
+          
+          const formattedData = response.faqs.map(item => ({
+            no: item.id || "9999",
+            type: item.type || "기타",
+            title: item.title,
+            writer: item.name || "운영자",
+          }));
+      
+          setFaqData(formattedData);
+          setTotalPages(response.pagination.totalPages);
+        } catch (error) {
+          console.error("FAQ 목록 조회 실패:", error);
+          await SingleButtonAlert(
+            error.response?.data?.message || 'FAQ 목록을 불러오는데 실패했습니다.'
+          );
+        } finally {
+          setFaqLoading(false);
+        }
+      };
+
     useEffect(() => {
         if (paActiveTab === "notice" && !isSearching) {
             fetchNoticeData();
         }
     }, [paCurrentPage, paActiveTab, isSearching]);
+
+    useEffect(() => {
+        if (paActiveTab === "faq" && !isSearching) {
+          fetchFaqData();
+        }
+      }, [paCurrentPage, paActiveTab, isSearching]);
   
     let paBoardData;
     let paTitle;
@@ -126,11 +177,11 @@ function CounselorBoardPage() {
       paTitle = "질문";
     }
   
-    const paFilteredData = paActiveTab === "notice" 
-        ? noticeData
-        : paBoardData.filter((item) =>
-            item[paSearchCategory]?.toLowerCase().includes(paSearchTerm.toLowerCase())
-        );
+    const paFilteredData = (paActiveTab === "notice" || (paActiveTab === "faq" && isSearching))
+    ? paBoardData
+    : paBoardData.filter((item) =>
+        item[paSearchCategory]?.toLowerCase().includes(paSearchTerm.toLowerCase())
+    );
   
     const paPageData = paFilteredData;
     const emptyRowsCount = paItemsPerPage - paPageData.length;
@@ -311,7 +362,16 @@ function CounselorBoardPage() {
                                                             style={{ cursor: "pointer" }}
                                                         >
                                                             <td>{item.no}</td>
-                                                            <td>{item.type}</td>
+                                                            <td>
+                                                                {item.type === "usage"
+                                                                ? "이용안내"
+                                                                : item.type === "child"
+                                                                ? "아동상담/문의"
+                                                                : item.type === "center"
+                                                                ? "센터이용/문의"
+                                                                : "기타"}
+                                                            </td>
+
                                                             <td>{item.title}</td>
                                                             <td>{item.writer}</td>
                                                         </tr>

@@ -4,14 +4,10 @@ import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import { getNoticeDetail, deleteNotice, updateNotice } from '../../../api/boardNotice';
+import { getFaqDetail, updateFaq, deleteFaq } from '../../../api/boardFaq';
 import '../Css/CounselorBoardDetailPage.css';
 
 // 샘플 데이터
-
-const faqData = [
-  { no: 2, title: "자주 묻는 질문 TOP5", writer: "운영자", content: "자주 묻는 질문에 대한 답변입니다." },
-  { no: 1, title: "계정 관련 FAQ", writer: "운영자", content: "계정 관련 질문에 대한 답변입니다." },
-];
 
 const qnaData = [
   { no: 3, title: "문의드립니다", writer: "홍길동", status: "미답변", date: "2025-01-23", content: "문의드립니다." },
@@ -22,17 +18,20 @@ function CounselorBoardDetailPage() {
   const navigate = useNavigate();
   const { type, no } = useParams();
   const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
 
   const [noticeData, setNoticeData] = useState(null);  // 공지사항 데이터 state 추가
   const [isLoading, setIsLoading] = useState(false);   // 로딩 상태 추가
+
+  const [faqData, setFaqData] = useState(null);
   
   const [answer, setAnswer] = useState("");
   const [answers, setAnswers] = useState([]);
-  const editableRef = useRef(null);
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editedAnswerContent, setEditedAnswerContent] = useState("");
+  const editableRef = useRef(null);
 
   useEffect(() => {
     if (editingAnswerId && editableRef.current) {
@@ -60,6 +59,7 @@ function CounselorBoardDetailPage() {
 
   const handleEdit = () => {
     setIsEditing(true);
+    setEditedTitle(postData.title);
     setEditedContent(postData.content);
   };
 
@@ -71,49 +71,67 @@ function CounselorBoardDetailPage() {
             return;
         }
 
-        await updateNotice(no, postData.title, editedContent);
-        await SingleButtonAlert("성공적으로 수정되었습니다.");
+        // 제목이 비어있으면 경고
+        if (!editedTitle) {
+          await SingleButtonAlert('제목을 입력해주세요.');
+          return;
+        }
+
+        if (type === "notice") {
+            await updateNotice(no, editedTitle, editedContent);
+            // await SingleButtonAlert("성공적으로 수정되었습니다.");
+            await fetchNoticeDetail(no);
+        } else if (type === "faq") {
+            await updateFaq(no, editedTitle, "GENERAL", editedContent); // type은 임시로 "GENERAL"로 설정
+            // await SingleButtonAlert("성공적으로 수정되었습니다.");
+            await fetchFaqDetail(no);
+        }
         
-        // 수정 성공 후 상태 업데이트
-        await fetchNoticeDetail(no);  // 데이터 다시 불러오기
         setIsEditing(false);
+        setEditedTitle("");
+        setEditedContent("");
         setSelectedFile(null);
         
     } catch (error) {
         console.error('수정 처리 중 오류 발생:', error);
+        const errorMessage = type === "notice" 
+            ? '공지사항 수정에 실패했습니다.' 
+            : 'FAQ 수정에 실패했습니다.';
+            
         await SingleButtonAlert(
-            error.response?.data?.message || '공지사항 수정에 실패했습니다.'
+            error.response?.data?.message || errorMessage
         );
     }
 };
 
-  const handleDelete = async () => {
-    try {
-        // 토큰 확인
-        const token = sessionStorage.getItem("access_token");
-        if (!token) {
-            await SingleButtonAlert("로그인이 필요한 서비스입니다.");
-            navigate('/login');
-            return;
-        }
-
-        const result = await DoubleButtonAlert("정말 삭제 하시겠습니까?");
-        if (result.isConfirmed) {
-            await deleteNotice(no);
-            await SingleButtonAlert("성공적으로 삭제되었습니다.");
-            navigate('/counselor/board');
-        }
-    } catch (error) {
-        console.error('삭제 처리 중 오류 발생:', error);
-        if (error.response?.status === 403) {
-            await SingleButtonAlert('삭제 권한이 없습니다.');
-        } else {
-            await SingleButtonAlert(
-                error.response?.data?.message || '공지사항 삭제에 실패했습니다.'
-            );
-        }
-    }
-  };
+const handleDelete = async () => {
+  try {
+      const result = await DoubleButtonAlert("정말 삭제 하시겠습니까?");
+      if (result.isConfirmed) {
+          if (type === "notice") {
+              await deleteNotice(no);
+              await SingleButtonAlert("성공적으로 삭제되었습니다.");
+              navigate('/counselor/board');
+          } else if (type === "faq") {
+              await deleteFaq(no);
+              await SingleButtonAlert("성공적으로 삭제되었습니다.");
+              navigate('/counselor/board');
+          }
+      }
+  } catch (error) {
+      console.error('삭제 처리 중 오류 발생:', error);
+      if (error.response?.status === 403) {
+          await SingleButtonAlert('삭제 권한이 없습니다.');
+      } else {
+          const errorMessage = type === "notice" 
+              ? '공지사항 삭제에 실패했습니다.' 
+              : 'FAQ 삭제에 실패했습니다.';
+          await SingleButtonAlert(
+              error.response?.data?.message || errorMessage
+          );
+      }
+  }
+};
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -190,19 +208,48 @@ function CounselorBoardDetailPage() {
     }
   };
 
-  useEffect(() => {
-    if (type === "notice" && no && !viewCountUpdated.current) {
+  // FAQ 상세 정보 조회 함수 
+const fetchFaqDetail = async (id) => {
+  try {
+    setIsLoading(true);
+    const response = await getFaqDetail(id);
+    
+    // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
+    const formattedData = {
+      no: response.id,
+      title: response.title,
+      content: response.faqAnswer
+    };
+  
+    setFaqData(formattedData);
+  } catch (error) {
+    console.error("FAQ 상세 조회 실패:", error);
+    await SingleButtonAlert(
+      error.response?.data?.message || 'FAQ를 불러오는데 실패했습니다.'
+    );
+    navigate('/counselor/board');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+useEffect(() => {
+  if (no && !viewCountUpdated.current) {
+    if (type === "notice") {
       fetchNoticeDetail(no);
-      viewCountUpdated.current = true;  // 조회수 업데이트 완료 표시
+    } else if (type === "faq") {
+      fetchFaqDetail(no);
     }
-  }, [type, no]);
+    viewCountUpdated.current = true;
+  }
+}, [type, no]);
 
   // 해당하는 게시판 데이터를 가져옴
   let postData;
   if (type === "notice") {
     postData = noticeData;  // API로 받아온 데이터 사용
   } else if (type === "faq") {
-    postData = faqData.find((post) => post.no === Number(no));
+    postData = faqData;
   } else if (type === "qna") {
     postData = qnaData.find((post) => post.no === Number(no));
   }
@@ -267,35 +314,40 @@ function CounselorBoardDetailPage() {
 
           <div className="co-detail-card">
             <div className="co-detail-title-section">
-              <h2 className="co-detail-post-title">{postData.title}</h2>
+              {isEditing ? (
+                  <input
+                      type="text"
+                      value={editedTitle}
+                      onChange={(e) => setEditedTitle(e.target.value)}
+                      className="co-detail-post-title-input"
+                  />
+              ) : (
+                  <h2 className="co-detail-post-title">{postData.title}</h2>
+              )}
               <div className="co-detail-buttons">
-                {!isEditing && type !== "qna" && (
-                  <button onClick={handleEdit} className="co-detail-edit-btn">
-                    수정
-                  </button>
-                )}
-                {isEditing ? (
-                  <button onClick={handleEditComplete} className="co-detail-edit-btn">
-                    수정완료
-                  </button>
-                ) : (
-                  <button onClick={handleDelete} className="co-detail-delete-btn">
-                    삭제
-                  </button>
-                )}
+                  {!isEditing && type !== "qna" && (
+                      <button onClick={handleEdit} className="co-detail-edit-btn">
+                          수정
+                      </button>
+                  )}
+                  {isEditing ? (
+                      <button onClick={handleEditComplete} className="co-detail-edit-btn">
+                          수정완료
+                      </button>
+                  ) : (
+                      <button onClick={handleDelete} className="co-detail-delete-btn">
+                          삭제
+                      </button>
+                  )}
               </div>
             </div>
 
-            {type === "notice" || type === "qna" ? (
+            {(type === "notice" || type === "qna") && (
               <div className="co-detail-info-text">
                 <span><strong>작성자:</strong> {postData.writer}</span>
                 {type === "qna" && <span> | <strong>답변 상태:</strong> {postData.status}</span>}
                 <span> | <strong>작성일:</strong> {postData.date}</span>
                 {type === "notice" && <span> | <strong>조회수:</strong> {postData.views}회</span>}
-              </div>
-            ) : (
-              <div className="co-detail-info-text">
-                <strong>작성자:</strong> {postData.writer}
               </div>
             )}
 

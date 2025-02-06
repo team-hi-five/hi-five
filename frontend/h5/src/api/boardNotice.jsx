@@ -46,24 +46,16 @@ export const getNoticePosts = async (pageNumber = 0, pageSize = 10) => {
 };
 
 // ✅ 공지사항 검색(제목, 작성자) API 요청
-export const searchNotices = async (keyword, searchType = 'title', pageNumber = 0, pageSize = 10, email, pwd, role) => {
+export const searchNotices = async (keyword, searchType = 'title', pageNumber = 0, pageSize = 10) => {
     try {
         // 필수값 검증
         if (!keyword) {
             throw new Error("검색 키워드는 필수 입력값입니다.");
         }
-        if (!email || !pwd || !role) {
-            throw new Error("email, pwd, role은 필수 입력값입니다.");
-        }
 
         // 검색 타입 검증
         if (!['title', 'writer'].includes(searchType)) {
             throw new Error("검색 타입은 'title' 또는 'writer'만 가능합니다.");
-        }
-
-        // role 검증
-        if (!['ROLE_CONSULTANT', 'ROLE_PARENT'].includes(role)) {
-            throw new Error("role은 'ROLE_CONSULTANT' 또는 'ROLE_PARENT'만 가능합니다.");
         }
 
         console.log("📢 공지사항 검색 요청");
@@ -78,11 +70,6 @@ export const searchNotices = async (keyword, searchType = 'title', pageNumber = 
                 keyword,
                 pageNumber,
                 pageSize
-            },
-            data: {
-                email,
-                pwd,
-                role
             }
         });
 
@@ -167,3 +154,4 @@ export const deleteNotice = async (noticeId) => {
         throw error;
     }
 };
+

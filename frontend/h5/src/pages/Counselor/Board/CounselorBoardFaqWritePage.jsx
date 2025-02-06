@@ -8,12 +8,11 @@ import { useBoardStore } from '../../../store/boardStore';
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
-// import { createFaq } from "../../../api/boardFaq";
+import { createFaq } from "../../../api/boardFaq";
 import '../Css/CounselorBoardFaqWritePage.css';
 
 function CounselorBoardFaqWritePage() {
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [faqAnswer, setFaqAnswer] = useState("");
   const [selectedType, setSelectedType] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,10 +44,6 @@ function CounselorBoardFaqWritePage() {
       showToast('warn', '알림', '유형을 선택해주세요.');
       return false;
     }
-    if (!content.trim()) {
-      showToast('warn', '알림', '질문 내용을 입력해주세요.');
-      return false;
-    }
     if (!faqAnswer.trim()) {
       showToast('warn', '알림', '답변을 입력해주세요.');
       return false;
@@ -67,7 +62,7 @@ function CounselorBoardFaqWritePage() {
       }
       setIsSubmitting(true);
 
-      await createFaq(title, content, faqAnswer);
+      await createFaq(title, selectedType, faqAnswer);
       
       await SingleButtonAlert('FAQ가 등록되었습니다.');
       
@@ -75,6 +70,7 @@ function CounselorBoardFaqWritePage() {
       navigate('/counselor/board');
 
     } catch (error) {
+      console.error('FAQ 등록 실패:', error);
       await SingleButtonAlert(error.response?.data?.message || 'FAQ 등록에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
@@ -82,7 +78,7 @@ function CounselorBoardFaqWritePage() {
   };
   
   const handleCancel = async () => {
-    if (title.trim() || content.trim() || faqAnswer.trim()) {
+    if (title.trim() || faqAnswer.trim() || selectedType) {
       const result = await DoubleButtonAlert(
         '작성 중인 내용이 있습니다. 정말 취소하시겠습니까?',
         '예',
@@ -101,6 +97,7 @@ function CounselorBoardFaqWritePage() {
 
   return (
     <div className="co-write-page">
+      <Toast ref={toast} />
       <CounselorHeader />
       <div className="co-write-container">
         <label className="co-write-label">제목</label>
