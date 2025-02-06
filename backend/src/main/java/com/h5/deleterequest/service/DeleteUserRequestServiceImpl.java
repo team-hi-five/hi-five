@@ -136,6 +136,8 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
                                     .gender(childUserEntity.getGender())
                                     .age(getAge(childUserEntity.getBirth().toString()))
                                     .parentUserPhone(childUserEntity.getParentUserEntity().getPhone())
+                                    .parentUserName(childUserEntity.getParentUserEntity().getName())
+                                    .birth(childUserEntity.getBirth().toString())
                                     .parentUserEmail(childUserEntity.getParentUserEntity().getEmail())
                                     .firConsultDt(childUserEntity.getFirstConsultDt().toString())
                                     .interest(childUserEntity.getInterest())
