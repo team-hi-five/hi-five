@@ -1,0 +1,6 @@
+.ch-child-game-list-container{
+    background: linear-gradient(to bottom, #DEF0FF, #FFFFFF 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}

@@ -1,0 +1,20 @@
+.ch-chatbot-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.ch-chatbot-box {
+  position: absolute;
+  width: 75%;
+  height: 75%;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -55%);
+  border-radius: 2%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  z-index: 3;
+}
