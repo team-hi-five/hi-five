@@ -110,10 +110,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         int childUserId = scheduleSearchByChildRequestDto.getChildId();
+        int year = scheduleSearchByChildRequestDto.getYear();
+        int month = scheduleSearchByChildRequestDto.getMonth();
 
-        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserId(childUserId);
+        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserIdAndYearMonth(childUserId, year, month);
 
-        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserId(childUserId);
+        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserIdAndYearMonth(childUserId, year, month);
 
         return Stream.concat(consultDates.stream(), gameDates.stream())
                 .distinct()
@@ -134,10 +136,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         int childUserId = scheduleSearchByChildRequestDto.getChildId();
+        int year = scheduleSearchByChildRequestDto.getYear();
+        int month = scheduleSearchByChildRequestDto.getMonth();
 
-        List<ConsultMeetingScheduleEntity> consultMeetings = consultMeetingScheduleRepository.findByChildUserId(childUserId);
+        List<ConsultMeetingScheduleEntity> consultMeetings = consultMeetingScheduleRepository.findByChildUserIdAndYearMonth(childUserId,year, month);
 
-        List<GameMeetingScheduleEntity> gameMeetings = gameMeetingScheduleRepository.findByChildUserId(childUserId);
+        List<GameMeetingScheduleEntity> gameMeetings = gameMeetingScheduleRepository.findByChildUserIdAndYearMonth(childUserId,year, month);
 
         List<ScheduleResponseDto> schedules = new ArrayList<>();
 

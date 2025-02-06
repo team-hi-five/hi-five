@@ -21,12 +21,23 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
             @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(c.schdlDttm) FROM ConsultMeetingScheduleEntity c " +
-            "WHERE c.childUserEntity.id = :childUserId AND c.deleteDttm IS NULL")
-    List<String> findDatesByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE c.childUserEntity.id = :childUserId " +
+            "AND YEAR(c.schdlDttm) = :year " +
+            "AND MONTH(c.schdlDttm) = :month " +
+            "AND c.deleteDttm IS NULL")
+    List<String> findDatesByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                    @Param("year") int year,
+                                                    @Param("month") int month);
 
     @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
-            "WHERE c.childUserEntity.id = :childUserId AND c.deleteDttm IS NULL")
-    List<ConsultMeetingScheduleEntity> findByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE c.childUserEntity.id = :childUserId " +
+            "AND YEAR(c.schdlDttm) = :year " +
+            "AND MONTH(c.schdlDttm) = :month " +
+            "AND c.deleteDttm IS NULL")
+    List<ConsultMeetingScheduleEntity> findByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                                     @Param("year") int year,
+                                                                     @Param("month") int month);
+
 
     @Query("SELECT TIME_FORMAT(c.schdlDttm, '%H:%i') FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.host.id = :consultantUserId AND DATE(c.schdlDttm) = :date AND c.deleteDttm IS NULL")

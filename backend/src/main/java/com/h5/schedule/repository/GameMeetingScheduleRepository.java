@@ -21,12 +21,23 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
             @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(g.schdlDttm) FROM GameMeetingScheduleEntity g " +
-            "WHERE g.childUserEntity.id = :childUserId AND g.deleteDttm IS NULL")
-    List<String> findDatesByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE g.childUserEntity.id = :childUserId " +
+            "AND YEAR(g.schdlDttm) = :year " +
+            "AND MONTH(g.schdlDttm) = :month " +
+            "AND g.deleteDttm IS NULL")
+    List<String> findDatesByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                    @Param("year") int year,
+                                                    @Param("month") int month);
 
     @Query("SELECT g FROM GameMeetingScheduleEntity g " +
-            "WHERE g.childUserEntity.id = :childUserId AND g.deleteDttm IS NULL")
-    List<GameMeetingScheduleEntity> findByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE g.childUserEntity.id = :childUserId " +
+            "AND YEAR(g.schdlDttm) = :year " +
+            "AND MONTH(g.schdlDttm) = :month " +
+            "AND g.deleteDttm IS NULL")
+    List<GameMeetingScheduleEntity> findByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                                  @Param("year") int year,
+                                                                  @Param("month") int month);
+
 
     @Query("SELECT TIME_FORMAT(g.schdlDttm, '%H:%i') FROM GameMeetingScheduleEntity g " +
             "WHERE g.host.id = :consultantUserId AND DATE(g.schdlDttm) = :date AND g.deleteDttm IS NULL")
