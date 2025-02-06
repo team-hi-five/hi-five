@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
+import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
+import { getNoticeDetail, deleteNotice, updateNotice } from '../../../api/boardNotice';
 import '../Css/CounselorBoardDetailPage.css';
 
 // 샘플 데이터
-const noticeData = [
-  { no: 11, title: "새로운 기능 안내", writer: "운영자", views: 128, date: "2025-01-22", content: "새로운 기능에 대한 공지사항 내용입니다." },
-  { no: 10, title: "점검 공지", writer: "운영자", views: 99, date: "2025-01-18", content: "사이트 점검 관련 공지사항 내용입니다." },
-];
 
 const faqData = [
   { no: 2, title: "자주 묻는 질문 TOP5", writer: "운영자", content: "자주 묻는 질문에 대한 답변입니다." },
@@ -21,14 +19,18 @@ const qnaData = [
 ];
 
 function CounselorBoardDetailPage() {
-  const editableRef = useRef(null);
   const navigate = useNavigate();
   const { type, no } = useParams();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+
+  const [noticeData, setNoticeData] = useState(null);  // 공지사항 데이터 state 추가
+  const [isLoading, setIsLoading] = useState(false);   // 로딩 상태 추가
+  
   const [answer, setAnswer] = useState("");
   const [answers, setAnswers] = useState([]);
+  const editableRef = useRef(null);
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editedAnswerContent, setEditedAnswerContent] = useState("");
 
@@ -46,6 +48,12 @@ function CounselorBoardDetailPage() {
     }
   }, [editingAnswerId]);
 
+  useEffect(() => {
+    if (isEditing && editableRef.current) {
+        editableRef.current.innerHTML = editedContent || postData.content;
+    }
+  }, [isEditing]);
+
   const handleBack = () => {
     navigate(-1);
   };
@@ -57,45 +65,53 @@ function CounselorBoardDetailPage() {
 
   const handleEditComplete = async () => {
     try {
-      // API 호출이 들어갈 자리
-      // 예: await updatePost(type, no, { content: editedContent, file: selectedFile });
-      
-      // 임시로 데이터 직접 수정 (API 연동 시 제거)
-      if (type === "notice") {
-        const postIndex = noticeData.findIndex(post => post.no === Number(no));
-        if (postIndex !== -1) {
-          noticeData[postIndex] = {
-            ...noticeData[postIndex],
-            content: editedContent
-          };
+        // 수정된 내용이 없으면 경고
+        if (!editedContent) {
+            await SingleButtonAlert('수정할 내용을 입력해주세요.');
+            return;
         }
-      } else if (type === "faq") {
-        const postIndex = faqData.findIndex(post => post.no === Number(no));
-        if (postIndex !== -1) {
-          faqData[postIndex] = {
-            ...faqData[postIndex],
-            content: editedContent
-          };
-        }
-      }
 
-      setIsEditing(false);
-      setSelectedFile(null);
+        await updateNotice(no, postData.title, editedContent);
+        await SingleButtonAlert("성공적으로 수정되었습니다.");
+        
+        // 수정 성공 후 상태 업데이트
+        await fetchNoticeDetail(no);  // 데이터 다시 불러오기
+        setIsEditing(false);
+        setSelectedFile(null);
+        
     } catch (error) {
-      console.error('수정 처리 중 오류 발생:', error);
+        console.error('수정 처리 중 오류 발생:', error);
+        await SingleButtonAlert(
+            error.response?.data?.message || '공지사항 수정에 실패했습니다.'
+        );
     }
-  };
+};
 
   const handleDelete = async () => {
     try {
-      const result = await DoubleButtonAlert("정말 삭제 하시겠습니까?");
-      if (result.isConfirmed) {
-        // 삭제 API 호출이 들어갈 자리
-        // 예: await deletePost(type, no);
-        navigate(`/counselor/board`);
-      }
+        // 토큰 확인
+        const token = sessionStorage.getItem("access_token");
+        if (!token) {
+            await SingleButtonAlert("로그인이 필요한 서비스입니다.");
+            navigate('/login');
+            return;
+        }
+
+        const result = await DoubleButtonAlert("정말 삭제 하시겠습니까?");
+        if (result.isConfirmed) {
+            await deleteNotice(no);
+            await SingleButtonAlert("성공적으로 삭제되었습니다.");
+            navigate('/counselor/board');
+        }
     } catch (error) {
-      console.error('삭제 처리 중 오류 발생:', error);
+        console.error('삭제 처리 중 오류 발생:', error);
+        if (error.response?.status === 403) {
+            await SingleButtonAlert('삭제 권한이 없습니다.');
+        } else {
+            await SingleButtonAlert(
+                error.response?.data?.message || '공지사항 삭제에 실패했습니다.'
+            );
+        }
     }
   };
 
@@ -143,10 +159,48 @@ function CounselorBoardDetailPage() {
     setAnswers(answers.filter(a => a.id !== id));
   };
 
+  // 조회 여부를 추적하기 위한 ref 추가
+  const viewCountUpdated = useRef(false);
+
+  // 공지사항 상세 정보 조회 함수
+  const fetchNoticeDetail = async (id) => {
+    try {
+      setIsLoading(true);
+      const response = await getNoticeDetail(id);
+      
+      // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
+      const formattedData = {
+        no: response.id,
+        title: response.title,
+        writer: response.consultantUserEmail || "운영자",
+        content: response.content,
+        views: response.viewCnt,
+        date: new Date(response.createDttm).toISOString().split('T')[0]
+      };
+      
+      setNoticeData(formattedData);
+    } catch (error) {
+      console.error("공지사항 상세 조회 실패:", error);
+      await SingleButtonAlert(
+        error.response?.data?.message || '공지사항을 불러오는데 실패했습니다.'
+      );
+      navigate('/counselor/board');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (type === "notice" && no && !viewCountUpdated.current) {
+      fetchNoticeDetail(no);
+      viewCountUpdated.current = true;  // 조회수 업데이트 완료 표시
+    }
+  }, [type, no]);
+
   // 해당하는 게시판 데이터를 가져옴
   let postData;
   if (type === "notice") {
-    postData = noticeData.find((post) => post.no === Number(no));
+    postData = noticeData;  // API로 받아온 데이터 사용
   } else if (type === "faq") {
     postData = faqData.find((post) => post.no === Number(no));
   } else if (type === "qna") {
@@ -167,6 +221,26 @@ function CounselorBoardDetailPage() {
           </div>
           <div className="co-detail-card">
             <h2 className="co-detail-post-title">게시글을 찾을 수 없습니다.</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 로딩 중일 때 표시할 UI
+  if (isLoading) {
+    return (
+      <div className="co-detail-page">
+        <CounselorHeader />
+        <div className="co-detail-container">
+          <div className="co-detail-topbar">
+            <button className="co-detail-back-btn" onClick={handleBack}>
+              ←
+            </button>
+            <span className="co-detail-top-title">공지사항 상세보기</span>
+          </div>
+          <div className="co-detail-card">
+            <div className="co-detail-loading">로딩 중...</div>
           </div>
         </div>
       </div>
@@ -226,14 +300,25 @@ function CounselorBoardDetailPage() {
             )}
 
             <div className="co-detail-content">
-              <div
-                contentEditable={isEditing}
-                suppressContentEditableWarning={true}
-                onInput={(e) => setEditedContent(e.currentTarget.textContent || "")}
-                className={isEditing ? "co-detail-content-editable" : ""}
-              >
-                {postData.content}
-              </div>
+                {isEditing ? (
+                    <div
+                        ref={editableRef}
+                        contentEditable={true}
+                        suppressContentEditableWarning={true}
+                        className="co-detail-content-editable"
+                        onInput={(e) => {
+                            const newContent = e.currentTarget.innerHTML;
+                            if (newContent !== editedContent) {
+                                setEditedContent(newContent);
+                            }
+                        }}
+                    />
+                ) : (
+                    <div
+                        dangerouslySetInnerHTML={{ __html: postData.content }}
+                        className="co-detail-content-view"
+                    />
+                )}
             </div>
 
             <div className="co-detail-file">

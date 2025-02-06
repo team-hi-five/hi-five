@@ -46,11 +46,14 @@ export const getNoticePosts = async (pageNumber = 0, pageSize = 10) => {
 };
 
 // ✅ 공지사항 검색(제목, 작성자) API 요청
-export const searchNotices = async (keyword, searchType = 'title', pageNumber = 0, pageSize = 10) => {
+export const searchNotices = async (keyword, searchType = 'title', pageNumber = 0, pageSize = 10, email, pwd, role) => {
     try {
         // 필수값 검증
         if (!keyword) {
             throw new Error("검색 키워드는 필수 입력값입니다.");
+        }
+        if (!email || !pwd || !role) {
+            throw new Error("email, pwd, role은 필수 입력값입니다.");
         }
 
         // 검색 타입 검증
@@ -58,7 +61,12 @@ export const searchNotices = async (keyword, searchType = 'title', pageNumber = 
             throw new Error("검색 타입은 'title' 또는 'writer'만 가능합니다.");
         }
 
-        console.log("📢 공지사항 검색 요청:", { keyword, searchType, pageNumber, pageSize });
+        // role 검증
+        if (!['ROLE_CONSULTANT', 'ROLE_PARENT'].includes(role)) {
+            throw new Error("role은 'ROLE_CONSULTANT' 또는 'ROLE_PARENT'만 가능합니다.");
+        }
+
+        console.log("📢 공지사항 검색 요청");
 
         // 검색 타입에 따른 URL 설정
         const searchUrl = searchType === 'title' 
@@ -67,9 +75,14 @@ export const searchNotices = async (keyword, searchType = 'title', pageNumber = 
 
         const response = await api.get(searchUrl, {
             params: {
-                keyword: keyword,
-                pageNumber: pageNumber,
-                pageSize: pageSize
+                keyword,
+                pageNumber,
+                pageSize
+            },
+            data: {
+                email,
+                pwd,
+                role
             }
         });
 
@@ -119,7 +132,7 @@ export const updateNotice = async (id, title, content) => {
 
         console.log("📢 공지사항 수정 요청:", { id, title, content });
 
-        const response = await api.put(`/notices/update`, {
+        const response = await api.put(`/notice/update`, {
             id: id,
             title: title,
             content: content
@@ -144,7 +157,7 @@ export const deleteNotice = async (noticeId) => {
 
         console.log("📢 공지사항 삭제 요청:", { noticeId });
 
-        const response = await api.delete(`/notice/delete/${noticeId}`);
+        const response = await api.post(`/notice/delete/${noticeId}`);
 
         console.log("✅ 공지사항 삭제 성공");
         return response.data;

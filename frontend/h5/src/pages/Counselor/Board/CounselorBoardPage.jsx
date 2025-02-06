@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
 import Footer from "../../../components/common/footer";
-import { getNoticePosts } from '../../../api/boardNotice';
+import { getNoticePosts, searchNotices } from '../../../api/boardNotice';
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import '../Css/CounselorBoardPage.css';
 
@@ -22,6 +22,7 @@ const qnaData = [
 function CounselorBoardPage() {
     const [paActiveTab, setPaActiveTab] = useState("notice");
     const [paSearchCategory, setPaSearchCategory] = useState("title");
+    const [isSearching, setIsSearching] = useState(false);  // 검색 모드인지 여부
     const [paSearchTerm, setPaSearchTerm] = useState("");
     const [paCurrentPage, setPaCurrentPage] = useState(1);
     const [noticeData, setNoticeData] = useState([]);
@@ -31,9 +32,55 @@ function CounselorBoardPage() {
   
     const navigate = useNavigate();
 
+    // 검색 API 호출 함수
+    const handleSearch = async () => {
+        if (!paSearchTerm.trim()) {
+            await SingleButtonAlert('검색어를 입력해주세요.');
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            setIsSearching(true);
+
+            const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
+            const response = await searchNotices(
+                paSearchTerm,
+                searchType,
+                paCurrentPage - 1,
+                paItemsPerPage,
+                // Request Body 데이터 추가 (실제 값은 로그인 정보에서 가져와야 함)
+                'user@example.com',  // email
+                'password123',       // pwd
+                'ROLE_CONSULTANT'    // role
+            );
+
+            const formattedData = response.notices.map(item => ({
+                no: item.id || "9999",
+                title: item.title,
+                writer: item.consultantUserEmail || "운영자",
+                views: item.viewCnt || 0,
+                date: new Date(item.createDttm).toISOString().split('T')[0]
+            }));
+
+            setNoticeData(formattedData);
+            setTotalPages(response.pagination.totalPages);
+
+        } catch (error) {
+            console.error("검색 에러:", error);
+            await SingleButtonAlert(
+                error.response?.data?.message || '검색 중 오류가 발생했습니다.'
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const fetchNoticeData = async () => {
       try {
           setIsLoading(true);
+          setIsSearching(false);  // 검색 모드 해제
+
           const response = await getNoticePosts(
               paCurrentPage - 1, 
               paItemsPerPage
@@ -42,7 +89,7 @@ function CounselorBoardPage() {
           const formattedData = response.notices.map(item => ({
               no: item.id || "9999",
               title: item.title,
-              writer: item.consultantUserEmail || "운영자",
+              writer: item.name || "운영자",
               views: item.viewCnt || 0,
               date: new Date(item.createDttm).toISOString().split('T')[0]
           }));
@@ -61,10 +108,10 @@ function CounselorBoardPage() {
     };
 
     useEffect(() => {
-        if (paActiveTab === "notice") {
+        if (paActiveTab === "notice" && !isSearching) {
             fetchNoticeData();
         }
-    }, [paCurrentPage, paActiveTab]);
+    }, [paCurrentPage, paActiveTab, isSearching]);
   
     let paBoardData;
     let paTitle;
@@ -89,9 +136,11 @@ function CounselorBoardPage() {
     const emptyRowsCount = paItemsPerPage - paPageData.length;
   
     const handleTabClick = (tabName) => {
-      setPaActiveTab(tabName);
-      setPaSearchTerm("");
-      setPaCurrentPage(1);
+        setPaActiveTab(tabName);
+        setPaSearchTerm("");
+        setPaSearchCategory("title");
+        setPaCurrentPage(1);
+        setIsSearching(false);
     };
   
     const handleSearchChange = (e) => {
@@ -100,9 +149,17 @@ function CounselorBoardPage() {
     };
   
     const handleCategoryClick = (category) => {
-      setPaSearchCategory(category);
-      setPaSearchTerm("");
-      setPaCurrentPage(1);
+        setPaSearchCategory(category);
+        setPaSearchTerm("");
+        setPaCurrentPage(1);
+        setIsSearching(false);
+    };
+
+    // 검색어 입력 시 Enter 키 처리
+    const handleSearchKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
     };
   
     const handlePageChange = (pageNumber) => {
@@ -186,8 +243,9 @@ function CounselorBoardPage() {
                             placeholder={`${paTitle} 내 검색`}
                             value={paSearchTerm}
                             onChange={handleSearchChange}
+                            onKeyPress={handleSearchKeyPress}
                         />
-                        <button className="co-board-search-button">검색</button>
+                        <button className="co-board-search-button" onClick={handleSearch}>검색</button>
                     </div>
 
                     <div className="co-board-table-header">
