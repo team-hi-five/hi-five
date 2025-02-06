@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import './ChildRegistrationModal.css';
 import DoubleButtonAlert from '../common/DoubleButtonAlert';
 import SingleButtonAlert from '../common/SingleButtonAlert';
-import { registerParentAccount } from "/src/api/userCounselor"; // API 호출 추가
+import { registerParentAccount, checkConsultantParentEmail } from "/src/api/userCounselor"; // API 호출 추가
 
 const RegistrationModal = ({ onClose }) => {
   const fileInputRef = useRef(null);
@@ -59,16 +59,32 @@ const RegistrationModal = ({ onClose }) => {
 
   // 이메일 중복 확인
   const handleEmailCheck = async () => {
-    const isDuplicate = true; // 서버 연동 시 실제 API 호출 필요
-    if (isDuplicate) {
-      const result = await DoubleButtonAlert('이미 있는 계정입니다.<br>아동을 추가하시겠습니까?');
-      if (result.isConfirmed) {
-        console.log('아동 추가 진행');
+    // 이메일 형식 검증 (@ 포함 여부 확인)
+    if (!formData.parentEmail.includes("@")) {
+      await SingleButtonAlert("이메일 형식이 올바르지 않습니다.");
+      return;
+    }
+  
+    try {
+      const response = await checkConsultantParentEmail(formData.parentEmail); // API 호출
+  
+      if (response === false) {
+        await SingleButtonAlert("사용 가능한 이메일입니다.");
       } else {
-        console.log('아동 추가 취소');
+        const result = await DoubleButtonAlert("이미 있는 계정입니다.<br>아동을 추가하시겠습니까?");
+        if (result.isConfirmed) {
+          console.log("아동 추가 진행");
+        } else {
+          console.log("아동 추가 취소");
+        }
       }
+    } catch (error) {
+      console.error("❌ 이메일 중복 확인 실패:", error);
+      await SingleButtonAlert("이메일 중복 확인 중 오류가 발생했습니다.");
     }
   };
+  
+
 
   // 파일 선택 핸들러
   const handleFileSelect = (e) => {

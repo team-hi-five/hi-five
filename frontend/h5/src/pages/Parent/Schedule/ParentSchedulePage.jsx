@@ -1,11 +1,12 @@
 import ParentHeader from "../../../components/Parent/ParentHeader";
 import Footer from "../../../components/common/footer";
 import { Calendar } from 'primereact/calendar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addLocale } from 'primereact/api';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import '../Parentcss/ParentSchedulePage.css';
+import { getScheduledDatesByParent } from "/src/api/schedule";
 
 addLocale('ko', {
     firstDayOfWeek: 0,
@@ -24,6 +25,21 @@ function ParentSchedulePage() {
     const [date, setDate] = useState(new Date());
     const [searchTerm] = useState('');
     const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [scheduledDates, setScheduledDates] = useState([]);
+
+    useEffect(() => {
+        async function fetchScheduledDates() {
+            try {
+                const dates = await getScheduledDatesByParent();
+                setScheduledDates(dates.map(date => new Date(date))); // 문자열 날짜를 Date 객체로 변환
+            } catch (error) {
+                console.error("상담 일정 날짜를 불러오는 데 실패했습니다.", error);
+            }
+        }
+        fetchScheduledDates();
+    }, []);
+
+
     const [schedules] = useState([
         {
             time: "11:00 ~ 12:00",
@@ -82,13 +98,6 @@ function ParentSchedulePage() {
         setCurrentMonth(e.value);
     };
 
-    // 월 변경 핸들러
-    const handleViewDateChange = (e) => {
-        const newDate = e.value;
-        setCurrentMonth(newDate);
-        setDate(newDate);
-    };
-
     // 필터링된 스케줄을 계산
     const filteredSchedules = schedules.filter(schedule => {
         if (searchTerm) {
@@ -144,7 +153,7 @@ function ParentSchedulePage() {
                             <Calendar 
                                 value={date} 
                                 onChange={handleDateSelect}
-                                onViewDateChange={handleViewDateChange} // 월 변경 이벤트 추가
+                                onViewDateChange={(e) => setCurrentMonth(e.value)}
                                 inline 
                                 dateFormat="yy년 mm월"
                                 locale="ko"
@@ -152,13 +161,9 @@ function ParentSchedulePage() {
                                 monthNavigator
                                 yearNavigator
                                 yearRange="2000:2040"
-                                templates={{
-                                    decade: (options) => {
-                                        return `${options.value}년`;
-                                    }
-                                }}
+                                disabledDates={scheduledDates} // 📌 예약된 날짜 비활성화
                             />
-                        </div>z
+                        </div>
                     </div>
                     <div className="pa-notcalendar">
                         <div className="pa-schedule-section">
