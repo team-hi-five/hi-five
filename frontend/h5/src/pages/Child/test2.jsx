@@ -10,42 +10,26 @@ function OpenviduVideo() {
   // 참가자 관리
   const [subscribers, setSubscribers] = useState([]);
 
-  // 서버 주소
-  const APPLICATION_SERVER_URL = "https://hi-five.site:4443/openvidu/";
-  // SecretKey
-  const OPENVIDU_SECRET = "rz7FazDNZkSqkJmr";
-
   // DOM 참조를 위한 훅
   const videoRef = useRef(null);
   const OVRef = useRef(null);
-  const [session, setSession] = useState();
 
-  //1. 토큰 발급(openVidu 서버에서 생성)
+  // OpenVidu 서버 주소 (테스트용)
+  const APPLICATION_SERVER_URL = "http://3.26.91.252:4443";
+
+  // 1. 토큰 받기
   const getToken = useCallback(async () => {
-    try {
-      // 세션 ID 생성
-      const MysessionId = `session_C205_${Date.now()}`;
-      // 위 생성된 아이디로 OPenVidu  서버에 세션 생성 요청
-      const sessionId = await createSession(MysessionId);
-      // 위 생성된 아이디로 토큰 생성
-      return await createToken(sessionId);
-    } catch (error) {
-      console.error("Error getting token:", error);
-      throw error;
-    }
+    // const sessionId = await createSession();
+    // return await createToken(sessionId);
+    return "";
   }, []);
 
   // 2. 세션 생성
   const createSession = async (sessionId) => {
     const response = await axios.post(
-      `${APPLICATION_SERVER_URL}api/sessions`,
+      APPLICATION_SERVER_URL + "api/sessions",
       { customSessionId: sessionId },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Basic ${btoa(`OPENVIDUAPP:${OPENVIDU_SECRET}`)}`,
-        },
-      }
+      { headers: { "Content-Type": "application/json" } }
     );
     return response.data;
   };
@@ -55,18 +39,13 @@ function OpenviduVideo() {
     const response = await axios.post(
       APPLICATION_SERVER_URL + "api/sessions/" + sessionId + "/connections",
       {},
-      {
-        headers: { "Content-Type": "application/json" },
-        Authorization: `Basic ${btoa(`OPENVIDUAPP:${OPENVIDU_SECRET}`)}`,
-      }
+      { headers: { "Content-Type": "application/json" } }
     );
     return response.data;
   };
-
   // 4. 세션에 참가(사용자)
   const joinSession = useCallback(async () => {
-    // 위 import문과 다른 OpenVidu 아래는 클래스문!
-    OVRef.current = new OpenVidu();
+    OVRef.current = new Openvidu();
 
     const newSession = OVRef.current.initSession();
     setSession(newSession);
@@ -77,11 +56,11 @@ function OpenviduVideo() {
 
     try {
       const tokenToUse = Token || (await getToken());
-      await session.connect(Token, { clientData: userId });
+      await connectToSession(tokenToUse, newSession);
     } catch (err) {
       console.error("Error getting token:", err);
       if (err) {
-        console.err({
+        err({
           error: err.error,
           message: err.message,
           code: err.code,
@@ -89,9 +68,7 @@ function OpenviduVideo() {
         });
       }
     }
-  }, [Token, getToken, connectToSession]);
-
-  const connectWebCam = async () => {};
+  }, [Token]);
 
   // 5. 세션 연결
   // 유저를 어떤걸로 식별할 것인가? 유저이름? 유저 아이디? 유저 이메일 주소..? 아동은 어떻게 식별해야하지?
