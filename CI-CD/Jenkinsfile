@@ -9,7 +9,7 @@ pipeline {
         FRONTEND_TAG    = "latest"
         
         // 프로덕션 배포에 사용할 docker-compose 파일 경로 (예: Git 루트에 deploy/ 폴더에 작성)
-        DOCKER_COMPOSE_FILE = "deploy/docker-compose.yml"
+        DOCKER_COMPOSE_FILE = "project/docker-compose.yml"
         
         // 배포 후 검증할 URL (도메인이나 IP에 맞게 수정)
         FRONTEND_URL        = "https://hi-five.site"  // index.html 접근 확인
