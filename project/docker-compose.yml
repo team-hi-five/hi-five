@@ -31,6 +31,8 @@ services:
       - "443:443"
     depends_on:
       - java_service
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
     networks:
       - app-network
 
