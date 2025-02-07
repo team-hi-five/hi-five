@@ -32,6 +32,8 @@ pipeline {
                         sh 'mkdir -p src/main/resources'
                         sh 'cp $APP_PROPS src/main/resources/application.properties'
                     }
+
+                    sh 'chmod +x gradlew'
                     
                     // Gradle을 이용해 백엔드 빌드 (JAR 파일이 build/libs/ 하위에 생성됨)
                     sh './gradlew clean build'
