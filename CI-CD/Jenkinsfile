@@ -9,6 +9,8 @@ pipeline {
         FRONTEND_TAG   = 'latest'
     }
 
+    tools {nodejs "nodejs"}
+
     stages {
         stage('Checkout') {
             steps {
