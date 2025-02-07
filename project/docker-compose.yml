@@ -33,6 +33,7 @@ services:
       - java_service
     volumes:
       - /home/project_h5/project/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/nginx/ssl:ro
     networks:
       - app-network
 
