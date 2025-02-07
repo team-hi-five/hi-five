@@ -1,0 +1,76 @@
+pipeline {
+    // Docker가 설치된 Jenkins 노드에서 실행
+    agent any
+
+    environment {
+        // 컨테이너 목록에 맞춘 이미지 이름 및 태그 설정
+        BACKEND_IMAGE  = 'project_java_service'
+        BACKEND_TAG    = 'latest'
+        FRONTEND_IMAGE = 'nginx'
+        FRONTEND_TAG   = 'latest'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Git 저장소에서 소스코드 체크아웃
+                checkout scm
+            }
+        }
+
+        // 백엔드: Gradle 기반 스프링 부트 빌드 및 테스트
+        stage('Build & Test Backend') {
+            steps {
+                dir('backend') {
+                    // Gradle Wrapper 사용; 테스트 포함
+                    sh './gradlew clean build'
+                }
+            }
+        }
+
+        // 백엔드 Docker 이미지 빌드
+        stage('Docker Build Backend') {
+            steps {
+                dir('backend') {
+                    // Dockerfile은 backend 디렉토리 내에 있어야 함
+                    sh "docker build -t ${BACKEND_IMAGE}:${BACKEND_TAG} ."
+                }
+            }
+        }
+
+        // 프론트엔드: React 프로젝트 빌드 (테스트 단계가 있다면 추가)
+        stage('Build & Test Frontend') {
+            steps {
+                dir('frontend/h5') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                    // 필요 시 테스트 커맨드를 추가할 수 있음
+                    // sh 'npm run test'
+                }
+            }
+        }
+
+        // 프론트엔드 Docker 이미지 빌드 (Dockerfile이 React 빌드 결과물을 nginx 기반 이미지로 구성)
+        stage('Docker Build Frontend') {
+            steps {
+                dir('frontend/h5') {
+                    sh "docker build -t ${FRONTEND_IMAGE}:${FRONTEND_TAG} ."
+                }
+            }
+        }
+
+        // 사용하지 않는 Docker 이미지 정리 (dangling 이미지)
+        stage('Docker Image Cleanup') {
+            steps {
+                sh 'docker image prune -f'
+            }
+        }
+    }
+
+    post {
+        always {
+            // 빌드 후 작업 공간 정리
+            cleanWs()
+        }
+    }
+}
