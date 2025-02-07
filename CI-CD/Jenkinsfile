@@ -53,21 +53,23 @@ pipeline {
                 dir('frontend/h5') {
                     // Jenkins credentials로 관리되는 .env 파일을 복사합니다.
                     withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONT_ENV')]) {
-                        // 큰따옴표를 사용해서 $FRONT_ENV 변수가 올바르게 확장되도록 합니다.
                         sh "cp \"$FRONT_ENV\" .env"
                     }
                     
-                    // Node 22 이미지를 사용하여 npm install 및 빌드 실행
-                    docker.image('node:22').inside {
-                        sh 'npm install'
-                        sh 'npm run build'
+                    // script 블록 내부에서 docker 명령어를 실행합니다.
+                    script {
+                        docker.image('node:22').inside {
+                            sh 'npm install'
+                            sh 'npm run build'
+                        }
                     }
                     
-                    // 현재 디렉토리(빌드 결과가 포함된 폴더)를 컨텍스트로 하여 Docker 이미지 빌드
+                    // Dockerfile이 빌드 컨텍스트 루트에 위치하며, dist/ 폴더를 Nginx 이미지에 복사
                     sh "docker build -t ${env.FRONTEND_IMAGE}:${env.FRONTEND_TAG} ."
                 }
             }
         }
+
 
         stage('Deploy') {
             steps {
