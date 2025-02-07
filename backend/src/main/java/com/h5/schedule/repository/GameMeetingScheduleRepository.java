@@ -22,12 +22,23 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
             @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(g.schdlDttm) FROM GameMeetingScheduleEntity g " +
-            "WHERE g.childUserEntity.id = :childUserId AND g.deleteDttm IS NULL")
-    List<String> findDatesByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE g.childUserEntity.id = :childUserId " +
+            "AND YEAR(g.schdlDttm) = :year " +
+            "AND MONTH(g.schdlDttm) = :month " +
+            "AND g.deleteDttm IS NULL")
+    List<String> findDatesByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                    @Param("year") int year,
+                                                    @Param("month") int month);
 
     @Query("SELECT g FROM GameMeetingScheduleEntity g " +
-            "WHERE g.childUserEntity.id = :childUserId AND g.deleteDttm IS NULL")
-    List<GameMeetingScheduleEntity> findByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE g.childUserEntity.id = :childUserId " +
+            "AND YEAR(g.schdlDttm) = :year " +
+            "AND MONTH(g.schdlDttm) = :month " +
+            "AND g.deleteDttm IS NULL")
+    List<GameMeetingScheduleEntity> findByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                                  @Param("year") int year,
+                                                                  @Param("month") int month);
+
 
     @Query("SELECT TIME_FORMAT(g.schdlDttm, '%H:%i') FROM GameMeetingScheduleEntity g " +
             "WHERE g.host.id = :consultantUserId AND DATE(g.schdlDttm) = :date AND g.deleteDttm IS NULL")
@@ -44,24 +55,24 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
     @Query("UPDATE GameMeetingScheduleEntity g SET g.deleteDttm = CURRENT_TIMESTAMP WHERE g.id = :id AND g.deleteDttm IS NULL")
     void modifyDeleteDttmById(@Param("id") int id);
 
+    // 특정 부모의 아이들에 대한 연-월별 게임 일정 조회
     @Query("SELECT g FROM GameMeetingScheduleEntity g " +
             "WHERE g.childUserEntity.id IN :childUserIds " +
-            "AND DATE(g.schdlDttm) = :date " +
+            "AND YEAR(g.schdlDttm) = :year " +
+            "AND MONTH(g.schdlDttm) = :month " +
             "AND g.deleteDttm IS NULL")
-    List<GameMeetingScheduleEntity> findByChildUserIdsAndDate(@Param("childUserIds") List<Integer> childUserIds,
-                                                          @Param("date") LocalDate date);
+    List<GameMeetingScheduleEntity> findByChildUserIdsAndYearMonth(@Param("childUserIds") List<Integer> childUserIds,
+                                                                   @Param("year") int year,
+                                                                   @Param("month") int month);
 
+    // 특정 부모의 아이들에 대한 연-월별 게임 일정 날짜 목록 조회
     @Query("SELECT DISTINCT DATE(g.schdlDttm) FROM GameMeetingScheduleEntity g " +
-            "WHERE g.childUserEntity.id IN :childUserIds AND g.deleteDttm IS NULL")
-    List<String> findDatesByChildUserIds(@Param("childUserIds") List<Integer> childUserIds);
-
-    @Query("SELECT g FROM GameMeetingScheduleEntity g " +
-            "WHERE g.childUserEntity.id = :childUserId " +
-            "AND DATE(g.schdlDttm) = :today " +
+            "WHERE g.childUserEntity.id IN :childUserIds " +
+            "AND YEAR(g.schdlDttm) = :year " +
+            "AND MONTH(g.schdlDttm) = :month " +
             "AND g.deleteDttm IS NULL")
-    Optional<GameMeetingScheduleEntity> findTodaySchedulesByChildId(
-            @Param("childUserId") Integer childUserId,
-            @Param("today") LocalDate today);
-
+    List<String> findDatesByChildUserIdsAndYearMonth(@Param("childUserIds") List<Integer> childUserIds,
+                                                     @Param("year") int year,
+                                                     @Param("month") int month);
 }
 

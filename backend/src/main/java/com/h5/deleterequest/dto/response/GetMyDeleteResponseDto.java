@@ -13,5 +13,6 @@ public class GetMyDeleteResponseDto {
     public int deleteUserRequestId;
     public int parentUserId;
     public String parentName;
+    public String deleteRequestDttm;
     public Set<GetMyDeleteChildResponseDto> children;
 }
