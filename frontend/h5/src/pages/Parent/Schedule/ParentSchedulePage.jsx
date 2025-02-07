@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { addLocale } from 'primereact/api';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
-import '../Parentcss/ParentSchedulePage.css';
+import '../ParentCss/ParentSchedulePage.css';
 import { getScheduledDatesByParent } from "/src/api/schedule";
 
 addLocale('ko', {
