@@ -1,5 +1,5 @@
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import MeetingCreateModal from "../../../components/modals/MeetingCreateModal";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert"
 import SingleButtonAlert from "../../../components/common/SingleButtonAlert";

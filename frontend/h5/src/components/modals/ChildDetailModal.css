@@ -8,7 +8,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 99999;
+    z-index: 1000;
   }
 
   .modal-header h2 {
@@ -27,7 +27,7 @@
     max-width: 550px;
     border-radius: 20px;
     padding: 30px;
-    z-index: 100000;  /* overlay보다 높은 z-index */
+    z-index: 1001;  /* overlay보다 높은 z-index */
     max-height: 90vh;  /* 추가: 뷰포트 높이의 90% */
     overflow-y: auto;  /* 추가: 내용이 넘칠 경우 스크롤 */
     position: relative; /* 추가 */
@@ -213,7 +213,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 100001;
+    z-index: 1002;
 }
 
 .loading-spinner3 {

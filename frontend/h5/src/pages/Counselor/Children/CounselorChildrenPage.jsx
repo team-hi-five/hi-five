@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import CoChildCard from "../../../components/Counselor/CoChildCard";
 import ChildRegistrationModal from "../../../components/modals/ChildRegistrationModal";
 import DeleteChildModal from "../../../components/modals/DeleteChildModal";
@@ -164,9 +164,13 @@ function CounselorChildrenPage() {
         {isModalOpen && <ChildRegistrationModal onClose={closeModal} />}
         <DeleteChildModal 
           isOpen={isDeleteListModalOpen} 
-          onClose={() => setIsDeleteListModalOpen(false)} 
-          deleteRequests={deleteRequests} // ✅ 리스트 전달
+          onClose={() => {
+            setIsDeleteListModalOpen(false);
+            fetchChildren(); // ✅ 모달 닫힐 때 fetchChildren 실행
+          }} 
+          deleteRequests={deleteRequests} 
         />
+
       </div>
     </>
   );
