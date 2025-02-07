@@ -37,14 +37,16 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Image (Backend)') {
             steps {
-                sh """
-                    docker build \
-                    --build-arg JAR_FILE=build/libs/backend-0.0.1-SNAPSHOT.jar \
-                    -t project_java_service:latest \
-                    ./backend/
-                """
+                dir('backend') {
+                    sh """
+                        docker build \
+                        --build-arg JAR_FILE=build/libs/backend-0.0.1-SNAPSHOT.jar \
+                        -t ${env.BACKEND_IMAGE}:${env.BACKEND_TAG} \
+                        .
+                    """
+                }
             }
         }
 
@@ -73,7 +75,7 @@ pipeline {
             }
         }
 
-        stage('Docker Build Frontend') {
+        stage('Build Docker Image (Frontend)') {
             steps {
                 dir('frontend/h5') {
                     // 빌드 산출물이 정상적으로 생성되었는지 확인 (디버깅용)
@@ -86,6 +88,19 @@ pipeline {
         stage('Docker Image Cleanup') {
             steps {
                 sh 'docker image prune -f'
+            }
+        }
+
+        stage('Deploy with Docker Compose') {
+            steps {
+                script {
+                    // 만약 Jenkinsfile과 docker-compose.yml이 다음 구조일 때:
+                    //   /project-root/docker-compose.yml
+                    //   /project-root/jenkins/Jenkinsfile
+                    // "-f ../docker-compose.yml" 라고 쓰면 상위 폴더의 compose 파일을 사용
+                    sh 'docker-compose -f ../docker-compose.yml down || true'
+                    sh 'docker-compose -f ../docker-compose.yml up -d --build'
+                }
             }
         }
     }
