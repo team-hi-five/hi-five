@@ -9,7 +9,7 @@ pipeline {
         FRONTEND_TAG   = 'latest'
     }
 
-    tools {nodejs ""nodejs-15.6.0""}
+    tools {nodejs "nodejs-15.6.0"}
 
     stages {
         stage('Checkout') {
