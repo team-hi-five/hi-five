@@ -3,15 +3,21 @@
     justify-content: center;
     /* font-family: "Jua"; */
     border-radius: 3%;
+    background-color: rgb(251, 251, 251);
 
 }
 
 .ch-game-screen-container h2 {
     text-align: center;
+    font-family: "Jua";
+    font-size: 170%;
+    padding-top: 2px;
 }
 
 .ch-game-screen-container h3 {
     text-align: center;
+    font-family: "Jua";
+    font-size: 200%;
 }
 
 .ch-game-screen {
