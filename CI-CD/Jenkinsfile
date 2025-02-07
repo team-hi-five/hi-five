@@ -16,6 +16,17 @@ pipeline {
             }
         }
 
+        stage('Check Path') {
+            steps {
+                script {
+                    sh 'pwd'
+                    sh 'ls -al'
+                    sh 'ls -al ..'
+                    sh 'ls -al ../docker'
+                }
+            }
+        }
+
         // 백엔드: application.properties 파일 추가 후 빌드
         stage('Prepare Backend Properties') {
             steps {
