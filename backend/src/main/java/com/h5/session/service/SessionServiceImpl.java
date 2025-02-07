@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Transactional
 public class SessionServiceImpl implements SessionService {
