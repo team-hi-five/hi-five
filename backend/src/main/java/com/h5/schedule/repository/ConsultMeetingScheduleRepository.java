@@ -73,4 +73,14 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
     List<String> findDatesByChildUserIdsAndYearMonth(@Param("childUserIds") List<Integer> childUserIds,
                                                      @Param("year") int year,
                                                      @Param("month") int month);
+
+
+    @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
+            "WHERE c.childUserEntity.id = :childUserId " +
+            "AND DATE(c.schdlDttm) = :today " +
+            "AND c.deleteDttm IS NULL")
+    Optional<ConsultMeetingScheduleEntity> findTodaySchedulesByChildId(
+            @Param("childId") Integer childId,
+            @Param("today") LocalDate today);
+
 }
