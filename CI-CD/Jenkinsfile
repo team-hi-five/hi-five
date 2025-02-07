@@ -94,12 +94,11 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 script {
-                    // 만약 Jenkinsfile과 docker-compose.yml이 다음 구조일 때:
-                    //   /project-root/docker-compose.yml
-                    //   /project-root/jenkins/Jenkinsfile
-                    // "-f ../docker-compose.yml" 라고 쓰면 상위 폴더의 compose 파일을 사용
-                    sh 'docker-compose -f ../docker-compose.yml down || true'
-                    sh 'docker-compose -f ../docker-compose.yml up -d --build'
+                    // 상위 디렉터리로 이동한 상태에서 docker-compose 명령 실행
+                    dir('..') {
+                        sh 'docker-compose down || true'    // 혹시 실행 중인 컨테이너 있으면 종료
+                        sh 'docker-compose up -d --build'  // 백그라운드 실행(+이미지 빌드)
+                    }
                 }
             }
         }
