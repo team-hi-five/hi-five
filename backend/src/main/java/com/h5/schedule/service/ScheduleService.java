@@ -30,5 +30,5 @@ public interface ScheduleService {
     List<ScheduleResponseDto> getSchedulesByParentUserId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto);
 
     /** 학부모가 자신의 아동이 있는 날짜 가져오기 */
-    List<String> getScheduleDatesByParentUserId();
+    List<String> getScheduleDatesByParentUserId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto);
 }

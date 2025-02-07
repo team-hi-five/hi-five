@@ -85,8 +85,8 @@ public class ScheduleController {
 
     @GetMapping("/dates-by-parent")
     @Operation(summary = "내 아동 일정이 있는 날짜 조회", description = "학부모가 자신의 아동 일정이 있는 날짜 목록을 조회합니다.")
-    public ResponseEntity<List<String>> getScheduleDatesByParentId() {
-        List<String> dates = scheduleService.getScheduleDatesByParentUserId();
+    public ResponseEntity<List<String>> getScheduleDatesByParentId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto) {
+        List<String> dates = scheduleService.getScheduleDatesByParentUserId(scheduleSearchByParentRequestDto);
         return ResponseEntity.ok(dates);
     }
 

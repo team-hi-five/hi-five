@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +18,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class GameMeetingScheduleEntity {
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "meeting_schdl_id", nullable = false)
@@ -26,9 +32,11 @@ public class GameMeetingScheduleEntity {
     private LocalDateTime schdlDttm;
 
     @NotNull
-    @Column(name = "create_dttm", nullable = false, updatable = false)
+    @ColumnDefault("CURRENT_TIMESTAMP")
+    @Column(name = "create_dttm", nullable = false)
     private LocalDateTime createDttm;
 
+    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "update_dttm")
     private LocalDateTime updateDttm;
 
@@ -40,6 +48,7 @@ public class GameMeetingScheduleEntity {
     private LocalDateTime startDttm;
 
     @NotNull
+    @ColumnDefault("'P'")
     @Lob
     @Column(name = "status", nullable = false)
     private String status;
@@ -55,8 +64,7 @@ public class GameMeetingScheduleEntity {
     private ChildUserEntity childUserEntity;
 
     @Size(max = 255)
-    @NotNull
-    @Column(name = "session_id", nullable = false)
+    @Column(name = "session_id")
     private String sessionId;
 
     @PrePersist
@@ -70,4 +78,5 @@ public class GameMeetingScheduleEntity {
     protected void onUpdate() {
         this.updateDttm = LocalDateTime.now();
     }
+
 }
