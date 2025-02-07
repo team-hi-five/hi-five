@@ -94,9 +94,12 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 script {
-                    // 2단계 위에 있는 docker-compose.yml
-                    sh 'docker-compose -f ../../docker-compose.yml down || true'
-                    sh 'docker-compose -f ../../docker-compose.yml up -d --build'
+                    dir('..') {          // 여기서 pwd -> 프로젝트 루트
+                        dir('docker') {  // 여기서 pwd -> 프로젝트 루트/docker
+                            sh 'docker-compose down || true'
+                            sh 'docker-compose up -d --build'
+                        }
+                    }
                 }
             }
         }
