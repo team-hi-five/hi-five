@@ -119,6 +119,15 @@ pipeline {
             }
         }
 
+        stage('Connect Containers to Network') {
+            steps {
+                script {
+                    // 예: "project_app-network"라는 네트워크에 백엔드와 프론트엔드 컨테이너를 연결
+                    sh 'docker network connect project_app-network java17_h5 || true'
+                    sh 'docker network connect project_app-network nginx || true'
+                }
+            }
+        }
     }
 
     post {
