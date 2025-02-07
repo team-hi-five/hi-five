@@ -102,13 +102,22 @@ pipeline {
             }
         }
 
-        stage('Deploy with Docker Compose') {
+        stage('Redeploy Backend & Frontend') {
             steps {
                 script {
-                    // Jenkins 작업 디렉터리가 /var/jenkins_home/workspace/hi-five 라면
-                    // 아래 명령으로 docker/ 폴더 내 docker-compose.yml 파일을 찾을 수 있음
-                    sh 'docker-compose -f docker/docker-compose.yml down || true'
-                    sh 'docker-compose -f docker/docker-compose.yml up -d --build'
+                    // 1) 백엔드(java_service) 컨테이너만 중지/삭제
+                    sh 'docker-compose stop java_service'
+                    sh 'docker-compose rm -f java_service'
+                    
+                    // 2) 프론트엔드(nginx) 컨테이너만 중지/삭제
+                    sh 'docker-compose stop nginx'
+                    sh 'docker-compose rm -f nginx'
+                    
+                    // 3) 새 이미지로 백엔드 재시작
+                    sh 'docker-compose up -d java_service'
+                    
+                    // 4) 새 이미지로 프론트 재시작
+                    sh 'docker-compose up -d nginx'
                 }
             }
         }
