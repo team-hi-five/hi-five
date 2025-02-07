@@ -105,13 +105,10 @@ pipeline {
         stage('Redeploy Backend & Frontend') {
             steps {
                 script {
-                    // 1) 백엔드(java_service) 컨테이너만 중지/삭제
-                    sh 'docker-compose -f docker/docker-compose.yml stop java_service'
-                    sh 'docker-compose -f docker/docker-compose.yml rm -f java_service'
-                    
-                    // 2) 프론트엔드(nginx) 컨테이너만 중지/삭제
-                    sh 'docker-compose -f docker/docker-compose.yml stop nginx'
-                    sh 'docker-compose -f docker/docker-compose.yml rm -f nginx'
+                    // 1) 백엔드 컨테이너(java17_h5) 강제 제거 (존재하면)
+                    sh 'docker rm -f java17_h5 || true'
+                    // 2) 프론트엔드 컨테이너(nginx) 강제 제거 (존재하면)
+                    sh 'docker rm -f nginx || true'
                     
                     // 3) 새 이미지로 백엔드 재시작
                     sh 'docker-compose -f docker/docker-compose.yml up -d java_service'
