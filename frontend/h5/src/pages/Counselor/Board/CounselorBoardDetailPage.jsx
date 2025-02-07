@@ -190,7 +190,7 @@ const handleDelete = async () => {
       const formattedData = {
         no: response.id,
         title: response.title,
-        writer: response.consultantUserEmail || "운영자",
+        writer: response.name || "운영자",
         content: response.content,
         views: response.viewCnt,
         date: new Date(response.createDttm).toISOString().split('T')[0]
