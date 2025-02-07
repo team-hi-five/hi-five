@@ -6,7 +6,7 @@ import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import { getNoticeDetail } from '../../../api/boardNotice';
 import { getFaqDetail } from '../../../api/boardFaq';
 import { getQnaDetail, updateQna, deleteQna } from '../../../api/boardQna';
-import '/src/pages/counselor/Css/CounselorBoardDetailPage.css';
+import '/src/pages/Counselor/Css/CounselorBoardDetailPage.css';
 
 function CounselorBoardDetailPage() {
   const navigate = useNavigate();
