@@ -114,10 +114,10 @@ pipeline {
                     sh 'docker-compose -f docker/docker-compose.yml rm -f nginx'
                     
                     // 3) 새 이미지로 백엔드 재시작
-                    sh 'docker-compose -f docker/docker-compose.yml -d java_service'
+                    sh 'docker-compose -f docker/docker-compose.yml up -d java_service'
                     
                     // 4) 새 이미지로 프론트 재시작
-                    sh 'docker-compose -f docker/docker-compose.yml -d nginx'
+                    sh 'docker-compose -f docker/docker-compose.yml up -d nginx'
                 }
             }
         }
