@@ -177,7 +177,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public List<String> getAvailableTimes(ScheduleAvailableTimeRequestDto scheduleAvailableTimeRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getPrincipal().toString();
+        String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
@@ -379,7 +379,8 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElseThrow(UserNotFoundException::new)
                 .getId();
 
-        LocalDate date = scheduleSearchByParentRequestDto.getDate();
+        int year = scheduleSearchByParentRequestDto.getYear();
+        int month = scheduleSearchByParentRequestDto.getMonth();
 
         List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentUserId)
                 .orElseThrow(UserNotFoundException::new);
@@ -390,8 +391,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         List<ScheduleResponseDto> schedules = new ArrayList<>();
 
-        List<ConsultMeetingScheduleEntity> consultSchedules = consultMeetingScheduleRepository.findByChildUserIdsAndDate(childUserIds, date);
-        List<GameMeetingScheduleEntity> gameSchedules = gameMeetingScheduleRepository.findByChildUserIdsAndDate(childUserIds, date);
+        List<ConsultMeetingScheduleEntity> consultSchedules = consultMeetingScheduleRepository.findByChildUserIdsAndYearMonth(childUserIds, year, month);
+        List<GameMeetingScheduleEntity> gameSchedules = gameMeetingScheduleRepository.findByChildUserIdsAndYearMonth(childUserIds, year, month);
 
         consultSchedules.forEach(consult -> schedules.add(
                 ScheduleResponseDto.builder()
@@ -423,7 +424,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public List<String> getScheduleDatesByParentUserId() {
+    public List<String> getScheduleDatesByParentUserId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String parentEmail = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -447,8 +448,11 @@ public class ScheduleServiceImpl implements ScheduleService {
             return List.of();
         }
 
-        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserIds(childUserIds);
-        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserIds(childUserIds);
+        int year = scheduleSearchByParentRequestDto.getYear();
+        int month = scheduleSearchByParentRequestDto.getMonth();
+
+        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserIdsAndYearMonth(childUserIds, year, month);
+        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserIdsAndYearMonth(childUserIds, year, month);
 
         return Stream.concat(consultDates.stream(), gameDates.stream())
                 .distinct()
