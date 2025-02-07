@@ -64,12 +64,9 @@ pipeline {
         stage('Build & Test Frontend') {
             steps {
                 dir('frontend/h5') {
-                    script {
-                        docker.image('node:22').inside {
-                            sh 'npm install'
-                            sh 'npm run build'
-                        }
-                    }
+                    sh 'node -v'
+                    sh 'npm install'
+                    sh 'npm run build'
                 }
             }
         }
