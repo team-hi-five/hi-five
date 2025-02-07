@@ -61,8 +61,7 @@ pipeline {
         stage('Build & Test Frontend') {
             steps {
                 dir('frontend/h5') {
-                    sh 'npm install'
-                    sh 'npm run build'
+                    sh 'npm install && npm run build'
                 }
             }
         }
