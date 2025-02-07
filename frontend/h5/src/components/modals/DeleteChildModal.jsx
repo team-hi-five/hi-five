@@ -19,47 +19,52 @@ const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
     try {
       const data = await getParentDeleteRequests();
       setDeleteRequests(data);
+      console.log("데이터~", data.deleteUserRequestId);
       onDeleteRequestsChange?.(data.length);
     } catch (error) {
       console.error("❌ 탈퇴 요청 리스트 불러오기 실패:", error);
     }
   };
 
-  const handleChildClick = async (childUserId) => {
-    try {
-      const data = await getConsultantChild(childUserId);
-      console.log("📢 변환 전 받아온 Child Data:", data);
-  
-      // ✅ ChildDetailModal에 맞게 데이터 변환
-      const formattedData = {
-        id: data.childUserId, // ✅ `id`로 변경
-        name: data.childName, // ✅ `name`으로 변경
-        age: data.age, 
-        birthDate: data.birth, // ✅ `birth` -> `birthDate`
-        gender: data.gender, 
-        imageUrl: data.profileImgUrl, // ✅ `profileImgUrl` -> `imageUrl`
-        parentName: data.parentName,
-        parentPhone: data.parentPhone,
-        parentEmail: data.parentEmail,
-        firstConsultDate: data.firstConsultDate, // ✅ 센터 첫 상담 날짜
-        interests: data.interest, // ✅ `interest` -> `interests`
-        notes: data.additionalInfo, // ✅ `additionalInfo` -> `notes`
-      };
-  
-      console.log("✅ 변환 후 Child Data:", formattedData);
-  
-      setChildData(formattedData);
-      setSelectedChild(true);
-    } catch (error) {
-      console.error("❌ 아이 정보 불러오기 실패:", error);
-    }
+  const handleChildClick = async (childUserId, deleteUserRequestId) => {
+      try {
+        const data = await getConsultantChild(childUserId);
+        console.log("📢 변환 전 받아온 Child Data:", data);
+    
+        // ✅ ChildDetailModal에 맞게 데이터 변환
+        const formattedData = {
+          id: data.childUserId,
+          name: data.childName,
+          age: data.age,
+          birthDate: data.birth,
+          gender: data.gender,
+          imageUrl: data.profileImgUrl,
+          parentName: data.parentName,
+          parentPhone: data.parentPhone,
+          parentEmail: data.parentEmail,
+          firstConsultDate: data.firstConsultDate,
+          interests: data.interest,
+          notes: data.additionalInfo,
+          deleteUserRequestId: deleteUserRequestId, // ✅ 여기에 넣고싶어~
+        };
+    
+        console.log("✅ 변환 후 Child Data:", formattedData);
+    
+        setChildData(formattedData);
+        setSelectedChild(true);
+      } catch (error) {
+        console.error("❌ 아이 정보 불러오기 실패:", error);
+      }
   };
+
   
 
   // ✅ 상세 모달 닫기
   const handleCloseDetail = () => {
     setSelectedChild(null);
     setChildData(null);
+    fetchDeleteRequests();
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -82,20 +87,21 @@ const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
                 <span>요청 날짜</span>
               </div>
               <div className="delete-request-scroll">
-                {deleteRequests.map((request) => (
-                  request.children.map((child) => (
-                    <div 
-                      key={child.childUserId} 
-                      className="delete-request-row"
-                      onClick={() => handleChildClick(child.childUserId)} 
-                      style={{ cursor: "pointer" }}
-                    >
-                      <span>{request.parentName}</span>
-                      <span>{request.children.length} 명</span>
-                      <span>{request.joinDate}</span>
-                    </div>
-                  ))
-                ))}
+              {deleteRequests.map((request) =>
+                request.children.map((child) => (
+                  <div 
+                    key={child.childUserId} 
+                    className="delete-request-row"
+                    onClick={() => handleChildClick(child.childUserId, request.deleteUserRequestId)} // ✅ 요청 ID도 전달
+                    style={{ cursor: "pointer" }}
+                  >
+                    <span>{request.parentName}</span>
+                    <span>{request.children.length} 명</span>
+                    <span>{request.joinDate}</span>
+                  </div>
+                ))
+              )}
+
               </div>
             </div>
           )}

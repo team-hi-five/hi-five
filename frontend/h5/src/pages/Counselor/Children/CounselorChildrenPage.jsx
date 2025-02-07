@@ -164,9 +164,13 @@ function CounselorChildrenPage() {
         {isModalOpen && <ChildRegistrationModal onClose={closeModal} />}
         <DeleteChildModal 
           isOpen={isDeleteListModalOpen} 
-          onClose={() => setIsDeleteListModalOpen(false)} 
-          deleteRequests={deleteRequests} // ✅ 리스트 전달
+          onClose={() => {
+            setIsDeleteListModalOpen(false);
+            fetchChildren(); // ✅ 모달 닫힐 때 fetchChildren 실행
+          }} 
+          deleteRequests={deleteRequests} 
         />
+
       </div>
     </>
   );
