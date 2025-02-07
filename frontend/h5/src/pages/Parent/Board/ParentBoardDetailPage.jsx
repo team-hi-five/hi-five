@@ -5,7 +5,7 @@ import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import { getNoticeDetail } from '../../../api/boardNotice';
 import { getFaqDetail } from '../../../api/boardFaq';
-import { getQnaDetail, updateQna } from '../../../api/boardQna';
+import { getQnaDetail, updateQna, deleteQna } from '../../../api/boardQna';
 import '/src/pages/counselor/Css/CounselorBoardDetailPage.css';
 
 function CounselorBoardDetailPage() {
@@ -13,6 +13,7 @@ function CounselorBoardDetailPage() {
   const { type, no } = useParams();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState("");
+  const [editedTitle, setEditedTitle] = useState("");
 
   const [noticeData, setNoticeData] = useState(null);
   const [faqData, setFaqData] = useState(null);
@@ -39,23 +40,60 @@ function CounselorBoardDetailPage() {
       time: "30분 전"
     }
   ];
+
+  // HTML 태그를 제거하는 함수 추가
+  const stripHtml = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
+  };
   
   const handleEdit = () => {
     setIsEditing(true);
-    setEditedContent(postData.content);
+    setEditedTitle(postData.title);
+    setEditedContent(stripHtml(postData.content));
   };
 
   const handleEditComplete = async () => {
     try {
-      if (type === "qna") {
-        const updatedQna = await updateQna(no, qnaData.title, editedContent);
-        setQnaData(updatedQna);
+      // 수정된 내용이 없으면 경고
+      if (!editedContent) {
+        await SingleButtonAlert('수정할 내용을 입력해주세요.');
+        return;
       }
   
+      // 제목이 비어있으면 경고
+      if (!editedTitle) {
+        await SingleButtonAlert('제목을 입력해주세요.');
+        return;
+      }
+  
+      if (type === "qna") {
+        const updatedQna = await updateQna(no, editedTitle, editedContent);
+        
+        // 응답으로 받은 데이터로 상태 업데이트
+        const formattedData = {
+          ...qnaData,
+          title: updatedQna.title || editedTitle,
+          content: updatedQna.content || editedContent,
+          writer: updatedQna.name || qnaData.writer,
+          status: updatedQna.answerYn ? "답변완료" : "미답변",
+          date: updatedQna.createDttm ? new Date(updatedQna.createDttm).toISOString().split('T')[0] : qnaData.date
+        };
+  
+        setQnaData(formattedData);
+        // await SingleButtonAlert("성공적으로 수정되었습니다.");
+      }
+      
       setIsEditing(false);
+      setEditedTitle("");
+      setEditedContent("");
       setSelectedFile(null);
+      
     } catch (error) {
       console.error('수정 처리 중 오류 발생:', error);
+      await SingleButtonAlert(
+        error.response?.data?.message || 'QnA 수정에 실패했습니다.'
+      );
     }
   };
 
@@ -63,12 +101,17 @@ function CounselorBoardDetailPage() {
     try {
       const result = await DoubleButtonAlert("정말 삭제 하시겠습니까?");
       if (result.isConfirmed) {
-        // 삭제 API 호출이 들어갈 자리
-        // 예: await deletePost(type, no);
-        navigate(`/counselor/board`);
+        if (type === "qna") {
+          await deleteQna(no);
+          await SingleButtonAlert("성공적으로 삭제되었습니다.");
+          navigate('/counselor/board');
+        }
       }
     } catch (error) {
       console.error('삭제 처리 중 오류 발생:', error);
+      await SingleButtonAlert(
+        error.response?.data?.message || 'QnA 삭제에 실패했습니다.'
+      );
     }
   };
 
@@ -138,8 +181,8 @@ function CounselorBoardDetailPage() {
           no: response.id,
           title: response.title,
           content: response.content,
-          writer: response.writerName,
-          status: response.answerYn ? "답변완료" : "미답변",
+          writer: response.name,
+          status: response.answerCnt > 0 ? "답변완료" : "미답변",
           date: new Date(response.createDttm).toISOString().split('T')[0]
         };
 
@@ -235,28 +278,35 @@ function CounselorBoardDetailPage() {
 
           <div className="co-detail-card">
             <div className="co-detail-title-section">
-              <h2 className="co-detail-post-title">{postData.title}</h2>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  className="co-detail-post-title-input"
+                />
+              ) : (
+                <h2 className="co-detail-post-title">{postData.title}</h2>
+              )}
               <div className="co-detail-buttons">
-              {type === "qna" && !isEditing && (
+                {type === "qna" && !isEditing && (
                   <button onClick={handleEdit} className="co-detail-edit-btn">
-                      수정
+                    수정
                   </button>
-              )}
-              {type === "qna" && (
+                )}
+                {type === "qna" && (
                   isEditing ? (
-                      <button onClick={handleEditComplete} className="co-detail-edit-btn">
-                          수정완료
-                      </button>
+                    <button onClick={handleEditComplete} className="co-detail-edit-btn">
+                      수정완료
+                    </button>
                   ) : (
-                      <button onClick={handleDelete} className="co-detail-delete-btn">
-                          삭제
-                      </button>
+                    <button onClick={handleDelete} className="co-detail-delete-btn">
+                      삭제
+                    </button>
                   )
-              )}
+                )}
+              </div>
             </div>
-
-            </div>
-
             {(type === "notice" || type === "qna") && (
               <div className="co-detail-info-text">
                 <span><strong>작성자:</strong> {postData.writer}</span>
@@ -274,7 +324,7 @@ function CounselorBoardDetailPage() {
                   onInput={(e) => setEditedContent(e.currentTarget.textContent || "")}
                   className="co-detail-content-editable"
                 >
-                  {postData.content}
+                  {stripHtml(postData.content)}
                 </div>
               ) : (
                 <div 
