@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import { getNoticePosts, searchNotices } from '../../../api/boardNotice';
 import { getFaqList, searchFaqs } from '../../../api/boardFaq';
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';

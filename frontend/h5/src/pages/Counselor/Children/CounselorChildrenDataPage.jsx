@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Chart } from "primereact/chart";
 import { Calendar } from 'primereact/calendar';
 import CounselorHeader from '../../../components/Counselor/CounselorHeader'
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import '../Css/CounselorChildrenDataPage.css'
 import { useNavigate, useLocation } from 'react-router-dom';
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import CoChildCard from "../../../components/Counselor/CoChildCard";
 import ChildRegistrationModal from "../../../components/modals/ChildRegistrationModal";
 import DeleteChildModal from "../../../components/modals/DeleteChildModal";

@@ -1,5 +1,5 @@
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import { useState, useEffect } from 'react';
 import PasswordChangeModal from "../../../components/modals/PasswordChangeModal";
 import '../Css/CounselorMyPage.css';
