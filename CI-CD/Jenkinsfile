@@ -111,7 +111,7 @@ pipeline {
         }
         always {
             // 필요시 워크스페이스 정리 (cleanWs() 사용)
-            // cleanWs()
+            cleanWs()
         }
     }
 }
