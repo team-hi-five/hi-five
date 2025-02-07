@@ -17,6 +17,7 @@ const CounselorMainPage = () => {
 };
 
 const handleOpenChildPage = () => {
+  // console.log(selectedIngredient) 이거 사용해서 id 받아올예정
   window.open(
       '/child',
       'ChildMainPage',
