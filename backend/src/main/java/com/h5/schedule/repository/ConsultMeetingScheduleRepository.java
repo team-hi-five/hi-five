@@ -22,12 +22,23 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
             @Param("date") LocalDate date);
 
     @Query("SELECT DISTINCT DATE(c.schdlDttm) FROM ConsultMeetingScheduleEntity c " +
-            "WHERE c.childUserEntity.id = :childUserId AND c.deleteDttm IS NULL")
-    List<String> findDatesByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE c.childUserEntity.id = :childUserId " +
+            "AND YEAR(c.schdlDttm) = :year " +
+            "AND MONTH(c.schdlDttm) = :month " +
+            "AND c.deleteDttm IS NULL")
+    List<String> findDatesByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                    @Param("year") int year,
+                                                    @Param("month") int month);
 
     @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
-            "WHERE c.childUserEntity.id = :childUserId AND c.deleteDttm IS NULL")
-    List<ConsultMeetingScheduleEntity> findByChildUserId(@Param("childUserId") Integer childUserId);
+            "WHERE c.childUserEntity.id = :childUserId " +
+            "AND YEAR(c.schdlDttm) = :year " +
+            "AND MONTH(c.schdlDttm) = :month " +
+            "AND c.deleteDttm IS NULL")
+    List<ConsultMeetingScheduleEntity> findByChildUserIdAndYearMonth(@Param("childUserId") Integer childUserId,
+                                                                     @Param("year") int year,
+                                                                     @Param("month") int month);
+
 
     @Query("SELECT TIME_FORMAT(c.schdlDttm, '%H:%i') FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.host.id = :consultantUserId AND DATE(c.schdlDttm) = :date AND c.deleteDttm IS NULL")
@@ -43,24 +54,23 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
     @Query("UPDATE ConsultMeetingScheduleEntity c SET c.deleteDttm = CURRENT_TIMESTAMP WHERE c.id = :id AND c.deleteDttm IS NULL")
     void modifyDeleteDttmById(@Param("id") Integer id);
 
+    // 특정 부모의 아이들에 대한 연-월별 상담 일정 조회
     @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.childUserEntity.id IN :childUserIds " +
-            "AND DATE(c.schdlDttm) = :date " +
+            "AND YEAR(c.schdlDttm) = :year " +
+            "AND MONTH(c.schdlDttm) = :month " +
             "AND c.deleteDttm IS NULL")
-    List<ConsultMeetingScheduleEntity> findByChildUserIdsAndDate(@Param("childUserIds") List<Integer> childUserIds,
-                                                             @Param("date") LocalDate date);
+    List<ConsultMeetingScheduleEntity> findByChildUserIdsAndYearMonth(@Param("childUserIds") List<Integer> childUserIds,
+                                                                      @Param("year") int year,
+                                                                      @Param("month") int month);
 
+    // 특정 부모의 아이들에 대한 연-월별 상담 일정 날짜 목록 조회
     @Query("SELECT DISTINCT DATE(c.schdlDttm) FROM ConsultMeetingScheduleEntity c " +
-            "WHERE c.childUserEntity.id IN :childUserIds AND c.deleteDttm IS NULL")
-    List<String> findDatesByChildUserIds(@Param("childUserIds") List<Integer> childUserIds);
-
-
-    @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
-            "WHERE c.childUserEntity.id = :childUserId " +
-            "AND DATE(c.schdlDttm) = :today " +
+            "WHERE c.childUserEntity.id IN :childUserIds " +
+            "AND YEAR(c.schdlDttm) = :year " +
+            "AND MONTH(c.schdlDttm) = :month " +
             "AND c.deleteDttm IS NULL")
-    Optional<ConsultMeetingScheduleEntity> findTodaySchedulesByChildId(
-            @Param("childId") Integer childId,
-            @Param("today") LocalDate today);
-
+    List<String> findDatesByChildUserIdsAndYearMonth(@Param("childUserIds") List<Integer> childUserIds,
+                                                     @Param("year") int year,
+                                                     @Param("month") int month);
 }

@@ -60,8 +60,8 @@ public class ConsultMeetingScheduleEntity {
     @JoinColumn(name = "child_user_id", nullable = false)
     private ChildUserEntity childUserEntity;
 
-    @Size(max = 255)
-    @Column(name = "session_id")
+    @Size(max = 225)
+    @Column(name = "sessionId", length = 225)
     private String sessionId;
 
     @PrePersist

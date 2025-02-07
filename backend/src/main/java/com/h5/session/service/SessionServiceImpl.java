@@ -12,11 +12,13 @@ import com.h5.session.repository.ConsultSessionRepository;
 import com.h5.session.repository.GameSessionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 @Transactional
 public class SessionServiceImpl implements SessionService {

@@ -5,6 +5,8 @@ import com.h5.child.repository.ChildUserRepository;
 import com.h5.deleterequest.dto.response.*;
 import com.h5.deleterequest.entity.DeleteUserRequestEntity;
 import com.h5.deleterequest.repository.DeleteUserRequestRepository;
+import com.h5.file.entity.FileEntity;
+import com.h5.file.service.FileService;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
@@ -31,14 +33,17 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
     private final DeleteUserRequestRepository deleteUserRequestRepository;
     private final ParentUserRepository parentUserRepository;
     private final ChildUserRepository childUserRepository;
+    private final FileService fileService;
 
     @Autowired
     public DeleteUserRequestServiceImpl(DeleteUserRequestRepository deleteUserRequestRepository,
                                         ParentUserRepository parentUserRepository,
-                                        ChildUserRepository childUserRepository) {
+                                        ChildUserRepository childUserRepository,
+                                        FileService fileService) {
         this.deleteUserRequestRepository = deleteUserRequestRepository;
         this.parentUserRepository = parentUserRepository;
         this.childUserRepository = childUserRepository;
+        this.fileService = fileService;
     }
 
     @Transactional
@@ -127,13 +132,22 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
                             .map(childUserEntity -> GetMyDeleteChildResponseDto.builder()
                                     .childUserId(childUserEntity.getId())
                                     .childName(childUserEntity.getName())
-                                    .childAge(getAge(String.valueOf(childUserEntity.getBirth())))
+                                    .childUserProfileUrl(getFileUrl(childUserEntity.getId()))
                                     .gender(childUserEntity.getGender())
+                                    .age(getAge(childUserEntity.getBirth().toString()))
+                                    .parentUserPhone(childUserEntity.getParentUserEntity().getPhone())
+                                    .parentUserName(childUserEntity.getParentUserEntity().getName())
+                                    .birth(childUserEntity.getBirth().toString())
+                                    .parentUserEmail(childUserEntity.getParentUserEntity().getEmail())
+                                    .firConsultDt(childUserEntity.getFirstConsultDt().toString())
+                                    .interest(childUserEntity.getInterest())
+                                    .additionalInfo(childUserEntity.getAdditionalInfo())
                                     .build())
                             .collect(Collectors.toSet());
 
                     return GetMyDeleteResponseDto.builder()
                             .deleteUserRequestId(deleteUserRequestEntity.getId())
+                            .deleteRequestDttm(deleteUserRequestEntity.getDeleteRequestDttm())
                             .parentUserId(deleteUserRequestEntity.getParentUser().getId())
                             .parentName(deleteUserRequestEntity.getParentUser().getName())
                             .children(childDtos)
@@ -154,5 +168,9 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
 
     private String getDatetimeStr() {
         return LocalDateTime.now().format(DATETIME_FORMATTER);
+    }
+
+    private String getFileUrl(int tblId) {
+        return !fileService.getFileUrl(FileEntity.TblType.P, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl() : "Default Image";
     }
 }

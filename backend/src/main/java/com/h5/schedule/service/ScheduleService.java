@@ -31,8 +31,4 @@ public interface ScheduleService {
 
     /** 학부모가 자신의 아동이 있는 날짜 가져오기 */
     List<String> getScheduleDatesByParentUserId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto);
-
-//    게임 상담 목적 날짜 시간대에 맞는 자신(아동)의 화상 세션 아이디 조회
-
-
 }
