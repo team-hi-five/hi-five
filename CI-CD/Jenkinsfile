@@ -41,7 +41,7 @@ pipeline {
             steps {
                 dir('backend') {
                     // 빌드 산출물이 정상적으로 생성되었는지 확인 (디버깅용)
-                    sh 'ls -la'
+                    sh 'ls -la build/libs/'
                     // 올바른 백엔드 이미지 변수 사용
                     sh "docker build -t ${BACKEND_IMAGE}:${BACKEND_TAG} ."
                 }
