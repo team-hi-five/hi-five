@@ -20,9 +20,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                // release 브랜치에서 소스 체크아웃
-                git branch: 'release', url: 'https://lab.ssafy.com/s12-webmobile1-sub1/S12P11C205.git'
-                sh 'pwd && ls -al'
+                checkout scm
             }
         }
 
