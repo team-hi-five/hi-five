@@ -42,10 +42,10 @@ pipeline {
         stage('Docker Build Backend') {
             steps {
                 dir('backend') {
-                    // 빌드 산출물(build/ 폴더)이 생성되었는지 확인 (디버깅용)
+                    // 빌드 산출물이 정상적으로 생성되었는지 확인 (디버깅용)
                     sh 'ls -la'
-                    // Dockerfile은 build/ 폴더를 nginx 이미지에 복사하도록 구성되어 있어야 합니다.
-                    sh "docker build -t ${FRONTEND_IMAGE}:${FRONTEND_TAG} ."
+                    // 올바른 백엔드 이미지 변수 사용
+                    sh "docker build -t ${BACKEND_IMAGE}:${BACKEND_TAG} ."
                 }
             }
         }
@@ -77,6 +77,8 @@ pipeline {
         stage('Docker Build Frontend') {
             steps {
                 dir('frontend/h5') {
+                    // 빌드 산출물이 정상적으로 생성되었는지 확인 (디버깅용)
+                    sh 'ls -la'
                     sh "docker build -t ${FRONTEND_IMAGE}:${FRONTEND_TAG} ."
                 }
             }
