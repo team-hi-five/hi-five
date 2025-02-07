@@ -9,8 +9,6 @@ pipeline {
         FRONTEND_TAG   = 'latest'
     }
 
-    tools {nodejs "nodejs-22.12.0"}
-
     stages {
         stage('Checkout') {
             steps {
@@ -64,9 +62,13 @@ pipeline {
         stage('Build & Test Frontend') {
             steps {
                 dir('frontend/h5') {
-                    sh 'node -v'
-                    sh 'npm install'
-                    sh 'npm run build'
+                    script {
+                        docker.image('node:22').inside {
+                            sh 'node -v'  // Docker 컨테이너 내부에서 실행
+                            sh 'npm install'
+                            sh 'npm run build'
+                        }
+                    }
                 }
             }
         }
