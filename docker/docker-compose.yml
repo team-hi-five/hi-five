@@ -17,9 +17,6 @@ services:
       - MAIL_PASSWORD=ghsnycgzibikbkpk
       - OPENVIDU_URL=https://hi-five.site/openvidu
       - OPENVIDU_SECRET=rz7FazDNZkSqkJmr
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - ./uploads:/h5/uploads/profile
       - /etc/letsencrypt:/owncert:ro
@@ -38,9 +35,6 @@ services:
       - /etc/letsencrypt:/etc/nginx/ssl:ro
     depends_on:
       - java_service
-      - db
-      - redis
-      - mongo
     networks:
       - app-network
 
