@@ -22,6 +22,7 @@ pipeline {
         stage('Build & Test Backend') {
             steps {
                 dir('backend') {
+                    sh 'chmod +x gradlew'
                     // Gradle Wrapper 사용; 테스트 포함
                     sh './gradlew clean build'
                 }
