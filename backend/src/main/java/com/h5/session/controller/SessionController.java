@@ -22,7 +22,7 @@ public class SessionController {
     private final SessionService sessionService;
 
     @PostMapping("/join")
-    public ResponseEntity<String> joinOrCreateMeeting(@Valid @RequestBody JoinSessionRequestDto joinSessionRequestDto) {
+    public ResponseEntity<String> joinOrCreateMeeting(@RequestBody JoinSessionRequestDto joinSessionRequestDto) {
         return ResponseEntity.ok(sessionService.joinMeeting(joinSessionRequestDto));
     }
 
