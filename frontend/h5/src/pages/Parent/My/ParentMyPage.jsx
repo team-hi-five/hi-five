@@ -1,5 +1,5 @@
 import ParentHeader from "../../../components/Parent/ParentHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import "/src/pages/Parent/ParentCss/ParentMyPage.css";
 import PasswordChangeModal from "/src/components/modals/PasswordChangeModal";
 import DoubleButtonAlert from "/src/components/common/DoubleButtonAlert";

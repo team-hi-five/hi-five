@@ -53,6 +53,25 @@ export const getConsultantChild = async (childUserId) => {
     }
 };
 
+// ✅ 상담사 계정 아이 정보 수정 API 요청
+export const modifyConsultantChild = async (childUserId, interest, additionalInfo) => {
+    try {
+        console.log("📢 아이 정보 수정 요청:", { childUserId, interest, additionalInfo });
+
+        const response = await api.post("/user/consultant/modify-child", {
+            childUserId,
+            interest,
+            additionalInfo
+        });
+
+        console.log("✅ 아이 정보 수정 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 아이 정보 수정 실패:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
 
 // ✅ 상담사 계정에서 학부모 계정 등록 API 요청
 export const registerParentAccount = async ({

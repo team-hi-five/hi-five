@@ -1,5 +1,5 @@
 import ParentHeader from "../../../components/Parent/ParentHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import { Calendar } from 'primereact/calendar';
 import { useState, useEffect } from 'react';
 import { addLocale } from 'primereact/api';

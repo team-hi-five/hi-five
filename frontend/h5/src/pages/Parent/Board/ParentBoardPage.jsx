@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ParentHeader from "../../../components/Parent/ParentHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import { getQnaList } from '../../../api/boardQna';
 import { getNoticePosts, searchNotices } from '../../../api/boardNotice';
 import { getFaqList } from '../../../api/boardFaq';
@@ -145,7 +145,7 @@ const fetchQnaData = async () => {
       no: item.id,
       title: item.title,
       writer: item.name,
-      status: item.answerYn ? "답변완료" : "미답변",  
+      status: item.answerCnt > 0 ? "답변완료" : "미답변",  
       date: new Date(item.createDttm).toISOString().split('T')[0]
     }));
     

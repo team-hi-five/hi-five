@@ -4,7 +4,7 @@ import { Carousel } from 'primereact/carousel';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CounselorHeader from "../../components/Counselor/CounselorHeader";
-import Footer from "../../components/common/footer";
+import Footer from "../../components/common/Footer";
 import '../Counselor/Css/CounselorMainPage.css';
 
 const CounselorMainPage = () => {
@@ -116,6 +116,10 @@ const CounselorMainPage = () => {
                 <div className="co_notice_header">
                   <p className="co_notice_title">새소식</p>
                   <div className="co_notice_line"></div>
+                  <button className="co_notice_line_end" onClick={() => navigate('/counselor/board')}>
+                    <i className="pi pi-plus"></i>
+                    더보기
+                    </button>
                 </div>
                 <div className="carousel-container">
                   <Carousel 
@@ -127,7 +131,8 @@ const CounselorMainPage = () => {
                     showIndicators={false}
                     className="co_carousel"
                     responsiveOptions={responsiveOptions}
-                    autoplayInterval={3000}
+                    autoplayInterval={7000}
+                    transitionDuration={1000} // 추가: 전환 속도 조절 (ms)
                     circular={true}
                     autoPlay={true}
                     // activeIndex={activeIndex}

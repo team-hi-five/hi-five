@@ -32,6 +32,7 @@ export const getParentChildren = async () => {
     try {
         console.log("📢 부모 계정 아이 목록 요청");
         const response = await api.get("/user/parent/my-children");
+        console.log(response.data);
         return response.data;
     } catch (error) {
         console.error("❌ 부모 계정 아이 목록 불러오기 실패:", error.response ? error.response.data : error.message);

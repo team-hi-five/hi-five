@@ -4,7 +4,7 @@ import { Carousel } from 'primereact/carousel';
 import { Checkbox } from "primereact/checkbox";
 import { useState, useEffect } from 'react';
 import ParentHeader from "../../components/Parent/ParentHeader";
-import Footer from "../../components/common/footer";
+import Footer from "../../components/common/Footer";
 import '../Counselor/Css/CounselorMainPage.css';
 import { getParentChildren } from "/src/api/userParent";
 
@@ -17,6 +17,7 @@ const CounselorMainPage = () => {
 };
 
 const handleOpenChildPage = () => {
+  // console.log(selectedIngredient) 이거 사용해서 id 받아올예정
   window.open(
       '/child',
       'ChildMainPage',

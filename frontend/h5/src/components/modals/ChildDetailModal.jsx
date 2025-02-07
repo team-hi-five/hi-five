@@ -4,7 +4,7 @@ import './ChildDetailModal.css'
 import DoubleButtonAlert from '../common/DoubleButtonAlert';
 import SingleButtonAlert from '../common/SingleButtonAlert';
 import ProfileImageModal from './ProfileImageModal';
-import { approveDeleteRequest, rejectDeleteRequest } from "/src/api/userCounselor"; // ✅ API 호출 추가
+import { approveDeleteRequest, rejectDeleteRequest, modifyConsultantChild } from "/src/api/userCounselor"; // ✅ API 호출 추가
 
 
 const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
@@ -47,28 +47,70 @@ const handleApproveDelete = async () => {
   try {
       const result = await DoubleButtonAlert("정말 탈퇴 요청을 승인하시겠습니까?");
       if (result.isConfirmed) {
-          await approveDeleteRequest(childData.deleteUserRequestId); // ✅ 올바른 값 전달
-          await SingleButtonAlert("회원 탈퇴가 승인되었습니다.");
-          onClose();
+          setIsLoading(true);
+          try {
+              await approveDeleteRequest(childData.deleteUserRequestId);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              setIsLoading(false);
+              const alertResult = await SingleButtonAlert("회원 탈퇴가 승인되었습니다.");   
+              if (alertResult.isConfirmed) {
+                onClose();
+              }
+          } catch (error) {
+              console.error("❌ 탈퇴 승인 중 오류 발생:", error);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              setIsLoading(false);
+              const alertResult = await SingleButtonAlert("탈퇴 승인 중 오류가 발생했습니다.");
+              if (alertResult.isConfirmed) {
+                  onClose();
+              }
+          }
       }
   } catch (error) {
-      console.error("❌ 탈퇴 승인 중 오류 발생:", error);
-      await SingleButtonAlert("탈퇴 승인 중 오류가 발생했습니다.");
+    console.error("❌ 탈퇴 승인 중 오류 발생:", error);
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    const alertResult = await SingleButtonAlert("탈퇴 승인 중 오류가 발생했습니다.");
+    if (alertResult.isConfirmed) {
+        onClose();
+    }
   }
 };
 
-// ✅ 탈퇴 요청 거절 버튼 이벤트
+// ✅ 탈퇴 요청 승인 버튼 이벤트
 const handleRejectDelete = async () => {
   try {
       const result = await DoubleButtonAlert("정말 탈퇴 요청을 거절하시겠습니까?");
       if (result.isConfirmed) {
-          await rejectDeleteRequest(childData.deleteUserRequestId); // ✅ 올바른 값 전달
-          await SingleButtonAlert("회원 탈퇴 요청이 거절되었습니다.");
-          onClose();
+          setIsLoading(true);
+          try {
+              await rejectDeleteRequest(childData.deleteUserRequestId);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              setIsLoading(false);
+              const alertResult = await SingleButtonAlert("회원 탈퇴가가 거절되었습니다.");
+              if (alertResult.isConfirmed) {
+                onClose();
+              }
+          } catch (error) {
+              console.error("❌ 탈퇴 거절절 중 오류 발생:", error);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              setIsLoading(false);
+              const alertResult = await SingleButtonAlert("탈퇴 거절절 중 오류가 발생했습니다.");
+              if (alertResult.isConfirmed) {
+                  onClose();
+              }
+          }
       }
   } catch (error) {
-      console.error("❌ 탈퇴 거절 중 오류 발생:", error);
-      await SingleButtonAlert("탈퇴 거절 중 오류가 발생했습니다.");
+    console.error("❌ 탈퇴 거절절 중 오류 발생:", error);
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
+    const alertResult = await SingleButtonAlert("탈퇴 거절절 중 오류가 발생했습니다.");
+    if (alertResult.isConfirmed) {
+        onClose();
+    }
   }
 };
 
@@ -85,12 +127,29 @@ const handleRejectDelete = async () => {
       }));
     };
 
-    const handleSaveClick = () => {
-      console.log('Edited Data:', editedData);
-      onUpdate(childData.id, editedData);
-      setIsEditing(false);
-      setEditingField(null);
+    // ✅ 저장 버튼 클릭 시 실행되는 함수 (정보 수정)
+    const handleSaveClick = async () => {
+      try {
+          console.log('📢 수정된 데이터:', editedData);
+          
+          // ✅ API 호출하여 아이 정보 수정
+          await modifyConsultantChild(childData.id, editedData.interests, editedData.notes);
+    
+          // ✅ UI 업데이트 (데이터 새로고침)
+          const updatedChildData = { ...childData, interests: editedData.interests, notes: editedData.notes };
+          setEditedData(updatedChildData);
+    
+          // ✅ 부모 컴포넌트에도 변경 내용 전달
+          onUpdate(childData.id, updatedChildData);
+          
+          setIsEditing(false);
+          setEditingField(null);
+      } catch (error) {
+          await SingleButtonAlert("아이 정보 수정 중 오류가 발생했습니다.");
+          console.error("❌ 아이 정보 수정 실패:", error);
+      }
     };
+    
 
     const handleClose = () => {
       setIsEditing(false);
