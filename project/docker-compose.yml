@@ -32,7 +32,7 @@ services:
     depends_on:
       - java_service
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /home/project_h5/project/nginx/conf.d:/etc/nginx/conf.d:ro
     networks:
       - app-network
 
