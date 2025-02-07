@@ -14,8 +14,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SessionServiceImpl implements SessionService {
     private final GameMeetingScheduleRepository gameMeetingScheduleRepository;
     private final OpenViduServiceImpl openViduServiceImpl;
@@ -62,12 +65,15 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public String joinMeeting(JoinSessionRequestDto joinSessionRequestDto) {
+        int childId = joinSessionRequestDto.getChildId();
         String type = joinSessionRequestDto.getType();
-        int scheduleId = joinSessionRequestDto.getScheduleId();
+
+        LocalDate today = LocalDate.now();
 
         if ("game".equals(type)) {
-            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findById(scheduleId)
+            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findTodaySchedulesByChildId(childId, today)
                     .orElseThrow(ScheduleNotFoundException::new);
+            int scheduleId = gameMeetingScheduleEntity.getId();
 
             String sessionId;
             if(gameMeetingScheduleEntity.getSessionId() == null) {
@@ -79,8 +85,9 @@ public class SessionServiceImpl implements SessionService {
             return openViduService.createConnection(sessionId);
 
         }else if("consult".equals(type)) {
-            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findById(scheduleId)
+            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findTodaySchedulesByChildId(childId, today)
                     .orElseThrow(ScheduleNotFoundException::new);
+            int scheduleId = consultMeetingScheduleEntity.getId();
 
             String sessionId;
             if(consultMeetingScheduleEntity.getSessionId() == null) {
@@ -97,7 +104,6 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Transactional
     public void endMeeting(CloseSessionRequestDto closeSessionRequestDto) {
         String type = closeSessionRequestDto.getType();
         int schdlId = closeSessionRequestDto.getSchdlId();

@@ -419,7 +419,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public List<String> getScheduleDatesByParentUserId() {
+    public List<String> getScheduleDatesByParentUserId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String parentEmail = authentication.getName();
         String role = authentication.getAuthorities().stream()

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface GameMeetingScheduleRepository extends JpaRepository<GameMeetingScheduleEntity, Integer> {
@@ -53,6 +54,14 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
     @Query("SELECT DISTINCT DATE(g.schdlDttm) FROM GameMeetingScheduleEntity g " +
             "WHERE g.childUserEntity.id IN :childUserIds AND g.deleteDttm IS NULL")
     List<String> findDatesByChildUserIds(@Param("childUserIds") List<Integer> childUserIds);
+
+    @Query("SELECT g FROM GameMeetingScheduleEntity g " +
+            "WHERE g.childUserEntity.id = :childUserId " +
+            "AND DATE(g.schdlDttm) = :today " +
+            "AND g.deleteDttm IS NULL")
+    Optional<GameMeetingScheduleEntity> findTodaySchedulesByChildId(
+            @Param("childUserId") Integer childUserId,
+            @Param("today") LocalDate today);
 
 }
 
