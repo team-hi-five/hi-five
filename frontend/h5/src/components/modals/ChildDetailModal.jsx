@@ -134,21 +134,28 @@ const handleRejectDelete = async () => {
           
           // ✅ API 호출하여 아이 정보 수정
           await modifyConsultantChild(childData.id, editedData.interests, editedData.notes);
-    
-          // ✅ UI 업데이트 (데이터 새로고침)
-          const updatedChildData = { ...childData, interests: editedData.interests, notes: editedData.notes };
-          setEditedData(updatedChildData);
-    
-          // ✅ 부모 컴포넌트에도 변경 내용 전달
-          onUpdate(childData.id, updatedChildData);
-          
+  
+          // ✅ 수정된 데이터를 부모 컴포넌트에도 전달하여 상태 업데이트
+          const updatedChildData = { 
+              ...childData, 
+              interests: editedData.interests, 
+              notes: editedData.notes 
+          };
+  
+          setEditedData(updatedChildData); // ✅ 내부 상태 업데이트
+          onUpdate(childData.id, updatedChildData); // ✅ 부모 컴포넌트에도 업데이트 반영
+  
           setIsEditing(false);
           setEditingField(null);
+          
+          await SingleButtonAlert("회원 정보가 성공적으로 수정되었습니다.");
       } catch (error) {
-          await SingleButtonAlert("아이 정보 수정 중 오류가 발생했습니다.");
-          console.error("❌ 아이 정보 수정 실패:", error);
+          await SingleButtonAlert("회원 정보 수정 중 오류가 발생했습니다.");
+          console.error("❌ 회원 정보 수정 실패:", error);
       }
     };
+  
+  
     
 
     const handleClose = () => {
