@@ -5,7 +5,6 @@ import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.*;
-import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import com.h5.schedule.dto.request.*;
 import com.h5.schedule.dto.response.ScheduleResponseDto;
