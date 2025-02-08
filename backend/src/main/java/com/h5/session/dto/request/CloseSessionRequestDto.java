@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CloseSessionRequestDto {
-    private int schdlId;
+    private String schdlId;
     private String type;
 }
