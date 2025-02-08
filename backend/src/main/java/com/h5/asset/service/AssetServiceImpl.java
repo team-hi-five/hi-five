@@ -34,15 +34,8 @@ public class AssetServiceImpl implements AssetService {
         ChildUserEntity childUserEntity = childUserRepository.findById(loadAssetRequestDto.getChildUserId())
                 .orElseThrow(UserNotFoundException::new);
         int cleared = childUserEntity.getClearChapter();
-        int chapter = cleared / 10;
-        int stage = cleared % 10;
-
-        if(stage == 6){
-            chapter++;
-            stage = 1;
-        }else {
-            stage++;
-        }
+        int chapter = (cleared / 5) + 1;
+        int stage = cleared % 5;
 
         int stageAnswer = gameStageRepository.findCrtAnsByIdAndGameChapterId(stage, chapter);
         GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
@@ -63,15 +56,8 @@ public class AssetServiceImpl implements AssetService {
     @Override
     public LoadAssetResponseDto loadAssetByStage(LoadAssetByStageDto loadAssetByStageDto) {
         int stageNum = loadAssetByStageDto.getStageId();
-        int chapter = stageNum / 10;
-        int stage = stageNum % 10;
-
-        if(stage == 6){
-            chapter++;
-            stage = 1;
-        }else {
-            stage++;
-        }
+        int chapter = (stageNum / 5) + 1;
+        int stage = stageNum % 5;
 
         int stageAnswer = gameStageRepository.findCrtAnsByIdAndGameChapterId(stage, chapter);
         GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
@@ -94,8 +80,8 @@ public class AssetServiceImpl implements AssetService {
         ChildUserEntity childUserEntity = childUserRepository.findById(loadCardRequestDto.getChildId())
                 .orElseThrow(UserNotFoundException::new);
         int cleared = childUserEntity.getClearChapter();
-        int chapter = cleared / 10;
-        int stage = cleared % 10;
+        int chapter = (cleared / 5) + 1;
+        int stage = cleared % 5;
 
         List<CardAssetEntity> cardAssetEntities = cardAssetRepository.findCardAssetByChapterAndStage(chapter, stage);
 
