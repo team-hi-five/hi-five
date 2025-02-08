@@ -239,13 +239,10 @@ public class QnaServiceImpl implements QnaService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email)
-                .orElse(null);
+        ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email).orElse(null);
+        ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email).orElse(null);
 
-        ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email)
-                .orElse(null);
-
-        if(parentUserEntity == null && consultantUserEntity == null) {
+        if (parentUserEntity == null && consultantUserEntity == null) {
             throw new UserNotFoundException();
         }
 
@@ -257,12 +254,17 @@ public class QnaServiceImpl implements QnaService {
 
         Integer qnaOwnerId = qnaEntity.getParentUser().getId();
 
-        if (!Objects.equals(qnaOwnerId, parentUserId) && !Objects.equals(qnaOwnerId, consultantUserId)) {
+        boolean isParentOwner = qnaOwnerId.equals(parentUserId);
+        boolean isConsultantOwner = parentUserEntity != null &&
+                parentUserEntity.getConsultantUserEntity() != null &&
+                parentUserEntity.getConsultantUserEntity().getId().equals(consultantUserId);
+
+        if (isParentOwner || isConsultantOwner) {
+            qnaRepository.delete(qnaEntity);
+            return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
+        } else {
             throw new BoardAccessDeniedException("qna");
         }
-
-        qnaRepository.delete(qnaEntity);
-        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
     }
 
     @Override
