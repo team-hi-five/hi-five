@@ -235,18 +235,12 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new ScheduleConflictException();
         }
 
-        int parentUserId = scheduleCreateRequestDto.getParentUserId();
-
-        ParentUserEntity parentUserEntity = parentUserRepository.findById(parentUserId)
-                .orElseThrow(UserNotFoundException::new);
-
         if ("consult".equals(type)) {
             ConsultMeetingScheduleEntity consultSchedule = ConsultMeetingScheduleEntity.builder()
                     .host(consultantUserRepository.findById(consultantUserId)
                             .orElseThrow(UserNotFoundException::new))
                     .childUserEntity(childUserRepository.findById(childUserId)
                             .orElseThrow(UserNotFoundException::new))
-                    .parentUserEntity(parentUserEntity)
                     .schdlDttm(schdlDttm)  // LocalDateTime 직접 사용
                     .status("P")
                     .build();
