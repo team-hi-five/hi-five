@@ -30,8 +30,8 @@ public class FileServiceImpl implements FileService {
 
     private final FileRepository fileRepository;
 
-    @Value("${profile.image.upload.dir}")
-    private String profileImgUploadDir;
+    @Value("${file.upload.root-dir}")
+    private String fileUploadRootDir;
 
     @Value("${file.access.url.prefix}")
     private String fileAccessUrlPrefix;
@@ -60,16 +60,28 @@ public class FileServiceImpl implements FileService {
 
         List<FileEntity> fileEntities = fileRepository.findAllByTblTypeAndTblId(tblType, tblId);
 
+        String normalizedPrefix = fileAccessUrlPrefix.endsWith("/")
+                ? fileAccessUrlPrefix.substring(0, fileAccessUrlPrefix.length() - 1)
+                : fileAccessUrlPrefix;
+
         List<GetFileUrlResponseDto> responseDtos = new ArrayList<>();
         for (FileEntity fileEntity : fileEntities) {
+            String filePath = fileEntity.getFilePath().replace("\\", "/");
+            if (filePath.startsWith("/")) {
+                filePath = filePath.substring(1);
+            }
+
+            String url = normalizedPrefix + "/" + filePath;
+
             responseDtos.add(GetFileUrlResponseDto.builder()
                     .fileId(fileEntity.getId())
-                    .url(fileAccessUrlPrefix + "/" + fileEntity.getFilePath())
+                    .url(url)
                     .fileName(fileEntity.getOriginFileName())
                     .build());
         }
         return responseDtos;
     }
+
 
     @Override
     public Resource downloadFile(Integer fileId) {
@@ -107,30 +119,40 @@ public class FileServiceImpl implements FileService {
 
     private FileEntity saveFile(MultipartFile file, FileEntity.TblType tblType, int tblId) {
         String originalFileName = file.getOriginalFilename();
+
         String uniqueFileName = UUID.randomUUID().toString().replaceAll("-", "") + "_" + originalFileName;
 
-        Path targetPath = Paths.get(profileImgUploadDir, uniqueFileName);
+        Path uploadRoot = Paths.get(fileUploadRootDir);
+        Path subDir = uploadRoot.resolve(Paths.get(tblType.name(), String.valueOf(tblId)));
+        Path targetPath = subDir.resolve(uniqueFileName);
 
         try {
-            Files.createDirectories(targetPath.getParent());
+            Files.createDirectories(subDir);
             file.transferTo(targetPath);
         } catch (IOException e) {
             throw new FileUploadIOException("Failed to save file: " + originalFileName, e);
         }
 
         return fileRepository.save(FileEntity.builder()
-                .filePath(uniqueFileName) // 저장 경로를 상대 경로로 설정
+                .filePath(Paths.get(tblType.name(), String.valueOf(tblId), uniqueFileName).toString())
                 .originFileName(originalFileName)
                 .tblType(tblType)
                 .tblId(tblId)
                 .build());
     }
 
+
     private Resource loadFileAsResource(String filePath) {
         try {
-            Path path = Paths.get(profileImgUploadDir).resolve(filePath).normalize();
-            Resource resource = new UrlResource(path.toUri());
+            Path fileStorageLocation = Paths.get(fileUploadRootDir).toAbsolutePath().normalize();
 
+            Path targetPath = fileStorageLocation.resolve(filePath).normalize();
+
+            if (!targetPath.startsWith(fileStorageLocation)) {
+                throw new FileNotFoundException("File path is outside the allowed directory: " + filePath);
+            }
+
+            Resource resource = new UrlResource(targetPath.toUri());
             if (!resource.exists() || !resource.isReadable()) {
                 throw new FileNotFoundException("File not found or not readable: " + filePath);
             }
@@ -140,4 +162,5 @@ public class FileServiceImpl implements FileService {
             throw new RuntimeException("Failed to load file as resource", e);
         }
     }
+
 }
