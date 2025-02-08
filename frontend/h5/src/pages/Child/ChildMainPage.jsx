@@ -1,13 +1,43 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './ChildCss/ChildMainPage.css'
 import { Card } from 'primereact/card';
 import ChildMainBackground from '../../components/Child/ChildMainBackground';
 // import { Outlet } from 'react-router-dom';
 
+
+/* //✅ api 호출과 변수 관리에 필요한 import ✅
+import { getParentChildren } from "/src/api/userParent";
+import { useState, useEffect } from 'react';
+*/ //❌ api 호출과 변수 관리에 필요한한 import ❌
+
 function ChildMainPage() {
 
     const navigate = useNavigate();
-    console.log("childmainpage")
+    const { childId } = useParams();
+
+    /* //✅ api 호출, 호출된 data 중 childId와 일치하는 아이 이름 꺼내오기기 ✅
+    const [ingredientsList, setIngredientsList] = useState([]);
+    const [childName, setChildName] = useState("");
+
+    useEffect(() => {
+        async function getChildName() {
+          try {
+            const childrenData = await getParentChildren();
+            setIngredientsList(childrenData);
+            const matchedChild = childrenData.find(child => String(child.childUserId) === String(childId));
+            if (matchedChild) {
+                console.log("✅ 선택된 아동 이름:", matchedChild.childUserName);
+                setChildName(matchedChild.childUserName); 
+            } else {
+                console.log("⚠️ 일치하는 아동을 찾을 수 없습니다.");
+            }
+          } catch (error) {
+            console.error("❌ 아이 목록 불러오기 실패:", error);
+          }
+        }
+        getChildName();
+    }, ); 
+    */ //❌ api 호출, 호출된 data 중 childId와 일치하는 아이 이름 꺼내오기기 ❌
     
     return (
         <div className='ch-main-container' >
@@ -16,7 +46,7 @@ function ChildMainPage() {
         <ChildMainBackground />
             <div className='ch-main-foreground'>
                     <Card className='ch-login-state'>
-                        안녕! 000아 오늘은 어떤 감정을 만나볼까?
+                        안녕! {childId || "아동 없음"}아 오늘은 어떤 감정을 만나볼까?
                     </Card>
 
                     <div className='ch-menu-container'>

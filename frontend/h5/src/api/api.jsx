@@ -85,7 +85,7 @@ api.interceptors.response.use(
     }
 
     // 403 오류 (Access Token 만료) && 무한 루프 방지
-    if (error.response?.status === 403) {
+    if (error.response?.status === 401) {
       if (refreshingToken) {
         console.log("🔄 기존 토큰 갱신 요청이 진행 중... 요청을 큐에 저장");
         
