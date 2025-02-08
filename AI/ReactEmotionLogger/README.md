@@ -1,5 +1,5 @@
 
----
+
 
 # React-Face-API
 
@@ -7,7 +7,7 @@
 
 ## 프로젝트 구성
 
-```
+
 react-face-api/
 ├── node_modules/         // 프로젝트 의존성 패키지들
 ├── public/               // 정적 파일들 (HTML, 이미지 등)
@@ -15,7 +15,7 @@ react-face-api/
 ├── server.js             // Node/Express 백엔드 서버 코드
 ├── package.json          // 프로젝트 설정 및 실행 스크립트
 └── README.md             // 이 파일 (프로젝트 설명서)
-```
+
 
 ## 주요 기능
 
@@ -40,45 +40,45 @@ react-face-api/
 
 2. **의존성 설치**  
    터미널(또는 명령 프롬프트)에서 프로젝트 루트 폴더로 이동한 후, 다음 명령어를 실행하세요:
-   ```bash
+   bash
    npm install
-   ```
+   
    이 명령어는 `package.json`에 명시된 모든 패키지를 설치합니다.
 
 3. **npm-run-all 설치**  
    클라이언트와 서버를 동시에 실행하기 위해 `npm-run-all` 패키지가 필요합니다. 만약 설치되어 있지 않다면 아래 명령어를 실행하세요:
-   ```bash
+   bash
    npm install npm-run-all --save-dev
-   ```
+   
 
 ## 실행 방법
 
 이 프로젝트는 **클라이언트(React)**와 **백엔드(Node/Express)** 서버를 동시에 실행할 수 있도록 설정되어 있습니다.
 
 1. 터미널에서 다음 명령어를 실행하세요:
-   ```bash
+   bash
    npm start
-   ```
+   
    - 이 명령어는 두 개의 서버를 동시에 실행합니다.
    - 클라이언트는 [http://localhost:3000](http://localhost:3000)에서 실행됩니다.
    - 백엔드 서버는 [http://localhost:3001](http://localhost:3001)에서 실행됩니다.
 
 2. 만약 두 서버를 동시에 실행하는 것이 어렵다면, 각각 별도의 터미널에서 다음 명령어를 사용하세요:
    - 클라이언트 실행:
-     ```bash
+     bash
      npm run start:client
-     ```
+     
    - 백엔드 서버 실행:
-     ```bash
+     bash
      npm run start:server
-     ```
+     
 
 ## 프록시 설정 (개발 환경)
 
 - **package.json** 파일에 다음과 같이 proxy 설정이 되어 있습니다:
-  ```json
+  json
   "proxy": "http://localhost:3001"
-  ```
+  
 - 이 설정 덕분에 클라이언트에서 `/api/save-log` 등의 요청을 보내면, 개발 서버가 자동으로 이를 `http://localhost:8080/api/save-log`로 전달합니다.
 - 백엔드 서버가 올바른 포트에서 실행되고 있어야 정상적으로 데이터를 주고받을 수 있습니다.
 
@@ -94,4 +94,3 @@ react-face-api/
 2. **동시 실행**: `npm start` 명령어로 클라이언트와 서버를 동시에 실행합니다.  
 3. **프록시 설정**: 클라이언트에서 보내는 API 요청은 proxy 설정 덕분에 올바른 백엔드 서버로 전달됩니다.
 
----
