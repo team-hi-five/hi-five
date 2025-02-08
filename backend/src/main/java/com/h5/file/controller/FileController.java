@@ -25,8 +25,8 @@ public class FileController {
     // 파일 업로드
     @PostMapping(value = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<List<FileEntity>> uploadFiles(@RequestPart("file") List<MultipartFile> multipartFileList,
-                                                        @RequestPart("tblType") List<String> tblTypes,
-                                                        @RequestPart("tblId") List<Integer> tblIds) {
+                                                        @RequestParam("tblType") List<String> tblTypes,
+                                                        @RequestParam("tblId") List<Integer> tblIds) {
 
         if(multipartFileList.size() != tblTypes.size() || multipartFileList.size() != tblIds.size()) {
             throw new IllegalArgumentException("File upload request don't match");
