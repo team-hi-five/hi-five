@@ -1,4 +1,4 @@
-import CardDetailsLayout from "../../components/Child/Card/CardDetailsLayout";
+import CardDetailsLayout from "../../../components/Child/Card/CardDetailsLayout";
 import { useLocation } from "react-router-dom";
 
 function ChildCardDetailsPage() {
@@ -7,7 +7,6 @@ function ChildCardDetailsPage() {
   const emotion = location.state?.emotion;
 
   const emotionContent = () => {
-
     switch (emotion.type) {
       case "joy":
         return <div className="ch-joy-detail-content"></div>;

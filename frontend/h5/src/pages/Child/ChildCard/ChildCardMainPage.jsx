@@ -1,5 +1,5 @@
-import "./ChildCss/ChildCardMainPage.css";
-import CardMainEmotionCard from "../../components/Child/Card/CardMainEmotionCard";
+import "../ChildCss/ChildCardMainPage.css";
+import CardMainEmotionCard from "../../../components/Child/Card/CardMainEmotionCard";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
