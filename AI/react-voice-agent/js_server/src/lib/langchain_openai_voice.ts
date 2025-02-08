@@ -239,6 +239,7 @@ export class OpenAIVoiceReactAgent {
         tools: toolDefs,
       },
     });
+    // for-await-of 루프 내에서 강제 종료 로직 추가
     for await (const [streamKey, dataRaw] of mergeStreams({
       input_mic: inputStream,
       output_speaker: modelReceiveStream,
@@ -272,6 +273,10 @@ export class OpenAIVoiceReactAgent {
           toolExecutor.addToolCall(data);
         } else if (type === "response.audio_transcript.done") {
           console.log("model:", data.transcript);
+          if (data.transcript === "감정을 느꼈구나") {
+            console.log("Forced termination triggered by transcript.");
+            break; // for-await 루프를 종료하여 세션 종료
+          }
         } else if (
           type === "conversation.item.input_audio_transcription.completed"
         ) {
