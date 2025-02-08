@@ -50,6 +50,7 @@ public class ConsultMeetingScheduleEntity {
     @JoinColumn(name = "host_id", nullable = false)
     private ConsultantUserEntity host;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parent_user_id", nullable = false)
     private ParentUserEntity parentUserEntity;

@@ -5,6 +5,7 @@ import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.*;
+import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import com.h5.schedule.dto.request.*;
 import com.h5.schedule.dto.response.ScheduleResponseDto;
@@ -239,12 +240,16 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         if ("consult".equals(type)) {
+            ChildUserEntity childUserEntity = childUserRepository.findById(childUserId).orElseThrow(UserNotFoundException::new);
+            ParentUserEntity parentUserEntity = childUserEntity.getParentUserEntity();
+
             ConsultMeetingScheduleEntity consultSchedule = ConsultMeetingScheduleEntity.builder()
                     .host(consultantUserRepository.findById(consultantUserId)
                             .orElseThrow(UserNotFoundException::new))
                     .childUserEntity(childUserRepository.findById(childUserId)
                             .orElseThrow(UserNotFoundException::new))
-                    .schdlDttm(schdlDttm)  // LocalDateTime 직접 사용
+                    .schdlDttm(schdlDttm)
+                    .parentUserEntity(parentUserEntity)
                     .status("P")
                     .build();
             consultMeetingScheduleRepository.save(consultSchedule);
