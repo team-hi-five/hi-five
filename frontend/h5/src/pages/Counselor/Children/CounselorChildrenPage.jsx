@@ -70,11 +70,12 @@ function CounselorChildrenPage() {
 
   const handleUpdateChild = (childId, updatedData) => {
     setChildrenData((prevChildren) =>
-      prevChildren.map((child) =>
-        child.id === childId ? { ...child, ...updatedData } : child
-      )
+        prevChildren.map((child) =>
+            child.childUserId === childId ? { ...child, ...updatedData } : child
+        )
     );
   };
+
 
   const handleDelete = async (childId) => {
     try {
@@ -145,7 +146,7 @@ function CounselorChildrenPage() {
                           interests={child.interest}
                           notes={child.additionalInfo}
                           onDelete={handleDelete}
-                          onUpdate={handleUpdateChild}
+                          onUpdate={handleUpdateChild} // ✅ 업데이트 함수 전달
                         />
                       </div>
                     ))}

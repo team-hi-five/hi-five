@@ -3,27 +3,44 @@ import { Button } from 'primereact/button';
 import { Carousel } from 'primereact/carousel';
 import { Checkbox } from "primereact/checkbox";
 import { useState, useEffect } from 'react';
+import SingleButtonAlert from '/src/components/common/SingleButtonAlert';
 import ParentHeader from "../../components/Parent/ParentHeader";
 import Footer from "../../components/common/Footer";
 import '../Counselor/Css/CounselorMainPage.css';
 import { getParentChildren } from "/src/api/userParent";
+import { useUserStore } from "/src/store/userStore";
+
 
 const CounselorMainPage = () => {
 
   const [ingredientsList, setIngredientsList] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState("");
-  const onIngredientChange = (e) => {
+  const [childName, setChildName] = useState("");
+  const onIngredientChange = (e, child) => {
     setSelectedIngredient(e.checked ? e.value : "");
-};
+    const { checked } = e;
+    if (checked) {
+      useUserStore.getState().setChildData(child.childUserId, child.childUserName);
+      setChildName(child.childUserName);
+    } else {
+      useUserStore.getState().setChildData(null, "");
+      setChildName(child.childUserName);
+    }
+  };
 
-const handleOpenChildPage = () => {
-  // console.log(selectedIngredient) 이거 사용해서 id 받아올예정
-  window.open(
-      '/child',
-      'ChildMainPage',
-      'left=0,top=0,width=' + screen.width + ',height=' + screen.height
-    );
-};
+  const handleOpenChildPage = async () => {
+    if(childName===""){
+      await SingleButtonAlert("아동을 선택해주세요.");
+    }
+    else{
+        window.open(
+          '/child',
+          'ChildMainPage',
+          'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+        );
+    };
+  }
+  
 
   const notices = [
     { id: 1, type: '공지사항', author: '작성자', isNew: true, content: '새글내ㅇㄹㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁ애낙어래ㅑㅑㅐ 야ㅓ멀 ㅐㅑㅓㅑㅐㄷ ㅁㄹ 러아님 랴댖 ㅁ러ㅑ댐  ㅑㄷㅁㄹ ㅓ댜ㅣㅁ;용', date: '2025.01.18' },
@@ -66,7 +83,7 @@ const handleOpenChildPage = () => {
     async function fetchChildren() {
       try {
         const childrenData = await getParentChildren();
-        setIngredientsList(childrenData.map(child => child.childUserName)); // ✅ API 응답 데이터 적용
+        setIngredientsList(childrenData);
       } catch (error) {
         console.error("❌ 아이 목록 불러오기 실패:", error);
       }
@@ -139,18 +156,21 @@ const handleOpenChildPage = () => {
               </h2>
               <p className="co_service_subtitle">감정을 놀이로 전달하는 <span>HI 서비스</span> 입니다.</p>
               <div className="flex flex-wrap gap-5" style={{ marginBottom: '15px' }}>
-                {ingredientsList.map((ingredient, index) => (
-                  <div key={index} className="flex align-items-center">
-                    <Checkbox
-                      inputId={`ingredient${index}`} // 고유 ID 부여
-                      name="pizza"
-                      value={ingredient}
-                      onChange={onIngredientChange}
-                      checked={selectedIngredient === ingredient}
-                    />
-                    <label htmlFor={`ingredient${index}`} className="ml-2">{ingredient}</label>
-                  </div>
-                ))}
+              {ingredientsList.map((child, index) => (
+                <div key={child.childUserId} className="flex align-items-center">
+                  <Checkbox
+                    inputId={`ingredient${index}`}
+                    name="child"
+                    value={child.childUserName}
+                    onChange={(e) => onIngredientChange(e, child)}
+                    checked={
+                      useUserStore.getState().childUserId === child.childUserId || 
+                      selectedIngredient === child.childUserName
+                    }
+                  />
+                  <label htmlFor={`ingredient${index}`} className="ml-2">{child.childUserName}</label>
+                </div>
+              ))}
               </div>
               <Button label="게임하러 가기" className="co_schedule_btn" onClick={handleOpenChildPage} />
             </div>
