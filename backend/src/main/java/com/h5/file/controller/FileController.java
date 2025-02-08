@@ -24,7 +24,7 @@ public class FileController {
 
     // 파일 업로드
     @PostMapping(value = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_OCTET_STREAM_VALUE})
-    public ResponseEntity<List<FileEntity>> uploadFiles(@RequestPart("files") List<MultipartFile> multipartFileList,
+    public ResponseEntity<List<FileEntity>> uploadFiles(@RequestPart("file") List<MultipartFile> multipartFileList,
                                                         @RequestPart("tblType") List<String> tblTypes,
                                                         @RequestPart("tblId") List<Integer> tblIds) {
 
