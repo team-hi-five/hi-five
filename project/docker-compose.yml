@@ -35,7 +35,7 @@ services:
       - /home/project_h5/project/nginx/conf.d:/etc/nginx/conf.d:ro
       - /etc/letsencrypt:/etc/nginx/ssl:ro
       - /home/project_h5/project/assets:/home/project_h5/project/assets:ro
-      - /home/project_h5/project/uploads:/home/project_h5/uploads:ro
+      - /home/project_h5/project/uploads:/home/project_h5/project/uploads
     networks:
       - app-network
 
