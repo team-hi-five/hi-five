@@ -47,8 +47,8 @@ public class FileEntity {
     }
 
     @NotNull
-    @Lob
     @Column(name = "tbl_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     private TblType tblType;
 
     @NotNull

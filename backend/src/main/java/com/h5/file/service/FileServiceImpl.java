@@ -1,6 +1,5 @@
 package com.h5.file.service;
 
-import com.h5.file.dto.request.FileUploadRequestDto;
 import com.h5.file.dto.response.GetFileUrlResponseDto;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.repository.FileRepository;
@@ -8,6 +7,7 @@ import com.h5.global.exception.FileNotFoundException;
 import com.h5.global.exception.FileUploadIOException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class FileServiceImpl implements FileService {
 
@@ -44,12 +45,13 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public List<FileEntity> upload(List<FileUploadRequestDto> fileUploadRequestDtos) {
+    public List<FileEntity> upload(List<MultipartFile> multipartFiles, List<FileEntity.TblType> tblTypes, List<Integer> tblIds) {
         List<FileEntity> fileEntities = new ArrayList<>();
-        for (FileUploadRequestDto requestDto : fileUploadRequestDtos) {
-            FileEntity fileEntity = saveFile(requestDto.getMultipartFile(), requestDto.getTblType(), requestDto.getTblId());
+        for (int i = 0; i < multipartFiles.size(); i++) {
+            FileEntity fileEntity = saveFile(multipartFiles.get(i), tblTypes.get(i), tblIds.get(i));
             fileEntities.add(fileEntity);
         }
+
         return fileEntities;
     }
 
@@ -138,6 +140,7 @@ public class FileServiceImpl implements FileService {
                 .originFileName(originalFileName)
                 .tblType(tblType)
                 .tblId(tblId)
+                .uploadDttm(LocalDateTime.now().toString())
                 .build());
     }
 
