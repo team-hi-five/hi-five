@@ -239,13 +239,25 @@ public class QnaServiceImpl implements QnaService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(UserNotFoundException::new);
+        ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email)
+                .orElse(null);
+
+        ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email)
+                .orElse(null);
+
+        if(parentUserEntity == null && consultantUserEntity == null) {
+            throw new UserNotFoundException();
+        }
 
         QnaEntity qnaEntity = qnaRepository.findById(qnaId)
                 .orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        if( !Objects.equals(parentUser.getId(), qnaEntity.getParentUser().getId())) {
+        Integer parentUserId = (parentUserEntity != null) ? parentUserEntity.getId() : null;
+        Integer consultantUserId = (consultantUserEntity != null) ? consultantUserEntity.getId() : null;
+
+        Integer qnaOwnerId = qnaEntity.getParentUser().getId();
+
+        if (!Objects.equals(qnaOwnerId, parentUserId) && !Objects.equals(qnaOwnerId, consultantUserId)) {
             throw new BoardAccessDeniedException("qna");
         }
 
