@@ -1,69 +1,61 @@
-import { Openvidu } from 'openvidu-browser';
-import { useEffect, useRef, useState} from 'react'
+import { useEffect, useState, useRef } from 'react';
+import { OpenVidu } from 'openvidu-browser';
 
-function OpenviduVideo({Token}){
+const VideoCallPage = () => {
+  const [session, setSession] = useState(null);
+  const [publisher, setPublisher] = useState(null);
+  const videoRef = useRef(null)
 
-    // Token = 
-    // // 웹캠방 관리
-    // const [session, setSession] = useState(null);
-    // // 비디오 오디오 관리
-    // const [publisher, setPublisher] = useState(null);
-    // // 참가자 관리
-    // const [subscribers, setSubscribers] = useState([]);
-    // const videoRef = useRef(null)
+  useEffect(() => {
+    const token = 'wss://hi-five.site:4443?sessionId=d9402b8c-6377-4da6-905b-764b26b38f11&token=tok_URkasWz8lbw69cWS';
+    // const token = fullUrl.split('token=')[1]; // 토큰만 추출
+  
+    const OV = new OpenVidu();
+    const mySession = OV.initSession();
+  
+    mySession.connect(token).then(() => {
+      const myPublisher = OV.initPublisher(undefined, {
+        audioSource: undefined,
+        videoSource: undefined,
+        publishAudio: true,
+        publishVideo: true,
+        resolution: '640x480',
+        frameRate: 30,
+        mirror: true,
+      });
+  
+      mySession.publish(myPublisher);
+      setPublisher(myPublisher);
+      setSession(mySession); // 세션 상태 설정 추가
+  
+      if (videoRef.current) {
+        myPublisher.addVideoElement(videoRef.current);
+      }
+    }).catch(error => {
+      console.error('Error connecting to OpenVidu session:', error);
+    });
+  
+    return () => {
+      if (session) {
+        session.disconnect();
+      }
+    };
+  }, []);
 
+  return (
+    <div>
+      <h2>OpenVidu Video Call</h2>
+      <div id="videos">
+        <video 
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="webcam-video"
+          style={{ width: '300px', height: '200px' }}
+        />
+      </div>
+  </div>
+  );
+};
 
-    // const joinSession = useCallback(async () => {
-    // OVRef.current = new OpenVidu();
-    
-    // const newSession = OVRef.current.initSession();
-    // setSession(newSession);
-
-    // subscribeToStreamCreated(newSession);
-    // subscribeToStreamDestroyed(newSession);
-    // subscribeToUserChanged(newSession);
-
-    // try {
-    //     const tokenToUse = Token || await getToken();
-    //     await connectToSession(tokenToUse, newSession);
-    // } catch (err) {
-    //     console.error('Error getting token:', err);
-    //     if (err) {
-    //         err({ 
-    //         error: err.error,
-    //         message: err.message,
-    //         code: err.code,
-    //         status: err.status 
-    //     });
-    //     }
-    // }
-    // }, [Token]);
-
-
-
-
-
-
-    //     useEffect(()=> {
-
-    //         // 웹캠, 마이크 기능 초기화(설정)
-    //         const openvidu = new OpenVidu();
-    //         // 화상 채팅 세션 초기화(연결, 영상송출, 수진)
-    //         const session = openvidu.initSession();
-
-    //         //사용자 입장시 상대방에서 받기
-    //         session.on('streamCreated', (event)=>{
-    //                                     // div에 id 값으로 video-container 줘야함함
-    //             const subscriber = session.subscribe(event.stream, "videoContainer")
-    //             setSubscribers
-    //         })
-    //     })
-        
-    
-    return (
-        <div className='videoContainer' ref={videoRef}>
-            {/* 종료, 공유중지,시작,비디오끄기,켜기,음성끄기켜기 */}
-        </div>
-    )
-}
-export default OpenviduVideo
+export default VideoCallPage;
