@@ -3,15 +3,16 @@ package com.h5.file.controller;
 import com.h5.file.dto.request.FileUploadRequestDto;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.service.FileService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/file")
 public class FileController {
@@ -22,29 +23,22 @@ public class FileController {
         this.fileService = fileService;
     }
 
-    // 파일 업로드
-    @PostMapping(value = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<List<FileEntity>> uploadFiles(@RequestPart("file") List<MultipartFile> multipartFileList,
-                                                        @RequestParam("tblType") List<String> tblTypes,
-                                                        @RequestParam("tblId") List<Integer> tblIds) {
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<FileEntity>> uploadFiles(
+            @RequestPart("file") List<MultipartFile> multipartFileList,
+            @RequestPart("metaData") FileUploadRequestDto metaData) {
 
-        if(multipartFileList.size() != tblTypes.size() || multipartFileList.size() != tblIds.size()) {
-            throw new IllegalArgumentException("File upload request don't match");
+        List<FileEntity.TblType> tblTypes = metaData.getTblType();
+        List<Integer> tblIds = metaData.getTblId();
+
+        if (multipartFileList.size() != tblTypes.size() || multipartFileList.size() != tblIds.size()) {
+            throw new IllegalArgumentException("Number of files and metadata entries do not match");
         }
 
-        List<FileUploadRequestDto> fileUploadRequestDtos = new ArrayList<>();
-        for (int i = 0; i < multipartFileList.size(); i++) {
-            FileUploadRequestDto fileUploadRequestDto = FileUploadRequestDto.builder()
-                    .multipartFile(multipartFileList.get(i))
-                    .tblType(FileEntity.TblType.valueOf(tblTypes.get(i)))
-                    .tblId(tblIds.get(i))
-                    .build();
-
-            fileUploadRequestDtos.add(fileUploadRequestDto);
-        }
-
-        return ResponseEntity.ok(fileService.upload(fileUploadRequestDtos));
+        return ResponseEntity.ok(fileService.upload(multipartFileList, tblTypes, tblIds));
     }
+
+
 
     // 파일 URL 조회
     @GetMapping("/urls/{tblType}/{tblId}")

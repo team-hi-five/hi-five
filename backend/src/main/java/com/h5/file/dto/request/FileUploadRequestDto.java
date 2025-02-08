@@ -4,13 +4,14 @@ import com.h5.file.entity.FileEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Getter
 @Setter
 @Builder
 public class FileUploadRequestDto {
-    private MultipartFile multipartFile;
-    private FileEntity.TblType tblType;
-    private Integer tblId;
+    private List<FileEntity.TblType> tblType;  // 여러 개의 테이블 타입
+    private List<Integer> tblId;  // 여러 개의 테이블 ID
 }
+

@@ -133,8 +133,6 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        System.out.println(email);
-
         String storedRefreshToken = (String) redisTemplate.opsForValue().get(email);
 
         if (storedRefreshToken == null) {
