@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import './LoginPage.css';
 import { login } from "/src/api/authService";
+import { useUserStore } from "/src/store/userStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -11,6 +12,15 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [whoRU, setWhoRU] = useState('parent');
   const [error, setError] = useState(null);
+  const [saveId, setSaveId] = useState(false);
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("savedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setSaveId(true); // 체크박스도 체크된 상태로 유지
+    }
+  }, []);
 
   const handleUserTypeChange = (role) => {
     setWhoRU(role);
@@ -23,12 +33,35 @@ const LoginPage = () => {
 
       const data = await login(email, password, role);
       console.log("🎉 로그인 성공!", data);
+      console.log(data.name);
+      useUserStore.getState().setUserName(data.name);
 
-      navigate(whoRU === 'parent' ? '/parent' : '/counselor');
+      if (saveId) {
+        localStorage.setItem("savedEmail", email); // 아이디 저장
+      } else {
+        localStorage.removeItem("savedEmail"); // 체크 해제 시 아이디 삭제
+      }
+
+      if(whoRU === 'parent' && data.pwdChanged===true){
+        navigate("/login/passwordchange");
+      }
+      else{
+        navigate(whoRU === 'parent' ? '/parent' : '/counselor');
+      }
     } catch (err) {
       console.error("❌ 로그인 실패:", err.response ? err.response.data : err.message);
       setError("로그인에 실패했습니다. 이메일과 비밀번호를 확인하세요.");
     }
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleLogin();
+    }
+  };
+
+  const handleSaveIdChange = (event) => {
+    setSaveId(event.target.checked);
   };
 
   return (
@@ -75,6 +108,7 @@ const LoginPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="아이디를 입력해주세요"
                 className="login-input"
+                onKeyDown={handleKeyPress}
               />
             </span>
 
@@ -86,11 +120,17 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력해주세요"
                 className="login-input"
+                onKeyDown={handleKeyPress}
               />
             </span>
 
             <div className="save-id">
-              <input type="checkbox" className="save-id-checkbox" />
+              <input 
+                type="checkbox" 
+                className="save-id-checkbox" 
+                checked={saveId}
+                onChange={handleSaveIdChange}
+              />
               <span>아이디 저장하기</span>
             </div>
 
