@@ -8,8 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
 public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
     //r
@@ -52,9 +50,5 @@ public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
             @Param("writer") String writer,
             Pageable pageable
     );
-
-
-    //상세정보 조회
-    Optional<QnaEntity> findById(int qnaId);
 
 }
