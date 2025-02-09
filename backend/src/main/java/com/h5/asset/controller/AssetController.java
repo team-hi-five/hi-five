@@ -16,17 +16,17 @@ public class AssetController {
     private final AssetService assetService;
 
     @GetMapping("/load-asset")
-    public ResponseEntity<?> getAsset(@RequestBody LoadAssetRequestDto loadAssetRequestDto) {
+    public ResponseEntity<?> getAsset(@ModelAttribute LoadAssetRequestDto loadAssetRequestDto) {
         return ResponseEntity.ok(assetService.loadAsset(loadAssetRequestDto));
     }
 
     @GetMapping("/load-cards")
-    public ResponseEntity<?> getCards(@RequestBody LoadCardRequestDto loadCardRequestDto) {
+    public ResponseEntity<?> getCards(@ModelAttribute LoadCardRequestDto loadCardRequestDto) {
         return ResponseEntity.ok(assetService.loadCards(loadCardRequestDto));
     }
 
     @GetMapping("/load-stage-asset")
-    public ResponseEntity<?> getAssetByStage(@RequestBody LoadAssetByStageDto loadAssetByStageDto) {
+    public ResponseEntity<?> getAssetByStage(@ModelAttribute LoadAssetByStageDto loadAssetByStageDto) {
         return ResponseEntity.ok(assetService.loadAssetByStage(loadAssetByStageDto));
     }
 
@@ -36,7 +36,7 @@ public class AssetController {
     }
 
     @GetMapping("/load-study-asset")
-    public ResponseEntity<?> getStudyAsset(LoadStudyAssetRequestDto loadStudyAssetRequestDto){
+    public ResponseEntity<?> getStudyAsset(@ModelAttribute LoadStudyAssetRequestDto loadStudyAssetRequestDto){
         return ResponseEntity.ok(assetService.loadStudyAsset(loadStudyAssetRequestDto));
     }
 
