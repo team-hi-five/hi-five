@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class LoadCardRequestDto {
-    private int childId;
+    private int childUserId;
 }

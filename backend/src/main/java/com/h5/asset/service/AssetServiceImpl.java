@@ -42,7 +42,7 @@ public class AssetServiceImpl implements AssetService {
 
         int stageAnswer = gameStageRepository.findById(gameStageId)
                 .map(GameStageEntity::getCrtAns)
-                .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
+                .orElseThrow(() -> new RuntimeException("can not find gameStageId=" + gameStageId));
 
         GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
                 .orElseThrow(RuntimeException::new);
@@ -54,7 +54,7 @@ public class AssetServiceImpl implements AssetService {
                 .options(new String[]{gameAssetEntity.getOpt1(), gameAssetEntity.getOpt2(), gameAssetEntity.getOpt3()})
                 .optionImages(new String[]{gameAssetEntity.getOptPic1(), gameAssetEntity.getOptPic2(), gameAssetEntity.getOptPic3()})
                 .situation(gameAssetEntity.getSituation())
-                .answer(stageAnswer-1)
+                .answer(stageAnswer)
                 .build();
     }
 
@@ -66,7 +66,7 @@ public class AssetServiceImpl implements AssetService {
         int gameStageId = (chapter - 1) * 5 + stage;
         int stageAnswer = gameStageRepository.findById(gameStageId)
                 .map(GameStageEntity::getCrtAns)
-                .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
+                .orElseThrow(() -> new RuntimeException("can not find answer : gameStageId=" + gameStageId));
 
 
         GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
@@ -79,20 +79,18 @@ public class AssetServiceImpl implements AssetService {
                 .options(new String[]{gameAssetEntity.getOpt1(), gameAssetEntity.getOpt2(), gameAssetEntity.getOpt3()})
                 .optionImages(new String[]{gameAssetEntity.getOptPic1(), gameAssetEntity.getOptPic2(), gameAssetEntity.getOptPic3()})
                 .situation(gameAssetEntity.getSituation())
-                .answer(stageAnswer-1)
+                .answer(stageAnswer)
                 .build();
     }
 
     @Transactional
     @Override
     public LoadCardResponseDto loadCards(LoadCardRequestDto loadCardRequestDto) {
-        ChildUserEntity childUserEntity = childUserRepository.findById(loadCardRequestDto.getChildId())
+        ChildUserEntity childUserEntity = childUserRepository.findById(loadCardRequestDto.getChildUserId())
                 .orElseThrow(UserNotFoundException::new);
         int cleared = childUserEntity.getClearChapter();
-        int chapter = ((cleared - 1) / 5) + 1;
-        int stage = ((cleared - 1) % 5) + 1;
 
-        List<CardAssetEntity> cardAssetEntities = cardAssetRepository.findCardAssetByChapterAndStage(chapter, stage);
+        List<CardAssetEntity> cardAssetEntities = cardAssetRepository.findByGameStageEntity_IdLessThanEqual(cleared);
 
         List<CardAssetResponseDto> cardAssetList = cardAssetEntities.stream()
                 .map(cardAssetEntity -> new CardAssetResponseDto(
@@ -105,6 +103,7 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
+    @Transactional
     public LoadChapterAssetResponseDto loadChapterAsset(LoadAssetRequestDto loadAssetRequestDto) {
         int childId = loadAssetRequestDto.getChildUserId();
         int limit = childUserRepository.findById(childId).orElseThrow(UserNotFoundException::new).getClearChapter() / 5 + 1;
@@ -124,8 +123,9 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
+    @Transactional
     public List<LoadAssetResponseDto> loadStudyAsset(LoadStudyAssetRequestDto loadStudyAssetRequestDto) {
-        int chapter = loadStudyAssetRequestDto.getChapterId();
+        int chapter = loadStudyAssetRequestDto.getChapter();
         int first = (chapter - 1) * 5 + 1;
         int last = (chapter) * 5;
 
@@ -149,7 +149,7 @@ public class AssetServiceImpl implements AssetService {
                 .options(new String[]{entity.getOpt1(), entity.getOpt2(), entity.getOpt3()})
                 .optionImages(new String[]{entity.getOptPic1(), entity.getOptPic2(), entity.getOptPic3()})
                 .situation(entity.getSituation())
-                .answer(stageAnswer - 1)
+                .answer(stageAnswer)
                 .build();
     }
 
