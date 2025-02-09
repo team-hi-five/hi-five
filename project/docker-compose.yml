@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   java_service:
-    image: project_java_service:latest
+    image: java_service:latest
     container_name: java_service
     restart: unless-stopped
     ports:
@@ -19,11 +19,14 @@ services:
       - OPENVIDU_SECRET=rz7FazDNZkSqkJmr
     volumes:
       - /etc/letsencrypt:/owncert:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+
     networks:
       - app-network
 
   nginx:
-    image: project_nginx:latest
+    image: nginx:latest
     container_name: nginx
     restart: unless-stopped
     ports:
@@ -36,6 +39,9 @@ services:
       - /etc/letsencrypt:/etc/nginx/ssl:ro
       - /home/project_h5/project/assets:/home/project_h5/project/assets:ro
       - /home/project_h5/project/uploads:/home/project_h5/project/uploads
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+
     networks:
       - app-network
 
