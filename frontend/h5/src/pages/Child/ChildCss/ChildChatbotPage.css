@@ -6,6 +6,8 @@
 }
 
 .ch-chatbot-box {
+  display: felx;
+  justify-content: center;
   position: absolute;
   width: 75%;
   height: 75%;
@@ -17,4 +19,14 @@
   border: 1px solid #e0e0e0;
   background-color: white;
   z-index: 3;
+}
+
+.ch-chatbot-ch {
+  flex: 1;
+  max-width: 500px;
+}
+
+.ch-speechBubble {
+  flex: 1;
+  max-width: 500px;
 }
