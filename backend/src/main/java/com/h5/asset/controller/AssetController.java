@@ -3,6 +3,7 @@ package com.h5.asset.controller;
 import com.h5.asset.dto.request.LoadAssetByStageDto;
 import com.h5.asset.dto.request.LoadAssetRequestDto;
 import com.h5.asset.dto.request.LoadCardRequestDto;
+import com.h5.asset.dto.request.LoadStudyAssetRequestDto;
 import com.h5.asset.service.AssetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,4 +34,10 @@ public class AssetController {
     public ResponseEntity<?> getChapterAsset(){
         return ResponseEntity.ok(assetService.loadChapterAsset());
     }
+
+    @GetMapping("/load-study-asset")
+    public ResponseEntity<?> getStudyAsset(LoadStudyAssetRequestDto loadStudyAssetRequestDto){
+        return ResponseEntity.ok(assetService.loadStudyAsset(loadStudyAssetRequestDto));
+    }
+
 }
