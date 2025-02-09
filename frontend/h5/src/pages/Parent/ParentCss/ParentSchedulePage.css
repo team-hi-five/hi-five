@@ -170,11 +170,6 @@
     color: #002753 !important;
 }
 
-/* 선택된 날짜에 호버 효과 적용 */
-.p-datepicker table td > span.p-highlight {
-    background-color: #ff0400;
-}
-
 .p-datepicker .p-monthpicker {
     color: #002753 !important;
 }
@@ -218,11 +213,6 @@
     color: #1A2A4D !important;
 }
 
-/* 오늘 날짜가 선택되었을 때 스타일링 */
-.p-datepicker table td.p-datepicker-today.p-highlight > span {
-    background-color: #FFB74D !important;
-    color: white !important;
-}
 
 /* 년도 선택 드롭다운에 '년' 추가 */
 .p-datepicker .p-datepicker-header .p-datepicker-title .p-yearpicker option::after {
