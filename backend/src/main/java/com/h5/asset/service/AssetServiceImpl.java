@@ -7,6 +7,7 @@ import com.h5.asset.dto.request.LoadStudyAssetRequestDto;
 import com.h5.asset.dto.response.*;
 import com.h5.asset.entity.CardAssetEntity;
 import com.h5.asset.entity.GameAssetEntity;
+import com.h5.asset.entity.GameStageEntity;
 import com.h5.asset.repository.CardAssetRepository;
 import com.h5.asset.repository.GameAssetRepository;
 import com.h5.asset.repository.GameChapterRepository;
@@ -35,10 +36,14 @@ public class AssetServiceImpl implements AssetService {
         ChildUserEntity childUserEntity = childUserRepository.findById(loadAssetRequestDto.getChildUserId())
                 .orElseThrow(UserNotFoundException::new);
         int cleared = childUserEntity.getClearChapter();
-        int chapter = (cleared / 5) + 1;
-        int stage = cleared % 5;
+        int chapter = ((cleared - 1) / 5) + 1;
+        int stage = ((cleared - 1) % 5) + 1;
+        int gameStageId = (chapter - 1) * 5 + stage;
 
-        int stageAnswer = gameStageRepository.findCrtAnsByIdAndGameChapterId(stage, chapter);
+        int stageAnswer = gameStageRepository.findById(gameStageId)
+                .map(GameStageEntity::getCrtAns)
+                .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
+
         GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
                 .orElseThrow(RuntimeException::new);
 
@@ -58,8 +63,12 @@ public class AssetServiceImpl implements AssetService {
     public LoadAssetResponseDto loadAssetByStage(LoadAssetByStageDto loadAssetByStageDto) {
         int chapter = loadAssetByStageDto.getChapter();
         int stage = loadAssetByStageDto.getStage();
+        int gameStageId = (chapter - 1) * 5 + stage;
+        int stageAnswer = gameStageRepository.findById(gameStageId)
+                .map(GameStageEntity::getCrtAns)
+                .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
 
-        int stageAnswer = gameStageRepository.findCrtAnsByIdAndGameChapterId(stage, chapter);
+
         GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
                 .orElseThrow(RuntimeException::new);
 
@@ -80,8 +89,8 @@ public class AssetServiceImpl implements AssetService {
         ChildUserEntity childUserEntity = childUserRepository.findById(loadCardRequestDto.getChildId())
                 .orElseThrow(UserNotFoundException::new);
         int cleared = childUserEntity.getClearChapter();
-        int chapter = (cleared / 5) + 1;
-        int stage = cleared % 5;
+        int chapter = ((cleared - 1) / 5) + 1;
+        int stage = ((cleared - 1) % 5) + 1;
 
         List<CardAssetEntity> cardAssetEntities = cardAssetRepository.findCardAssetByChapterAndStage(chapter, stage);
 
@@ -117,25 +126,30 @@ public class AssetServiceImpl implements AssetService {
     @Override
     public List<LoadAssetResponseDto> loadStudyAsset(LoadStudyAssetRequestDto loadStudyAssetRequestDto) {
         int chapter = loadStudyAssetRequestDto.getChapterId();
-        Integer first = (chapter - 1) * 5;
-        Integer last = (chapter + 1) * 5 + 4;
+        int first = (chapter - 1) * 5 + 1;
+        int last = (chapter) * 5;
 
         List<GameAssetEntity> gameAssetEntities = gameAssetRepository.findByIdBetween(first, last);
 
         return gameAssetEntities.stream()
-                .map(this::convertToDto) // 변환 메서드 호출
-                .toList(); // List<LoadAssetResponseDto> 변환
+                .map(this::convertToDto)
+                .toList();
     }
 
     private LoadAssetResponseDto convertToDto(GameAssetEntity entity) {
+        int gameStageId = entity.getId();
+        int stageAnswer = gameStageRepository.findById(gameStageId)
+                .map(GameStageEntity::getCrtAns)
+                .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
+
         return LoadAssetResponseDto.builder()
-                .gameStageId(entity.getId()) // ID 설정
-                .chapterId(entity.getGameStageEntity().getGameChapterEntity().getId()) // 연관 엔티티 접근
-                .gameVideo(entity.getGameSceneVideo()) // 비디오 URL 설정
-                .options(new String[]{entity.getOpt1(), entity.getOpt2(), entity.getOpt3()}) // 옵션 배열 변환
-                .optionImages(new String[]{entity.getOptPic1(), entity.getOptPic2(), entity.getOptPic3()}) // 옵션 이미지 배열 변환
-                .situation(entity.getSituation()) // 상황 설명
-                .answer(0) // 정답 필드 (필요하면 로직 추가)
+                .gameStageId(gameStageId)
+                .chapterId(entity.getGameStageEntity().getGameChapterEntity().getId())
+                .gameVideo(entity.getGameSceneVideo())
+                .options(new String[]{entity.getOpt1(), entity.getOpt2(), entity.getOpt3()})
+                .optionImages(new String[]{entity.getOptPic1(), entity.getOptPic2(), entity.getOptPic3()})
+                .situation(entity.getSituation())
+                .answer(stageAnswer - 1)
                 .build();
     }
 
