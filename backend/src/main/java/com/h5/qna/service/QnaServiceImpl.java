@@ -5,10 +5,7 @@ import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.file.dto.response.GetFileUrlResponseDto;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.service.FileService;
-import com.h5.global.exception.BoardAccessDeniedException;
-import com.h5.global.exception.BoardNotFoundException;
-import com.h5.global.exception.UserAccessDeniedException;
-import com.h5.global.exception.UserNotFoundException;
+import com.h5.global.exception.*;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import com.h5.qna.dto.request.*;
@@ -238,33 +235,33 @@ public class QnaServiceImpl implements QnaService {
     public QnaSaveResponseDto deleteQna(int qnaId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
-        ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email).orElse(null);
-        ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email).orElse(null);
+        QnaEntity qnaEntity = qnaRepository.findById(qnaId).orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        if (parentUserEntity == null && consultantUserEntity == null) {
-            throw new UserNotFoundException();
+        if("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+            if(qnaEntity.getParentUser().getId().equals(parentUserEntity.getId())) {
+                qnaEntity.setDeleteDttm(LocalDateTime.now());
+                qnaRepository.save(qnaEntity);
+
+                return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
+            }
+
+        }else if("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+            if(qnaEntity.getParentUser().getConsultantUserEntity().getId().equals(consultantUserEntity.getId())) {
+                qnaEntity.setDeleteDttm(LocalDateTime.now());
+                qnaRepository.save(qnaEntity);
+
+                return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
+            }
         }
 
-        QnaEntity qnaEntity = qnaRepository.findById(qnaId)
-                .orElseThrow(() -> new BoardNotFoundException("qna"));
-
-        Integer parentUserId = (parentUserEntity != null) ? parentUserEntity.getId() : null;
-        Integer consultantUserId = (consultantUserEntity != null) ? consultantUserEntity.getId() : null;
-
-        Integer qnaOwnerId = qnaEntity.getParentUser().getId();
-
-        boolean isParentOwner = qnaOwnerId.equals(parentUserId);
-        boolean isConsultantOwner = parentUserEntity != null &&
-                parentUserEntity.getConsultantUserEntity() != null &&
-                parentUserEntity.getConsultantUserEntity().getId().equals(consultantUserId);
-
-        if (isParentOwner || isConsultantOwner) {
-            qnaRepository.delete(qnaEntity);
-            return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
-        } else {
-            throw new BoardAccessDeniedException("qna");
-        }
+        throw new InvalidUserException("role");
     }
 
     @Override
