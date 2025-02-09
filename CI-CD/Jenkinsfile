@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         // 도커 이미지 이름 및 태그 (필요에 따라 변경)
-        BACKEND_IMAGE   = "project_java_service"
+        BACKEND_IMAGE   = "java_service"
         BACKEND_TAG     = "latest"
-        FRONTEND_IMAGE  = "project_nginx"
+        FRONTEND_IMAGE  = "nginx"
         FRONTEND_TAG    = "latest"
         
         // 프로덕션 배포에 사용할 docker-compose 파일 경로 (예: Git 루트에 deploy/ 폴더에 작성)
