@@ -208,7 +208,7 @@
 
 .co-detail-answer-input-area {
   background-color: #edf3fa;
-  border-radius: 4px;
+  border-radius: 5px;
   padding: 10px 15px;
   
 }
@@ -329,6 +329,14 @@
   padding: 10px 20px;
   border-radius: 10px;
 
+}
+
+.co-detail-no-answer {
+  font-size: 18px;
+  text-align: center;
+  padding: 10px;
+  font-weight: bold;
+  color: #1A2A4D;
 }
 
 .co-detail-answer-info-content {

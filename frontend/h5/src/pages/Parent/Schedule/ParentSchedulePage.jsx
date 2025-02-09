@@ -6,7 +6,7 @@ import { addLocale } from 'primereact/api';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import '../ParentCss/ParentSchedulePage.css';
-import { getScheduledDatesByParent } from "/src/api/schedule";
+import { getScheduledDatesByParent, getParentScheduleList } from "/src/api/schedule";
 
 addLocale('ko', {
     firstDayOfWeek: 0,
@@ -26,30 +26,68 @@ function ParentSchedulePage() {
     const [searchTerm] = useState('');
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [scheduledDates, setScheduledDates] = useState([]);
+    const [scheduleList, setScheduleList] = useState([]); // 🔹 부모 상담 리스트 상태 추가
+
 
     useEffect(() => {
         async function fetchScheduledDates() {
             try {
-                const year = currentMonth.getFullYear();
-                const month = currentMonth.getMonth() + 1;
-                console.log(`📢 상담 일정 요청 (Year: ${year}, Month: ${month})`);
-
-                const dates = await getScheduledDatesByParent(year, month);
+                const selectedYear = currentMonth.getFullYear(); // ✅ 정확한 값 설정
+                const selectedMonth = currentMonth.getMonth() + 1;
+    
+                console.log(`📢 상담 일정 요청 (Year: ${selectedYear}, Month: ${selectedMonth})`);
+    
+                const dates = await getScheduledDatesByParent(selectedYear, selectedMonth);
                 console.log("✅ 상담 예약 날짜 응답 확인:", dates);
-
+    
                 setScheduledDates(dates.map(date => formatDateToString(new Date(date))));
             } catch (error) {
                 console.error("❌ 상담 일정 날짜를 불러오는 데 실패했습니다.", error);
             }
         }
-        fetchScheduledDates();
-    }, [currentMonth]);
+    
+        if (currentMonth) { // ✅ currentMonth가 존재할 때만 실행
+            fetchScheduledDates();
+        }
+    }, [currentMonth]); // ✅ 년도, 월이 바뀔 때만 실행
+    
 
     useEffect(() => {
         setTimeout(() => {
             highlightScheduledDatesInDOM();
         }, 500); // 달력 렌더링 후 실행
     },);
+
+    useEffect(() => {
+        async function fetchScheduleList() {
+            try {
+                const formattedDate = formatDateToString(date);
+                console.log("📅 요청할 날짜:", formattedDate);
+    
+                const data = await getParentScheduleList(formattedDate);
+                
+                console.log("✅ API에서 받은 schedules:", data); // ✅ 응답 확인
+    
+                if (data && Array.isArray(data)) {
+                    setScheduleList(data);
+                } else if (data?.data && Array.isArray(data.data)) {
+                    setScheduleList(data.data);
+                } else {
+                    console.warn("⚠️ 받은 데이터 형식이 예상과 다릅니다:", data);
+                    setScheduleList([]);
+                }
+            } catch (error) {
+                console.error("❌ 상담 일정 불러오기 실패", error);
+                setScheduleList([]);
+            }
+        }
+    
+        fetchScheduleList();
+    }, [date]);
+    
+    
+    
+    
 
     // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
     const formatDateToString = (date) => {
@@ -59,6 +97,17 @@ function ParentSchedulePage() {
         const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     };
+
+    const formatTimeFromDateTime = (dateTime) => {
+        if (!dateTime) return "시간 정보 없음"; // ✅ dateTime이 null/undefined일 경우 기본값 설정
+        if (typeof dateTime !== "string") {
+            console.warn("⚠️ 예상치 못한 dateTime 형식:", dateTime);
+            return "시간 정보 없음";
+        }
+        return dateTime.split("T")[1]?.substring(0, 5) || "시간 정보 없음"; // "13:00"
+    };
+    
+    
 
     // 🔹 달력이 렌더링된 후, 예약된 날짜에 스타일을 추가하는 함수
     const highlightScheduledDatesInDOM = () => {
@@ -113,40 +162,11 @@ function ParentSchedulePage() {
             isLoading: false,
             isCompleted: false
         },
-    ].sort((a, b) => {
+        ].sort((a, b) => {
         const timeA = a.time.split('~')[0].trim();
         const timeB = b.time.split('~')[0].trim();
         return timeA.localeCompare(timeB);
-      })); // 시간순으로 나열해주는 로직
-
-    // 필터링된 스케줄을 계산
-    const filteredSchedules = schedules.filter(schedule => {
-        if (searchTerm) {
-            // 검색어가 있을 때
-            const scheduleDate = new Date(schedule.date);
-            const currentMonthDate = new Date(currentMonth);
-            
-            // 연도와 월이 일치하는지 확인
-            const isSameMonth = 
-                scheduleDate.getFullYear() === currentMonthDate.getFullYear() &&
-                scheduleDate.getMonth() === currentMonthDate.getMonth();
-    
-            return schedule.counsultation_target.toLowerCase().includes(searchTerm.toLowerCase()) 
-                   && isSameMonth;
-        }
-        
-        // 검색어가 없을 때는 선택된 날짜의 상담만 보여줌
-        const selectedDate = formatDateToString(date);
-        return schedule.date === selectedDate;
-    }).sort((a, b) => {
-        // 날짜순으로 정렬 후, 같은 날짜는 시간순으로 정렬
-        if (a.date !== b.date) {
-            return new Date(a.date) - new Date(b.date);
-        }
-        const timeA = a.time.split('~')[0].trim();
-        const timeB = b.time.split('~')[0].trim();
-        return timeA.localeCompare(timeB);
-    });
+    })); // 시간순으로 나열해주는 로직
 
     // 날짜 표시 포맷 함수 (M/DD)
     const formatDisplayDate = (dateString) => {
@@ -174,7 +194,10 @@ function ParentSchedulePage() {
                         <Calendar
                             value={date}
                             onChange={(e) => setDate(e.value)}
-                            onViewDateChange={(e) => setCurrentMonth(e.value)}
+                            onViewDateChange={(e) => {
+                                setCurrentMonth(e.value);
+                                setDate(e.value); // 🔹 달력에서 년/월 변경 시에도 반영되도록 수정
+                            }}
                             inline
                             dateFormat="yy년 mm월"
                             locale="ko"
@@ -183,6 +206,7 @@ function ParentSchedulePage() {
                             yearNavigator
                             yearRange="2000:2040"
                         />
+
                         </div>
                     </div>
                     <div className="pa-notcalendar">
@@ -198,46 +222,27 @@ function ParentSchedulePage() {
                                 </h2>
                             </div>
                             <div className="pa-schedule-list">
-                                {filteredSchedules.length > 0 ? (
-                                    filteredSchedules.map((schedule, index) => (
-                                        <div key={index} className="pa-schedule-item">
-                                            <div className="pa-schedule-info">
-                                                {searchTerm && (
-                                                    <div className="pa-schedule-header-row">
-                                                        <div className="pa-schedule-date">
-                                                            {formatDisplayDate(schedule.date)}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                <p>상담 시간 : {schedule.time}</p>
-                                                <p>상담유형 : {schedule.counsultation_type}</p>
-                                                <p>상담대상(이름) : {schedule.counsultation_target}</p>
-                                            </div>
-                                            <div className="pa-button-group">
-                                                {!schedule.isCompleted ? (
-                                                    <>
-                                                        <button 
-                                                            className="pa-btn pa-btn-join"
-                                                            onClick={() => handleJoin(index)}
-                                                        >
-                                                            참여
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <button className="pa-btn pa-btn-completed" disabled>
-                                                        참여완료
-                                                    </button>
-                                                )}
-                                            </div>
+                            {scheduleList.length > 0 ? (
+                                scheduleList.map((schedule, index) => (
+                                    <div key={index} className="pa-schedule-item">
+                                        <div className="pa-schedule-info">
+                                            <p>상담 시간 : {formatTimeFromDateTime(schedule.schdlDttm)}</p>
+                                            <p>상담유형 : {schedule.type === "game" ? "게임 상담" : "일반 상담"}</p>
+                                            <p>상담대상(이름) : {schedule.childName}</p>
+                                            <p>담당 상담사 : {schedule.consultantName}</p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="pa-no-schedules">
-                                        <p>
-                                            {searchTerm ? '해당 아동의 상담내역이 없습니다!' : '상담 일정이 없습니다!'}
-                                        </p>
+                                        <div className="pa-button-group">
+                                        <button className="pa-btn pa-btn-join" onClick={() => handleJoin(index)}>
+                                            참여
+                                        </button>
+                                        </div>
                                     </div>
-                                )}
+                                ))
+                            ) : (
+                                <p>상담 일정이 없습니다!</p>
+                            )}
+
+
                             </div>
                         </div>
                     </div>
