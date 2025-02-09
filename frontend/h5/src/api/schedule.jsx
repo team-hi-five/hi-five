@@ -99,7 +99,7 @@ export const getConsultantScheduleList = async (date) => {
             params: { date }
         });
         console.log("✅ 상담사 상담 리스트 조회 성공:", response.data);
-        return response.data.schedules; // 상담 리스트 반환
+        return response.data; // 상담 리스트 반환
     } catch (error) {
         console.error("❌ 상담사 상담 리스트 조회 실패:", error.response ? error.response.data : error.message);
         return [];

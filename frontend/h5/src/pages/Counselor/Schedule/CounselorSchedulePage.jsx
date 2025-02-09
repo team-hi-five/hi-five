@@ -4,11 +4,12 @@ import MeetingCreateModal from "../../../components/modals/MeetingCreateModal";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert"
 import SingleButtonAlert from "../../../components/common/SingleButtonAlert";
 import { Calendar } from 'primereact/calendar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addLocale } from 'primereact/api';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import '../Css/CounselorSchedulePage.css';
+import { getConsultantScheduleList } from '../../../api/schedule';
 
 addLocale('ko', {
     firstDayOfWeek: 0,
@@ -118,6 +119,38 @@ function CounselorSchedulePage() {
         //     })
         // );
     // };
+
+    useEffect(() => {
+        const fetchSchedules = async () => {
+            if (!date) return; // date 값이 없을 경우 요청 안 함
+            const formattedDate = formatDateToString(date);
+            const response = await getConsultantScheduleList(formattedDate);
+            console.log("응답이여 ~ : ", response);
+            
+            // API 응답 데이터를 화면에 맞게 변환
+            const formattedSchedules = response.map(item => {
+                const dateTime = new Date(item.schdlDttm);
+                const hour = String(dateTime.getHours()).padStart(2, "0");
+                const minute = String(dateTime.getMinutes()).padStart(2, "0");
+                const nextHour = String(dateTime.getHours() + 1).padStart(2, "0");
+    
+                return {
+                    time: `${hour}:${minute} ~ ${nextHour}:${minute}`,
+                    counselor: item.consultantName,
+                    counsultation_target: item.childName,
+                    counsultation_type: item.type,
+                    date: formattedDate,
+                    isLoading: false,
+                    isCompleted: item.status === 'C' // 완료된 상담 여부
+                };
+            });
+    
+            setSchedules(formattedSchedules);
+        };
+    
+        fetchSchedules();
+    }, [date]);
+    
 
     // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
     const formatDateToString = (date) => {
@@ -288,11 +321,9 @@ function CounselorSchedulePage() {
                             <div className="co-schedule-header">
                                 <h2 className="co-schedule-title">
                                     상담 일정
-                                    {!searchTerm && ( // 검색어가 없을 때만 날짜 표시
-                                        <span className="co-selected-date">
+                                    <span className="co-selected-date">
                                             ({formatDisplayDate(date)})
-                                        </span>
-                                    )}
+                                    </span>
                                 </h2>
                                 <div className="co-search-container">
                                     <span className="p-input-icon-left">
