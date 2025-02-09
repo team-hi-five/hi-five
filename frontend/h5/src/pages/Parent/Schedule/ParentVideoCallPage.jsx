@@ -1,5 +1,5 @@
 import "/src/pages/Parent/ParentCss/ParentVideoCallPage.css";
-import { FaVideo, FaMicrophone, FaPhoneSlash } from "react-icons/fa";
+import { FaVideo, FaMicrophone, FaPhoneSlash, FaDesktop } from "react-icons/fa";
 
 function ParentVideoCallPage() {
   return (
@@ -26,6 +26,7 @@ function ParentVideoCallPage() {
 
       {/* 하단 컨트롤 버튼 */}
       <div className="pa-video-controls">
+        <button className="pa-control-btn"><FaDesktop /></button>
         <button className="pa-control-btn"><FaVideo /></button>
         <button className="pa-control-btn"><FaMicrophone /></button>
         <button className="pa-control-btn end-call"><FaPhoneSlash /></button>
