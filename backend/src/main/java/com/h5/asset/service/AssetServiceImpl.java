@@ -69,7 +69,7 @@ public class AssetServiceImpl implements AssetService {
                 .orElseThrow(() -> new RuntimeException("can not find answer : gameStageId=" + gameStageId));
 
 
-        GameAssetEntity gameAssetEntity = gameAssetRepository.findGameAssetByChapterAndStage(chapter, stage)
+        GameAssetEntity gameAssetEntity = gameAssetRepository.findById(gameStageId)
                 .orElseThrow(RuntimeException::new);
 
         return LoadAssetResponseDto.builder()
