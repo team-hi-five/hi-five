@@ -96,7 +96,10 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public LoadChapterAssetResponseDto loadChapterAsset() {
+    public LoadChapterAssetResponseDto loadChapterAsset(LoadAssetRequestDto loadAssetRequestDto) {
+        int childId = loadAssetRequestDto.getChildUserId();
+        int limit = childUserRepository.findById(childId).orElseThrow(UserNotFoundException::new).getClearChapter() / 5 + 1;
+
         List<ChapterAssetResponseDto> chapterAssetResponseDtoList = gameChapterRepository.findAll().stream()
                 .map(gameChapter -> ChapterAssetResponseDto.builder()
                         .gameChapterId(gameChapter.getId())
@@ -107,6 +110,7 @@ public class AssetServiceImpl implements AssetService {
 
         return LoadChapterAssetResponseDto.builder()
                 .chapterAssetDtoList(chapterAssetResponseDtoList)
+                .limit(limit)
                 .build();
     }
 
