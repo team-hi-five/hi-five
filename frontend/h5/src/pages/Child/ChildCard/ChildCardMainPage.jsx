@@ -107,7 +107,7 @@ function ChildCardMainPage() {
                 bgColor={emotion.bgColor}
                 textColor={emotion.textColor}
                 onClick={() => {
-                  navigate("details", {
+                  navigate(`details/${emotion.type}`, {
                     state: { emotion: emotion },
                   });
                 }}

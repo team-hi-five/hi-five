@@ -30,14 +30,50 @@ function ParentSchedulePage() {
     useEffect(() => {
         async function fetchScheduledDates() {
             try {
-                const dates = await getScheduledDatesByParent();
-                setScheduledDates(dates.map(date => new Date(date))); // 문자열 날짜를 Date 객체로 변환
+                const year = currentMonth.getFullYear();
+                const month = currentMonth.getMonth() + 1;
+                console.log(`📢 상담 일정 요청 (Year: ${year}, Month: ${month})`);
+
+                const dates = await getScheduledDatesByParent(year, month);
+                console.log("✅ 상담 예약 날짜 응답 확인:", dates);
+
+                setScheduledDates(dates.map(date => formatDateToString(new Date(date))));
             } catch (error) {
-                console.error("상담 일정 날짜를 불러오는 데 실패했습니다.", error);
+                console.error("❌ 상담 일정 날짜를 불러오는 데 실패했습니다.", error);
             }
         }
         fetchScheduledDates();
-    }, []);
+    }, [currentMonth]);
+
+    useEffect(() => {
+        setTimeout(() => {
+            highlightScheduledDatesInDOM();
+        }, 500); // 달력 렌더링 후 실행
+    },);
+
+    // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
+    const formatDateToString = (date) => {
+        if (!date) return null;
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    // 🔹 달력이 렌더링된 후, 예약된 날짜에 스타일을 추가하는 함수
+    const highlightScheduledDatesInDOM = () => {
+        setTimeout(() => {
+            const calendarCells = document.querySelectorAll(".p-datepicker td > span");
+            calendarCells.forEach((cell) => {
+                const dateText = cell.innerText.padStart(2, "0"); // "1" -> "01" 변환
+                const selectedDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${dateText}`;
+
+                if (scheduledDates.includes(selectedDate)) {
+                    cell.classList.add("highlight-circle"); // ✅ 클래스 추가
+                }
+            });
+        }, 100);
+    };
 
 
     const [schedules] = useState([
@@ -82,21 +118,6 @@ function ParentSchedulePage() {
         const timeB = b.time.split('~')[0].trim();
         return timeA.localeCompare(timeB);
       })); // 시간순으로 나열해주는 로직
-
-    // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
-    const formatDateToString = (date) => {
-        if (!date) return null;
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-     // 날짜 선택 핸들러
-     const handleDateSelect = (e) => {
-        setDate(e.value);
-        setCurrentMonth(e.value);
-    };
 
     // 필터링된 스케줄을 계산
     const filteredSchedules = schedules.filter(schedule => {
@@ -150,19 +171,18 @@ function ParentSchedulePage() {
                     <div className="pa-calendar-section">
                         <h2 className="pa-select-date">날짜를 선택해주세요.</h2>
                         <div className="pa-calendar-wrapper">
-                            <Calendar 
-                                value={date} 
-                                onChange={handleDateSelect}
-                                onViewDateChange={(e) => setCurrentMonth(e.value)}
-                                inline 
-                                dateFormat="yy년 mm월"
-                                locale="ko"
-                                view="date"
-                                monthNavigator
-                                yearNavigator
-                                yearRange="2000:2040"
-                                disabledDates={scheduledDates} // 📌 예약된 날짜 비활성화
-                            />
+                        <Calendar
+                            value={date}
+                            onChange={(e) => setDate(e.value)}
+                            onViewDateChange={(e) => setCurrentMonth(e.value)}
+                            inline
+                            dateFormat="yy년 mm월"
+                            locale="ko"
+                            view="date"
+                            monthNavigator
+                            yearNavigator
+                            yearRange="2000:2040"
+                        />
                         </div>
                     </div>
                     <div className="pa-notcalendar">
