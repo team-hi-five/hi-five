@@ -11,4 +11,5 @@ import java.util.List;
 @Builder
 public class LoadChapterAssetResponseDto {
     private List<ChapterAssetResponseDto> chapterAssetDtoList;
+    private int limit;
 }
