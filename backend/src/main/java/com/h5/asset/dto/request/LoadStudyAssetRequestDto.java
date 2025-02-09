@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class LoadStudyAssetRequestDto {
-    private int chapterId;
+    private int chapter;
 }
