@@ -6,5 +6,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class LoadAssetByStageDto {
-    private int stageId;
+    private int chapter;
+    private int stage;
 }
