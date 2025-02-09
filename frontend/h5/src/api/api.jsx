@@ -1,10 +1,9 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_SERVER_API_URL || "https://i12c205.p.ssafy.io:8443";
+const API_URL = import.meta.env.VITE_SERVER_API_URL;
 
 const noAuthEndpoints = [
   "/auth/login",
-  "/auth/logout",
   "/auth/parent/find-id",
   "/user/parent/temp-pwd",
   "/user/consultant/find-id",

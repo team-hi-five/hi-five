@@ -160,12 +160,6 @@
     
 }
 
-/* 일반 날짜에 호버 효과 적용 */
-.p-datepicker table td:not(.p-highlight):not(.p-disabled):hover > span {
-    background-color: #FFCC80 !important;
-    color: white !important;
-}
-
 .p-datepicker .p-datepicker-header {
     background: transparent !important;
     border: none !important;
@@ -178,7 +172,7 @@
 
 /* 선택된 날짜에 호버 효과 적용 */
 .p-datepicker table td > span.p-highlight {
-    background-color: #fbd090;
+    background-color: #ff0400;
 }
 
 .p-datepicker .p-monthpicker {
@@ -341,4 +335,21 @@
 .pa-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+/* 📌 상담 예약된 날짜 스타일 */
+.highlight-circle {
+    position: relative;
+}
+
+.highlight-circle::before {
+    content: "";
+    position: absolute;
+    width: 95%;
+    height: 95%;
+    background-color: rgba(255, 107, 107, 0.3); /* 반투명 파란색 */
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
