@@ -8,11 +8,13 @@ import ParentHeader from "/src/components/Parent/ParentHeader";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import { createQna } from "../../../api/boardQna";
+import { uploadFile, TBL_TYPES } from "../../../api/file";
 import "/src/pages/Parent/ParentCss/ParentBoardWritePage.css";
 
 function ParentBoardWritePage() {
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState(""); // text -> content로 변경
+  const [content, setContent] = useState(""); 
+  const [selectedFiles, setSelectedFiles] = useState([]); // 선택된 파일들을 저장할 state 추가
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useRef(null);
   const navigate = useNavigate();
@@ -39,34 +41,74 @@ function ParentBoardWritePage() {
     return true;
   };
 
-  const handleSubmit = async () => {
-      try {
-        if (!validateForm()) {
-          return;
-        }
-  
-        if (isSubmitting) {
-          return;
-        }
-        setIsSubmitting(true);
-  
-        await createQna(title, content);
-        
-        // SingleButtonAlert로 성공 메시지 표시
-        await SingleButtonAlert('질문이 등록되었습니다.');
-        
-        setPaActiveTab("qna");
-        navigate('/parent/board');
-  
-      } catch (error) {
-        // SingleButtonAlert로 에러 메시지 표시
-        await SingleButtonAlert(error.response?.data?.message || '질문문 등록에 실패했습니다.');
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
-  
+  // 파일 선택 핸들러
+  const handleFileSelect = (event) => {
+    const files = event.files;
+    // 파일 크기 검증
+    const oversizedFiles = files.filter(file => file.size > 1000000);
+    
+    if (oversizedFiles.length > 0) {
+      showToast('warn', '알림', '1MB 이상의 파일은 업로드할 수 없습니다.');
+      return;
+    }
+    
+    setSelectedFiles(files);
+  };
 
+  // 파일 업로드 부분 수정
+  const handleSubmit = async () => {
+    try {
+      if (!validateForm()) return;
+      if (isSubmitting) return;
+      setIsSubmitting(true);
+
+      // 1. 게시글 생성
+      const qnaResponse = await createQna(title, content);
+      const qnaId = qnaResponse.qnaId || qnaResponse.data?.qnaId;
+
+      // 2. 파일 업로드
+      if (qnaId && selectedFiles.length > 0) {
+        let uploadedFiles = [];
+        let failedUploads = 0;
+        
+        for (const file of selectedFiles) {
+          try {
+            const response = await uploadFile(file, TBL_TYPES.QNA, qnaId);
+            
+            // API 응답이 배열인지 확인
+            if (Array.isArray(response)) {
+              uploadedFiles = [...uploadedFiles, ...response];
+            } else if (response) {
+              uploadedFiles.push(response);
+            }
+          } catch (uploadError) {
+            console.error("파일 업로드 실패:", uploadError);
+            failedUploads++;
+          }
+        }
+        
+        // 업로드 결과 확인
+        if (failedUploads > 0) {
+          await SingleButtonAlert(
+            `${uploadedFiles.length}개 파일 업로드 완료, ${failedUploads}개 파일 업로드 실패`
+          );
+        } else if (uploadedFiles.length > 0) {
+          console.log("업로드된 파일 정보:", uploadedFiles);
+        }
+      }
+
+      await SingleButtonAlert('질문이 등록되었습니다.');
+      setPaActiveTab("qna");
+      navigate('/parent/board');
+
+    } catch (error) {
+      console.error("게시글 등록 실패:", error);
+      await SingleButtonAlert('질문 등록에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
     const handleCancel = async () => {
       if (title.trim() || content.trim()) {
         // DoubleButtonAlert로 확인
@@ -111,11 +153,16 @@ function ParentBoardWritePage() {
         <div style={{ marginTop: "15px" }}>
           <label className="pa-write-label">첨부파일</label>
           <FileUpload 
-            name="demo[]" 
-            url={'/api/upload'} 
+            name="files" 
+            customUpload={true} 
+            onSelect={handleFileSelect}
             multiple 
             maxFileSize={1000000}
-            emptyTemplate={<p className="m-0">Drag and drop files to here to upload.</p>} 
+            accept="image/*,.pdf,.doc,.docx"
+            emptyTemplate={<p className="m-0">파일을 드래그하거나 선택하여 업로드하세요. (최대 1MB)</p>} 
+            auto={false}
+            // showUploadButton={false}  // Upload 버튼 숨기기
+            // showButtons={false} 
           />
         </div>
 
