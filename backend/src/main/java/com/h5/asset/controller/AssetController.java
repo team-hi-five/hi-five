@@ -31,8 +31,8 @@ public class AssetController {
     }
 
     @GetMapping("/load-chapter-asset")
-    public ResponseEntity<?> getChapterAsset(){
-        return ResponseEntity.ok(assetService.loadChapterAsset());
+    public ResponseEntity<?> getChapterAsset(@RequestBody LoadAssetRequestDto loadAssetRequestDto) {
+        return ResponseEntity.ok(assetService.loadChapterAsset(loadAssetRequestDto));
     }
 
     @GetMapping("/load-study-asset")

@@ -17,7 +17,7 @@ public interface AssetService {
 
     LoadCardResponseDto loadCards(LoadCardRequestDto loadCardRequestDto);
 
-    LoadChapterAssetResponseDto loadChapterAsset();
+    LoadChapterAssetResponseDto loadChapterAsset(LoadAssetRequestDto loadAssetRequestDto);
 
     List<LoadAssetResponseDto> loadStudyAsset(LoadStudyAssetRequestDto loadStudyAssetRequestDto);
 }
