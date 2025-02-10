@@ -1,39 +1,57 @@
-// import chatbot from "react-chatbot-kit";
 import { createChatBotMessage } from "react-chatbot-kit";
+import { Card } from "primereact/card";
 import ChildMainBackground from "../../components/Child/ChildMainBackground";
 import "./ChildCss/ChildChatbotPage.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function ChildChatbotPage() {
   const [currentStep, setCurrentStep] = useState(0);
-
-  // 아동 들어오면 바로 감정이 렌더링 시작
-
+  const [messages, setMessages] = useState([]);
   // 초기 메세지 설정
-  const config = {
-    initialMessages: [
-      createChatBotMessage("안녕 000감정아! 만나서 반가워!", {
+
+  useEffect(() => {
+    const childName = sessionStorage.getItem("childName");
+    const initialMessages = [
+      createChatBotMessage(`안녕 ${childName}감정아! 만나서 반가워!`, {
         delay: 500,
       }),
       createChatBotMessage("나는 마음이라고 해!", { delay: 1500 }),
       createChatBotMessage("오늘 너의 이야기를 들려줄래?", { delay: 1500 }),
       createChatBotMessage("어떤 일이 있었는지 궁금해~", { delay: 1500 }),
-    ],
+    ];
 
-    steps: [
-      {
-        question: "오늘 하루 어떤 일이 있었니?",
-        nextStep: 1,
-      },
-      {
-        question: "그래서 어떤 감정이 들었어?",
-        nextStep: 2,
-      },
-      {
-        question: "",
-        nextStep: "result",
-      },
-    ],
+    initialMessages.forEach((msg, index) => {
+      setTimeout(
+        () => {
+          setMessages((prev) => [...prev, createChatBotMessage(msg.message)]);
+        },
+        initialMessages.slice(0, index + 1).reduce((sum, m) => sum + m.delay, 0)
+      );
+    });
+  }, []);
+  // 대화 스크롤
+  useEffect(() => {
+    const chatbox = document.querySelector(".ch-chatbot-background-container");
+    if (chatbox) {
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+  }, [messages]);
+
+  const config = {
+    // steps: [
+    //   {
+    //     question: "오늘 하루 어떤 일이 있었니?",
+    //     nextStep: 1,
+    //   },
+    //   {
+    //     question: "그래서 어떤 감정이 들었어?",
+    //     nextStep: 2,
+    //   },
+    //   {
+    //     question: "",
+    //     nextStep: "result",
+    //   },
+    // ],
 
     // 결과 메세지
     // + 결과 카드?
@@ -95,21 +113,71 @@ function ChildChatbotPage() {
     return config.results;
   };
 
+  // 테스트용 사용자 메시지 추가 함수
+  const addTestUserMessage = () => {
+    setMessages((prev) => [
+      ...prev,
+      {
+        message: "안녕하세요!",
+        type: "user",
+      },
+    ]);
+  };
+
   return (
     <div className="ch-chatbot-container">
       <ChildMainBackground />
-      <div className="ch-chatbot-box">
-        {/* <img
-          src="/child/chatbot"
-          alt="chatbotcharacter"
-          className="ch-chatbot-ch"
-        />
-        <img
-          src="/child/speechBubble.png"
-          alt="speechBubble"
-          className="ch-speechBubble" */}
-        {/* /> */}
-      </div>
+      <Card className="ch-chatbot-background-container">
+        {/* 헤더 */}
+        <div className="ch-chatbot-header-container">
+          <img
+            src="/child/chatbot/chatbotCh.png"
+            alt="Chatbot character"
+            className="ch-chatbot-cha"
+          />
+        </div>
+        <div className="ch-chatbot-title">
+          <h1>마음이</h1>
+          <p>마음이에게 감정을 들려줄래?</p>
+        </div>
+        {/* 챗봇 대화창*/}
+        <div className="ch-chatbot-box">
+          {messages.map((message, index) =>
+            message.type === "bot" ? (
+              <div key={index} className="ch-chat-bubble bot">
+                <img
+                  src="/child/chatbot/chatbotCh.png"
+                  alt="chatbotCh"
+                  className="ch-chatbot-icon-chatbotch"
+                />
+                <span className="ch-chat-text bot-text">{message.message}</span>
+              </div>
+            ) : (
+              <div key={index} className="ch-chat-bubble user">
+                <span className="ch-chat-text user-text">
+                  {message.message}
+                </span>
+                <img
+                  src="/child/chatbot/chatuser.PNG"
+                  alt="chatuser"
+                  className="ch-chatbot-icon-chatuser"
+                />
+              </div>
+            )
+          )}
+        </div>
+      </Card>
+      <button
+        onClick={addTestUserMessage}
+        style={{
+          position: "absolute",
+          bottom: "20px",
+          right: "20px",
+          zIndex: 3,
+        }}
+      >
+        Test User Message
+      </button>
     </div>
   );
 }
