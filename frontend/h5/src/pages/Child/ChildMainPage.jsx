@@ -92,6 +92,7 @@ function ChildMainPage() {
             <h1>마음이 챗봇</h1>
             <p>마음이랑 이야기해요~!</p>
           </Card>
+          <button onClick={() => navigate(`/child/test`)}>웹캠테스트</button>
         </div>
       </div>
     </div>

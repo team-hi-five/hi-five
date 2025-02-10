@@ -3,16 +3,16 @@ import api from "./api";
 export const reviewGame = async (chapter, stage) => {
   try {
     console.log("📢 게임데이터 요청 시작");
-    console.log(typeof chapter, chapter);
-    console.log(typeof stage, stage);
+    // console.log(typeof chapter, chapter);
+    // console.log(typeof stage, stage);
 
     const accessToken = sessionStorage.getItem("access_token");
     console.log(accessToken);
 
     const response = await api.get("/asset/load-stage-asset", {
       params: {
-        chapter: Number(chapter),
-        stage: Number(stage),
+        chapter: chapter,
+        stage: stage,
       },
     });
 

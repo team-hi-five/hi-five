@@ -177,32 +177,32 @@
   padding-left: 3px;
 }
 
-.co_carousel .p-carousel {
+.c-co_carousel .p-carousel {
   position: relative;
- }
- 
- .co_carousel .p-carousel-content {
+}
+
+.c-co_carousel .p-carousel-content {
   position: relative;
   padding-bottom: 60px;
   width: 100%;
- }
- 
- .co_carousel .p-carousel-container {
+}
+
+.c-co_carousel .p-carousel-container {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 20px;
- }
- 
- .co_carousel .p-carousel-indicators {
-  display: none;
- }
+}
 
- .carousel-container {
+.c-co_carousel .p-carousel-indicators {
+  display: none;
+}
+
+.c-carousel-container {
   position: relative;
 }
  
-.custom-indicator {
+.c-custom-indicator {
   position: absolute;
   bottom: 10px;
   left: 50%;
@@ -210,40 +210,38 @@
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 14px;
+  color: #666;
   z-index: 1;
-  margin: 0 auto;
-  width: fit-content;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
- 
- .co_carousel .custom-indicator.p-highlight {
-  background: #6b8cb3;
-  color: #fff;
- }
- 
- .co_carousel .p-carousel-prev,
- .co_carousel .p-carousel-next {
+
+.c-co_carousel .p-carousel-prev,
+.c-co_carousel .p-carousel-next {
   position: absolute;
   bottom: 0;
   border: 1px solid #ddd;
   border-radius: 50%;
   width: 30px;
   height: 30px;
+  background-color: #fff;
+  color: #666;
+}
+ 
+ .c-co_carousel .c-custom-indicator.p-highlight {
+  background: #6b8cb3;
+  color: #fff;
  }
  
- .co_carousel .p-carousel-prev {
+ .c-co_carousel .p-carousel-prev {
   left: calc(50% - 60px);
- }
- 
- .co_carousel .p-carousel-next {
+}
+
+.c-co_carousel .p-carousel-next {
   right: calc(50% - 60px);
- }
- 
- .co_carousel .p-carousel-item {
+}
+
+.c-co_carousel .p-carousel-item {
   padding: 0 8px;
- }
+}
 
  .co_notice_card {
   border-radius: 20px !important;
@@ -317,26 +315,27 @@
     padding: 5px;
   }
 
-  @media screen and (max-width: 1100px) {
-    .carousel-container {
-      padding: 0 30px;
-    }
+  /* 반응형 스타일 */
+@media screen and (max-width: 1100px) {
+  .c-carousel-container {
+    padding: 0 30px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .c-carousel-container {
+    padding: 0 25px;
   }
   
-  @media screen and (max-width: 768px) {
-    .carousel-container {
-      padding: 0 25px;
-    }
-    
-    .co_notice_card {
-      margin: 0 8px;
-    }
+  .co_notice_card {
+    margin: 0 8px;
   }
-  
-  @media screen and (max-width: 576px) {
-    .carousel-container {
-      padding: 0 20px;
-    }
+}
+
+@media screen and (max-width: 576px) {
+  .c-carousel-container {
+    padding: 0 20px;
   }
+}
 
  

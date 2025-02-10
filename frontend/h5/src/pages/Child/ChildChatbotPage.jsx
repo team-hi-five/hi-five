@@ -12,7 +12,7 @@ function ChildChatbotPage() {
   // 초기 메세지 설정
   const config = {
     initialMessages: [
-      createChatBotMessage("안녕 000감정아? 만나서 반가워!", {
+      createChatBotMessage("안녕 000감정아! 만나서 반가워!", {
         delay: 500,
       }),
       createChatBotMessage("나는 마음이라고 해!", { delay: 1500 }),
@@ -39,31 +39,31 @@ function ChildChatbotPage() {
     // + 결과 카드?
     results: {
       기쁨: [
-        createChatBotMessage("오늘 우리 마음이의 감정은 기쁨이구나!"),
+        createChatBotMessage("오늘 우리 00 감정이의 감정은 기쁨이구나!"),
         createChatBotMessage(
           "너의 행복한 마음이 나한테도 전해져! 내일도 이렇게 기쁜 하루 보내자!"
         ),
       ],
       슬픔: [
-        createChatBotMessage("오늘 우리 마음이의 감정은 슬픔이구나.."),
+        createChatBotMessage("오늘 우리 00 감정이의 감정은 슬픔이구나.."),
         createChatBotMessage(
           "오늘 많이 슬펐지만, 내일은 더 좋은 일이 생길 거야!"
         ),
       ],
       분노: [
-        createChatBotMessage("오늘 우리 마음이의 감정은 분노구나.."),
+        createChatBotMessage("오늘 우리 00 감정이의 감정은 분노구나.."),
         createChatBotMessage(
           "속상하고 화나는 일이 있었구나. 화가 날 때는 세 번 크게 숨을 쉬어보자! 마음이가 항상 네 편이야."
         ),
       ],
       공포: [
-        createChatBotMessage("오늘 우리 마음이의 감정은 공포구나.."),
+        createChatBotMessage("오늘 우리 00 감정이의 감정은 공포구나.."),
         createChatBotMessage(
           "두려운 마음이 들 때는 마음이를 생각하면서 심호흡 해보자. 내가 항상 지켜줄게!"
         ),
       ],
       놀람: [
-        createChatBotMessage("오늘 우리 마음이의 감정은 놀람이구나!"),
+        createChatBotMessage("오늘 우리 00 감정이의 감정은 놀람이구나!"),
         createChatBotMessage(
           "놀란 가슴을 쓸어내리며 심호흡 한번 해볼까? 마음이가 네 옆에 있어줄게!"
         ),
@@ -99,7 +99,7 @@ function ChildChatbotPage() {
     <div className="ch-chatbot-container">
       <ChildMainBackground />
       <div className="ch-chatbot-box">
-        <img
+        {/* <img
           src="/child/chatbot"
           alt="chatbotcharacter"
           className="ch-chatbot-ch"
@@ -107,8 +107,8 @@ function ChildChatbotPage() {
         <img
           src="/child/speechBubble.png"
           alt="speechBubble"
-          className="ch-speechBubble"
-        />
+          className="ch-speechBubble" */}
+        {/* /> */}
       </div>
     </div>
   );

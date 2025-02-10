@@ -1,30 +1,52 @@
 import api from "./api";
 
-// ✅ 파일 업로드 API 요청
+export const TBL_TYPES = {
+    PROFILE: 'P',
+    NOTICE: 'N', 
+    QNA: 'Q',    
+    GALLERY: 'G',
+    QA: 'QA'     
+};
+
 export const uploadFile = async (file, tblType, tblId) => {
     try {
-        console.log("📢 파일 업로드 요청:", { file, tblType, tblId });
+        // 파라미터 유효성 검사
+        if (!file) throw new Error('File is required');
+        if (!tblType) throw new Error('tblType is required');
+        if (!Object.values(TBL_TYPES).includes(tblType)) {
+            throw new Error(`Invalid tblType: ${tblType}. Valid types are: ${Object.values(TBL_TYPES).join(', ')}`);
+        }
+        if (!tblId) throw new Error('tblId is required');
 
-        // FormData 객체 생성
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('tblType', tblType);
-        formData.append('tblId', tblId);
+        
+        // metaData를 JSON 문자열로 변환하여 추가
+        const metaData = JSON.stringify({ tblType, tblId });
+        formData.append('metaData', new Blob([metaData], { type: 'application/json' }));
 
         const response = await api.post("/file/upload", formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+        headers: {
+            // Content-Type을 자동으로 설정되도록 제거
+            // FormData를 사용할 때는 브라우저가 자동으로 boundary를 포함한 Content-Type을 설정
+        },
         });
 
-        console.log("✅ 파일 업로드 성공:", response.data);
         return response.data;
 
     } catch (error) {
-        console.error("❌ 파일 업로드 실패:", error.response ? error.response.data : error.message);
+        console.error("❌ 파일 업로드 실패:", {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+            url: error.config?.url,
+            method: error.config?.method,
+        });
         throw error;
     }
 };
+
 
 
 // ✅ 파일 URL 조회 API 요청
@@ -120,12 +142,4 @@ export const deleteFile = async (fileId) => {
         console.error("❌ 파일 삭제 실패:", error.response ? error.response.data : error.message);
         throw error;
     }
-};
-// tblType ENUM 값 상수 정의
-export const TBL_TYPES = {
-    PROFILE: 'P', // 프로필
-    NOTICE: 'N',  // 공지사항
-    QNA: 'Q',     // 질문게시판
-    GALLERY: 'G', // 게임영상
-    QA: 'QA'      // 질문 답변
 };

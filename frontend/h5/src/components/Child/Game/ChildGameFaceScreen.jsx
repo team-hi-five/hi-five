@@ -1,12 +1,12 @@
 import "../ChildCss/ChildGameFaceScreen.css";
-import VideoScreen from "../../OpenviduSession/VideoScreen";
+// import VideoScreen from "../../OpenviduSession/VideoScreen";
 import { Card } from "primereact/card";
 
 function ChildGameFaceScreen() {
   return (
     <div className="ch-game-face-screen">
       <Card className="ch-game-Top-section">
-        <VideoScreen />
+        {/* <VideoScreen /> */}
       </Card>
       <div className="ch-game-middle-section"></div>
       {/* 컨트롤 섹션 */}

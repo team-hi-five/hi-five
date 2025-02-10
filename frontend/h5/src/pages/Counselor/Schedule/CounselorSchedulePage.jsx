@@ -4,11 +4,12 @@ import MeetingCreateModal from "../../../components/modals/MeetingCreateModal";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert"
 import SingleButtonAlert from "../../../components/common/SingleButtonAlert";
 import { Calendar } from 'primereact/calendar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addLocale } from 'primereact/api';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import '../Css/CounselorSchedulePage.css';
+import { searchChildByName, getConsultantScheduleList, getChildScheduleList } from '../../../api/schedule';
 
 addLocale('ko', {
     firstDayOfWeek: 0,
@@ -28,96 +29,100 @@ function CounselorSchedulePage() {
     const [editingSchedule, setEditingSchedule] = useState(null);
     const [date, setDate] = useState(new Date());
     const [searchTerm, setSearchTerm] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
     const [currentMonth, setCurrentMonth] = useState(new Date()); // 현재 선택된 월을 추적
-    const [schedules, setSchedules] = useState([
-        {
-            time: "11:00 ~ 12:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-30",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "11:00 ~ 12:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-29",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "14:00 ~ 15:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-31",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "15:00 ~ 16:00",
-            counselor: "박성원",
-            counsultation_target: "김현순",
-            counsultation_type: "게임",
-            date: "2025-01-31",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "10:00 ~ 11:00",
-            counselor: "박성원",
-            counsultation_target: "박현순",
-            counsultation_type: "게임",
-            date: "2025-01-31",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "15:00 ~ 16:00",
-            counselor: "박성원",
-            counsultation_target: "김도로롱",
-            counsultation_type: "아동학습현황상담",
-            date: "2025-02-15",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "13:00 ~ 14:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-05-24",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "16:00 ~ 17:00",
-            counselor: "박성원",
-            counsultation_target: "김도로롱",
-            counsultation_type: "아동학습현황상담",
-            date: "2025-05-25",
-            isLoading: false,
-            isCompleted: false
+    const [selectedChildId, setSelectedChildId] = useState(null);
+
+    const handleChildSelect = (childId) => {
+        setSelectedChildId(childId);
+        const fetchSchedulesChild = async () => {
+            if (!childId) return; // date 값이 없을 경우 요청 안 함
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const response = await getChildScheduleList(selectedChildId, year, month);
+            console.log("응답이여 ~ : ", response);
+    
+            // API 응답 데이터를 화면에 맞게 변환
+            const formattedSchedules = response.map(item => {
+                const [year, month, day, hour, minute] = item.schdlDttm; 
+                const dateTime = new Date(year, month - 1, day, hour, minute); // month는 0부터 시작
+    
+                return {
+                    time: `${String(dateTime.getHours()).padStart(2, "0")}:00 ~ ${String(dateTime.getHours() + 1).padStart(2, "0")}:00`,
+                    counselor: item.consultantName,
+                    consultation_target: item.childName, // 오타 수정 (counsultation → consultation)
+                    consultation_type: item.type,
+                    date: "2012",
+                    isLoading: false,
+                    isCompleted: item.status === 'C' // 완료된 상담 여부
+                };
+            });
+    
+            setSchedules(formattedSchedules);
+        };
+        fetchSchedulesChild();
+    };
+
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+    };
+    
+    const handleSearchKeyDown = async (e) => {
+        if (e.key === "Enter") {
+            if (!searchTerm.trim()) {
+                setSuggestions([]); // 🔹 검색어가 비었으면 드롭다운 초기화
+                return;
+            }
+            const results = await searchChildByName(searchTerm); // 🔹 API 호출해서 데이터 가져오기
+            if (results) {
+                setSuggestions(results.map(child => ({
+                    id: child.childUserId,
+                    name: child.childUserName,
+                    img: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png", // 🔹 기본 이미지 처리
+                })));
+            }
         }
+    };
+    
+    
+    
+    const [schedules, setSchedules] = useState([
     ].sort((a, b) => {
         const timeA = a.time.split('~')[0].trim();
         const timeB = b.time.split('~')[0].trim();
         return timeA.localeCompare(timeB);
       })); // 시간순으로 나열해주는 로직
 
-     //상담일정 추가하는 로직
-    // const addSchedule = (newSchedule) => {
-        // setSchedules(prevSchedules => 
-        //     [...prevSchedules, newSchedule].sort((a, b) => {
-        //     const timeA = a.time.split('~')[0].trim();
-        //     const timeB = b.time.split('~')[0].trim();
-        //     return timeA.localeCompare(timeB);
-        //     })
-        // );
-    // };
+
+    useEffect(() => {
+        const fetchSchedules = async () => {
+            if (!date) return; // date 값이 없을 경우 요청 안 함
+            const formattedDate = formatDateToString(date);
+            const response = await getConsultantScheduleList(formattedDate);
+            console.log("응답이여 ~ : ", response);
+    
+            // API 응답 데이터를 화면에 맞게 변환
+            const formattedSchedules = response.map(item => {
+                const [year, month, day, hour, minute] = item.schdlDttm; 
+                const dateTime = new Date(year, month - 1, day, hour, minute); // month는 0부터 시작
+    
+                return {
+                    time: `${String(dateTime.getHours()).padStart(2, "0")}:00 ~ ${String(dateTime.getHours() + 1).padStart(2, "0")}:00`,
+                    counselor: item.consultantName,
+                    consultation_target: item.childName, // 오타 수정 (counsultation → consultation)
+                    consultation_type: item.type,
+                    date: formattedDate,
+                    isLoading: false,
+                    isCompleted: item.status === 'C' // 완료된 상담 여부
+                };
+            });
+    
+            setSchedules(formattedSchedules);
+        };
+    
+        fetchSchedules();
+    }, [date]);
 
     // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
     const formatDateToString = (date) => {
@@ -144,31 +149,28 @@ function CounselorSchedulePage() {
     // 필터링된 스케줄을 계산
     const filteredSchedules = schedules.filter(schedule => {
         if (searchTerm) {
-            // 검색어가 있을 때
             const scheduleDate = new Date(schedule.date);
             const currentMonthDate = new Date(currentMonth);
-            
-            // 연도와 월이 일치하는지 확인
-            const isSameMonth = 
+    
+            const isSameMonth =
                 scheduleDate.getFullYear() === currentMonthDate.getFullYear() &&
                 scheduleDate.getMonth() === currentMonthDate.getMonth();
     
-            return schedule.counsultation_target.toLowerCase().includes(searchTerm.toLowerCase()) 
+            return schedule.consultation_target.toLowerCase().includes(searchTerm.toLowerCase()) 
                    && isSameMonth;
         }
-        
-            // 검색어가 없을 때는 선택된 날짜의 상담만 보여줌
-            const selectedDate = formatDateToString(date);
-            return schedule.date === selectedDate;
-            }).sort((a, b) => {
-                // 날짜순으로 정렬 후, 같은 날짜는 시간순으로 정렬
-                if (a.date !== b.date) {
-                    return new Date(a.date) - new Date(b.date);
-                }
-                const timeA = a.time.split('~')[0].trim();
-                const timeB = b.time.split('~')[0].trim();
-                return timeA.localeCompare(timeB);
+    
+        const selectedDate = formatDateToString(date);
+        return schedule.date === selectedDate;
+    }).sort((a, b) => {
+        if (a.date !== b.date) {
+            return new Date(a.date) - new Date(b.date);
+        }
+        const timeA = a.time.split('~')[0].trim();
+        const timeB = b.time.split('~')[0].trim();
+        return timeA.localeCompare(timeB);
     });
+    
 
     // 날짜 표시 포맷 함수 (M/DD)
     const formatDisplayDate = (dateString) => {
@@ -288,22 +290,42 @@ function CounselorSchedulePage() {
                             <div className="co-schedule-header">
                                 <h2 className="co-schedule-title">
                                     상담 일정
-                                    {!searchTerm && ( // 검색어가 없을 때만 날짜 표시
-                                        <span className="co-selected-date">
+                                    <span className="co-selected-date">
                                             ({formatDisplayDate(date)})
-                                        </span>
-                                    )}
+                                    </span>
                                 </h2>
                                 <div className="co-search-container">
-                                    <span className="p-input-icon-left">
-                                        <i className="pi pi-search" />
+                                    <span className="p-input-icon-right">                                        
+                                    <div className="co-search-container">
                                         <input
                                             type="text"
                                             placeholder="아동 이름으로 검색"
                                             value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className="co-search-sinput"
+                                            onChange={handleSearchChange}
+                                            onKeyDown={handleSearchKeyDown}
+                                            className="co-search-input"
                                         />
+                                        {suggestions.length > 0 && (
+                                            <ul className="co-search-dropdown">
+                                                {suggestions.map((child) => (
+                                                    <li 
+                                                        key={child.id} 
+                                                        className="co-search-item"
+                                                        onClick={() => handleChildSelect(child.id)}
+                                                    >
+                                                        <img 
+                                                            src={child.img} 
+                                                            alt={child.name} 
+                                                            className="co-search-img"
+                                                            style={{ width: "20px", height: "20px", objectFit: "cover", borderRadius: "4px", marginRight: "8px" }} 
+                                                        />
+                                                        {child.name} (ID: {child.id})
+                                                    </li>
+                                                ))}
+
+                                            </ul>
+                                        )}
+                                    </div>
                                     </span>
                                 </div>
                             </div>
@@ -323,8 +345,8 @@ function CounselorSchedulePage() {
                                                         </div>
                                                     )}
                                                 </div>
-                                                <p>상담유형 : {schedule.counsultation_type}</p>
-                                                <p>상담대상(이름) : {schedule.counsultation_target}</p>
+                                                <p>상담유형 : {schedule.consultation_type}</p>
+                                                <p>상담대상(이름) : {schedule.consultation_target}</p>
                                             </div>
                                             <div className="co-button-group">
                                                 {!schedule.isCompleted ? (
