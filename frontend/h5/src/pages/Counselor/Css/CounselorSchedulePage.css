@@ -505,3 +505,10 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
+
+.highlight-circle {
+    background-color: #f9c74f !important; /* 배경색 강조 */
+    border-radius: 50%; /* 원형 강조 */
+    color: white !important;
+    font-weight: bold;
+}

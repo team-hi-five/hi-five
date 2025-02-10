@@ -25,6 +25,49 @@ export const createSchedule = async (childId, schdlDttm, type) => {
     }
 };
 
+// ✅ 상담 일정 수정 (업데이트)
+export const updateSchedule = async (id, childId, schdlDttm, type) => {
+    try {
+        console.log("📢 상담 일정 수정정 요청:", { id, childId, schdlDttm, type });
+
+        const requestBody = {
+            id,
+            childId,
+            schdlDttm,
+            type,
+        };
+
+        const response = await api.put("/schedule/update", requestBody);
+
+        console.log("✅ 상담 일정 수정 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 상담 일정 수정 실패:", error.response ? error.response.data : error.message);
+        return { status: "error", message: error.response?.data?.message || "상담 수정 실패" };
+    }
+};
+
+// ✅ 상담 일정 삭제 API 요청
+export const deleteSchedule = async (scheduleId, type) => {
+    try {
+        console.log("📢 상담 일정 삭제 요청:", { scheduleId, type });
+
+        const requestBody = {
+            id: scheduleId, // 상담 일정 ID
+            type: type // 'game' 또는 'consult'
+        };
+
+        const response = await api.put(`/schedule/delete/${scheduleId}`, requestBody);
+
+        console.log("✅ 상담 일정 삭제 성공:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("❌ 상담 일정 삭제 실패:", error.response ? error.response.data : error.message);
+        throw error;
+    }
+};
+
+
 // 상담 생성 시 아이 이름으로 검색 API
 export const searchChildByName = async (childUserName) => {
     try {
@@ -114,7 +157,7 @@ export const getChildScheduleDates = async (childId, year, month) => {
             params: { childId, year, month }
         });
         console.log("✅ 특정 아동 상담 날짜 조회 성공:", response.data);
-        return response.data.dates; // 상담 날짜 리스트 반환
+        return response.data; // 상담 날짜 리스트 반환
     } catch (error) {
         console.error("❌ 특정 아동 상담 날짜 조회 실패:", error.response ? error.response.data : error.message);
         return [];
@@ -125,11 +168,18 @@ export const getChildScheduleDates = async (childId, year, month) => {
 export const getChildScheduleList = async (childId, year, month) => {
     try {
         console.log(`📢 특정 아동 상담 리스트 요청 (Child ID: ${childId}, Year: ${year}, Month: ${month})`);
+        const parsedChildId = parseInt(childId, 10);
+        const parsedYear = parseInt(year, 10);
+        const parsedMonth = parseInt(month, 10);
         const response = await api.get("/schedule/list-by-child", {
-            params: { childId, year, month }
+            params: { 
+                childId: parsedChildId, 
+                year: parsedYear, 
+                month: parsedMonth 
+            }
         });
         console.log("✅ 특정 아동 상담 리스트 조회 성공:", response.data);
-        return response.data.schedules; // 상담 리스트 반환
+        return response.data; // 상담 리스트 반환
     } catch (error) {
         console.error("❌ 특정 아동 상담 리스트 조회 실패:", error.response ? error.response.data : error.message);
         return [];
