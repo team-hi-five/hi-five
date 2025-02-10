@@ -223,11 +223,13 @@ export const deleteQnaComment = async (qnaCommentId) => {
 
         console.log("📢 QnA 댓글 삭제 요청:", { qnaCommentId });
 
-        const response = await api.put(`/qna/delete-comment/${qnaCommentId}`, {
-            params: {
-                qnaCommentId,
-            }
-        });
+        const response = await api.put(`/qna/delete-comment/${qnaCommentId}`
+        //     , {
+        //     params: {
+        //         qnaCommentId,
+        //     }
+        // }
+    );
 
         console.log("✅ QnA 댓글 삭제 성공:", response.data);
         return response.data;

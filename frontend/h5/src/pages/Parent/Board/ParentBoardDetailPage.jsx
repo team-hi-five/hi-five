@@ -6,6 +6,7 @@ import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import { getNoticeDetail } from '../../../api/boardNotice';
 import { getFaqDetail } from '../../../api/boardFaq';
 import { getQnaDetail, updateQna, deleteQna } from '../../../api/boardQna';
+import { getFileUrl, downloadFile } from '../../../api/file';
 import '/src/pages/counselor/Css/CounselorBoardDetailPage.css';
 
 function CounselorBoardDetailPage() {
@@ -22,6 +23,9 @@ function CounselorBoardDetailPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [answers, setAnswers] = useState([]);
   // const [viewCountUpdated, setViewCountUpdated] = useState(false);
+
+  const [fileUrls, setFileUrls] = useState([]);
+  const [fileError, setFileError] = useState(null);
 
 
   const viewCountUpdated = useRef(false);
@@ -51,6 +55,19 @@ function CounselorBoardDetailPage() {
       return `${diffInDays}일 전`;
     } else {
       return past.toLocaleDateString();
+    }
+  };
+
+  // 파일 URL을 가져오는 함수 추가
+  const fetchFileUrls = async (type, id) => {
+    try {
+      const response = await getFileUrl(type, id);
+      if (response) {
+        setFileUrls(Array.isArray(response) ? response : [response]);
+      }
+    } catch (error) {
+      console.error("파일 URL 조회 실패:", error);
+      setFileError("파일을 불러오는데 실패했습니다.");
     }
   };
   
@@ -138,6 +155,9 @@ function CounselorBoardDetailPage() {
             };
             
             setNoticeData(formattedData);
+            // 파일 URL 조회
+            await fetchFileUrls('N', response.id);
+
           } else if (type === "faq") {
             const response = await getFaqDetail(no);
             
@@ -155,6 +175,9 @@ function CounselorBoardDetailPage() {
             };
             
             setFaqData(formattedData);
+            // 파일 URL 조회
+            await fetchFileUrls('N', response.id);
+
           } else if (type === "qna") {
             const response = await getQnaDetail(no);
 
@@ -181,6 +204,8 @@ function CounselorBoardDetailPage() {
             }
         
             setQnaData(formattedData);
+            // 파일 URL 조회
+            await fetchFileUrls('Q', response.id);
           }
         } catch (error) {
           console.error("데이터 조회 실패:", error);
@@ -344,7 +369,33 @@ function CounselorBoardDetailPage() {
                   </span>
                 </>
               ) : (
-                "첨부파일"
+                <div className="co-detail-file-list">
+                  <h4>첨부파일</h4>
+                  {fileError ? (
+                    <p className="co-detail-file-error">{fileError}</p>
+                  ) : fileUrls.length > 0 ? (
+                    <div className="co-detail-file-buttons">
+                      {fileUrls.map((file, index) => (
+                        <button 
+                          key={index}
+                          onClick={async () => {
+                            try {
+                              await downloadFile(file.fileId, file.fileName);
+                            } catch (error) {
+                              console.error("파일 다운로드 실패:", error);
+                              await SingleButtonAlert("파일 다운로드에 실패했습니다.");
+                            }
+                          }}
+                          className="co-detail-file-download-btn"
+                        >
+                          <span className="p-file-name">{file.fileName}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>첨부파일이 없습니다.</p>
+                  )}
+                </div>
               )}
             </div>
           </div>

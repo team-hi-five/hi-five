@@ -299,6 +299,9 @@
    margin: 1rem 0;      
    padding-left: 1rem;
    padding-right: 1rem;
+   word-wrap: break-word;      /* 단어 단위 줄바꿈 */
+   word-break: break-all;      /* 필요시 문자 단위 줄바꿈 */
+   max-width: 100%;            /* 최대 너비 제한 */
   }
   
   .co_notice_date {
