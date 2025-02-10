@@ -5,7 +5,10 @@ export const chapter = async () => {
   try {
     console.log("📢 게임리스트 요청 시작");
 
-    const response = await api.get("/asset/load-chapter-asset");
+    const childUserId = sessionStorage.getItem("childId");
+    const response = await api.get("/asset/load-chapter-asset",{
+      params : {childUserId}
+    });
     console.log("✅ 게임 리스트 요청 성공:", response);
     return response.data;
   } catch (error) {

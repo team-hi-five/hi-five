@@ -1,20 +1,19 @@
 import "../ChildCss/ChildGameList.css";
 import { Card } from "primereact/card";
-// import useGameStore from "../../../store/gameStore";
+import useGameStore from "../../../store/gameStore";
 import PropTypes from "prop-types";
-// import { useEffect } from "react";
+import { useEffect } from "react";
 
-// gameChapterId 쓰기
-function ChildGameList({ chapterPic, title, isLocked, onClick }) {
-  // const { gameReviewData, selectChapter } = useGameStore();
+function ChildGameList({ gameChapterId, chapterPic, title, isLocked, onClick }) {
+  const { gameReviewData, selectChapter } = useGameStore();
 
-  // useEffect(() => {
-  //   console.log("게임챕터데이터:", gameReviewData);
-  // }, [gameReviewData]);
+  useEffect(() => {
+    console.log("게임챕터데이터:", gameReviewData);
+  }, [gameReviewData]);
 
   const handleClick = () => {
     if (!isLocked && onClick) {
-      //   selectChapter(gameChapterId);
+        selectChapter(gameChapterId);
       onClick();
     }
   };
@@ -45,6 +44,6 @@ ChildGameList.propTypes = {
   chapterPic: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
-  isLocked: PropTypes.bool,
+  isLocked: PropTypes.bool.isRequired,
 };
 export default ChildGameList;

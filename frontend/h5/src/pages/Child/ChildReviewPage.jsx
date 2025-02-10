@@ -48,7 +48,7 @@ function ChildReviewPage() {
     <div className="ch-child-game-list-container">
       {chapterData?.map((item) => (
         // console.log("1번 이미지 URL:", item.chapterPic),
-        // console.log("2번 이미지 URL:", item.chapterPic),
+        console.log("2번 이미지 URL:", item.chapterPic),
         <ChildGameList
           key={item.gameChapterId}
           gameChapterId={item.gameChapterId}

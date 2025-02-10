@@ -25,7 +25,7 @@ function Header() {
       location.pathname.startsWith(`/child/${childId}/cardmain/details`)
     ) {
       // 리뷰 게임에서는 리뷰 페이지로
-      navigate(`/child/${childId}/cardmain`);
+      navigate(`/child/${childId}/review`);
     } else {
       navigate(`/child/${childId}`);
     }

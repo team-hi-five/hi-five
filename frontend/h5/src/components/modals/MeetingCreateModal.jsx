@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './MeetingCreateModal.css';
 import SingleButtonAlert from '../common/SingleButtonAlert';
 import TimeSlotSelector from './TimeSlotSelector';
 import { searchChildByName } from "/src/api/schedule";
-import { createSchedule } from "/src/api/schedule";
+import { createSchedule, updateSchedule } from "/src/api/schedule";
 
 const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onScheduleUpdate = () => {}, bookedSlots = [] }) => {
     const [searchTerm, setSearchTerm] = useState(editData?.counsultation_target || '');
@@ -12,15 +12,41 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
 
     // formData 초기값 설정
     const [formData, setFormData] = useState({
-
-        childName: editData?.counsultation_target || '',
-        email: editData?.email || '',
+        scheduleId: editData?.scheduleId || '',
+        childUserId: editData?.childUserId || '',
+        childName: editData?.childName || '',
+        email: editData?.parentEmail || '',
         parentName: editData?.parentName || '',
         type: editData?.counsultation_type === '게임' ? 'type1' : 
               editData?.counsultation_type === '아동학습현황상담' ? 'type2' : '',
         date: editData?.date || '',
         time: editData?.time || ''
     });
+
+    useEffect(() => {
+        if (editData?.childId) {
+            console.log("🔍 초기 childId:", editData.childUserId);
+        } else {
+            console.log("⚠️ childUserId 없음");
+        }
+    }, [editData]); 
+
+    useEffect(() => {
+        if (editData) {
+            console.log("📝 상담 수정 모달 열림 - 자동 입력할 데이터:", editData);
+    
+            setFormData({
+                scheduleId: editData.scheduleId || '',
+                childUserId: editData.childUserId || '',
+                childName: editData.childName || '',
+                type: editData.type === 'game' ? 'type1' : 'type2',
+                date: editData.date || '',
+                time: editData.time || '',
+            });
+            setSearchTerm(editData.childName);
+        }
+    }, [editData]); // editData 변경 시 자동 반영
+    
 
     // 🔹 엔터 키를 눌렀을 때 검색 실행
     const handleKeyPress = async (e) => {
@@ -75,7 +101,8 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            if (!formData.childId || !formData.date || !formData.time) {
+            console.log(formData);
+            if (!formData.childUserId || !formData.date || !formData.time) {
                 await SingleButtonAlert("필수 입력값을 모두 입력해주세요.");
                 return;
             }
@@ -88,13 +115,22 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
                 schdlDttm: formattedDateTime, // 🔹 올바른 날짜 형식 적용
                 type: formData.type === 'type1' ? 'game' : 'consult',
             };
+
+            const udSchedule = {
+                scheduleId: parseInt(formData.scheduleId, 10),
+                childId: parseInt(formData.childId, 10), // 🔹 ID를 정수로 변환
+                schdlDttm: formattedDateTime, // 🔹 올바른 날짜 형식 적용
+                type: formData.type === 'type1' ? 'game' : 'consult',
+            };
     
-            console.log("📌 서버에 전송할 데이터:", newSchedule);
+            
     
             if (isEdit) {
-                onScheduleUpdate(newSchedule, editData);
+                console.log("📌 서버에 전송할 데이터:", udSchedule);
+                await updateSchedule(udSchedule.scheduleId, udSchedule.childId, udSchedule.schdlDttm, udSchedule.type);
                 await SingleButtonAlert('상담이 수정되었습니다.');
             } else {
+                console.log("📌 서버에 전송할 데이터:", newSchedule);
                 await createSchedule(newSchedule.childId, newSchedule.schdlDttm, newSchedule.type);
                 await SingleButtonAlert('상담 생성이 완료되었습니다.');
             }
@@ -170,6 +206,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
                             name="type" 
                             value={formData.type}
                             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                            disabled={isEdit}
                         >
                             <option value="">유형을 선택해주세요.</option>
                             <option value="type1">아동(게임)</option>
@@ -184,7 +221,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
 
                     <div className="co-m-form-group">
                         <label>상담 시간</label>
-                        <TimeSlotSelector selectedDate={formData.date} onTimeSelect={(time) => setFormData({ ...formData, time })} />
+                        <TimeSlotSelector selectedDate={formData.time} onTimeSelect={(time) => setFormData({ ...formData, time })} />
                     </div>
 
                     <div className="co-m-buttons">
@@ -192,7 +229,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
                             취소
                         </button>
                         <button type="submit" className="co-m-submit-btn" onClick={handleSubmit}>
-                            상담생성
+                            {isEdit ? "수정하기" : "상담 생성"}
                         </button>
                     </div>
                 </form>

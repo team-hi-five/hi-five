@@ -1,5 +1,5 @@
-// node server.js 설치하기
 // 감정분석 결과를 서버로 전송
+// npm install express 후 node server.js 하기
 // import express from "express";
 
 // server.js
