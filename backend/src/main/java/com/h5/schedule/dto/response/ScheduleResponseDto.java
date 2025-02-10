@@ -14,8 +14,9 @@ public class ScheduleResponseDto {
     private LocalDateTime schdlDttm;
     private String type;
     private String consultantName;
-    private int childId;
+    private int childUserId;
     private String childName;
     private String parentName;
+    private String parentEmail;
     private String status;
 }
