@@ -18,6 +18,7 @@ services:
       - OPENVIDU_URL=https://hi-five.site/openvidu
       - OPENVIDU_SECRET=rz7FazDNZkSqkJmr
     volumes:
+      - /home/project_h5/project/uploads:/home/project_h5/project/uploads
       - /etc/letsencrypt:/owncert:ro
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
