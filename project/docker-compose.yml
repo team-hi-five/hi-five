@@ -2,7 +2,7 @@ version: "3.8"
 services:
   java_service:
     image: java_service:latest
-    container_name: java_service
+    container_name: java17_h5
     restart: unless-stopped
     ports:
       - "8443:8443"
