@@ -1,18 +1,17 @@
 import "../ChildCss/ChildGameScreen.css";
 import ChildProgressBar from "./ChildProgressBar";
 import { Card } from "primereact/card";
-// import { reviewGame } from "../../../api/childGameContent";
-// import { useEffect } from "react";
+import useGameStore from "../../../store/gameStore";
+import {useLocation} from "react-router-dom"
 
 function ChildGameScreen() {
-  // useEffect(() => {
-  //   const fetchdata = async () => {
-  //     const res = await reviewGame();
-  //     console.log(res);
-  //     return;
-  //   };
-  //   fetchdata();
-  // }, []);
+  const {getCurrentGameData, incrementStage, setCurrentChapter, selectChapter } = useGameStore()
+
+  // 챕터 아이디 불러오기기
+  const location = useLocation()
+  console.log(location.state?.item)
+  const chapterId = location.state?.item.gameChapterId
+
 
   return (
     <>

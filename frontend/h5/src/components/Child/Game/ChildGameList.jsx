@@ -8,12 +8,13 @@ function ChildGameList({ gameChapterId, chapterPic, title, isLocked, onClick }) 
   const { gameReviewData, selectChapter } = useGameStore();
 
   useEffect(() => {
-    console.log("게임챕터데이터:", gameReviewData);
+    // console.log("게임챕터데이터:", gameReviewData);
   }, [gameReviewData]);
 
   const handleClick = () => {
     if (!isLocked && onClick) {
         selectChapter(gameChapterId);
+        console.log(selectChapter)
       onClick();
     }
   };

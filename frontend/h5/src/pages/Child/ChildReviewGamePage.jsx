@@ -5,9 +5,9 @@ import { useLocation } from "react-router-dom";
 
 function ChildReviewGamePage() {
   const location = useLocation();
+  // console.log("현재 location 상태:", location);
   const item = location.state?.item;
-  console.log("현재 location 상태:", location);
-  console.log("전달된 item:", item);
+  // console.log("전달된 item:", item);
 
   return (
     <div className="ch-review-container">
