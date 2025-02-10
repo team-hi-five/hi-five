@@ -13,8 +13,8 @@ public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
     //r
     //전체 목록
     @Query("SELECT q FROM QnaEntity q " +
-            "WHERE (:role = 'ROLE_PARENT' AND q.parentUser.id = :parentUserId) " +
-            "OR (:role = 'ROLE_CONSULTANT' AND q.parentUser.consultantUserEntity.id = :consultantUserId) " +
+            "WHERE ((:role = 'ROLE_PARENT' AND q.parentUser.id = :parentUserId) " +
+            "OR (:role = 'ROLE_CONSULTANT' AND q.parentUser.consultantUserEntity.id = :consultantUserId)) " +
             "AND q.deleteDttm IS NULL")
     Page<QnaEntity> findAll(
             @Param("role") String role,
