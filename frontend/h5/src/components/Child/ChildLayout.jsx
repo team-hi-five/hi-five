@@ -18,14 +18,14 @@ function Header() {
     // 복습 리스트 하위 게임 페이지
     else if (location.pathname.startsWith(`/child/${childId}/review/game`)) {
       // 리뷰 게임에서는 리뷰 페이지로
-      navigate(`/child/${childId}/review`);
+      navigate(`/child/${childId}/review}`);
     }
     // 카드 리스트 하위 게임 페이지
     else if (
       location.pathname.startsWith(`/child/${childId}/cardmain/details`)
     ) {
       // 리뷰 게임에서는 리뷰 페이지로
-      navigate(`/child/${childId}/review`);
+      navigate(`/child/${childId}/cardmain`);
     } else {
       navigate(`/child/${childId}`);
     }

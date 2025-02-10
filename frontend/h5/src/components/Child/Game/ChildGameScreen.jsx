@@ -1,34 +1,74 @@
 import "../ChildCss/ChildGameScreen.css";
 import ChildProgressBar from "./ChildProgressBar";
+import PropTypes from 'prop-types';
 import { Card } from "primereact/card";
-import useGameStore from "../../../store/gameStore";
-import {useLocation} from "react-router-dom"
+import Swal from 'sweetalert2';
+import { useEffect, useRef,useState } from "react";
 
-function ChildGameScreen() {
-  const {getCurrentGameData, incrementStage, setCurrentChapter, selectChapter } = useGameStore()
+function ChildGameScreen({ chapterId, currentData, incrementStage }) {
+  
+  const [showContent, setShowContent] = useState(false);
+  // const [repeatCount, setRepeatCount] = useState(0);
+  const videoRef = useRef(null);  
 
-  // 챕터 아이디 불러오기기
-  const location = useLocation()
-  console.log(location.state?.item)
-  const chapterId = location.state?.item.gameChapterId
+  useEffect(() => {
+    Swal.fire({
+        title: '감정아! 같이 공부해 볼까?',
+        imageUrl: '/child/againCh.png',
+        imageWidth: 200,
+        imageHeight: 200,
+        showConfirmButton: false,
+        timer: 2000  
+    }).then(() => {
+        setShowContent(true);
+        if (videoRef.current) {
+            videoRef.current.play();
+        }
+    });
+}, []);
 
+  // useEffect(()=>{
+  //   if (repeatCount >= 3){
+  //     incrementStage()
+  //   }
+  // },[repeatCount, incrementStage])
+  
+  
+  if(!currentData){
+      return console.log('현재 데이터가 없습니다.')
+    }
 
+    const {gameStageId, gameVideo, optionImages,options,situation, answer } = currentData;
+    
   return (
     <>
       <Card className="ch-game-screen-container">
-        <h2>1단계 1단원</h2>
-        <h3>상황: 민준이가 아침에 일어나서 어린이집 가방을 메고 있다</h3>
-
+        <h2>{chapterId}단계 {gameStageId}단원</h2>
+        <h3>{situation}</h3>
+        <video ref={videoRef}src={gameVideo} className="ch-gameVideo"/>
         <div className="ch-game-progress-bar">
           <ChildProgressBar />
         </div>
         <div className="ch-game-button">
-          <button>1</button>
-          <button>2</button>
-          <button>3</button>
+        {options.map((option,index)=>(
+          <div key={index}>
+            <h4 className="ch-options-number">{index+1}</h4>
+          <button className="ch-option">
+            <img src={optionImages[index]} alt={`option ${index + 1}`} />
+          </button>
+          <h4 className="ch-options-selection">{option}</h4>
+          </div>
+        ))}
         </div>
       </Card>
     </>
   );
 }
+
+ChildGameScreen.propTypes = {
+  chapterId: PropTypes.number,  // 또는 PropTypes.string (chapterId 타입에 따라)
+  currentData: PropTypes.object,
+  incrementStage: PropTypes.func,
+
+};
 export default ChildGameScreen;
