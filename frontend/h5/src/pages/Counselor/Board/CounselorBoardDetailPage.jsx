@@ -6,6 +6,7 @@ import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import { getNoticeDetail, deleteNotice, updateNotice } from '../../../api/boardNotice';
 import { getFaqDetail, updateFaq, deleteFaq } from '../../../api/boardFaq';
 import { getQnaDetail, deleteQna, createQnaAnswer, updateQnaComment, deleteQnaComment } from '../../../api/boardQna';
+import { getFileUrl, downloadFile } from '../../../api/file';
 import '../Css/CounselorBoardDetailPage.css';
 
 
@@ -27,6 +28,9 @@ function CounselorBoardDetailPage() {
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editedAnswerContent, setEditedAnswerContent] = useState("");
   const editableRef = useRef(null);
+
+  const [fileUrls, setFileUrls] = useState([]);
+  const [fileError, setFileError] = useState(null);
 
   useEffect(() => {
     if (editingAnswerId && editableRef.current) {
@@ -56,6 +60,18 @@ function CounselorBoardDetailPage() {
     setIsEditing(true);
     setEditedTitle(postData.title);
     setEditedContent(postData.content);
+  };
+
+  const fetchFileUrls = async (type, id) => {
+    try {
+      const response = await getFileUrl(type, id);
+      if (response) {
+        setFileUrls(Array.isArray(response) ? response : [response]);
+      }
+    } catch (error) {
+      console.error("파일 URL 조회 실패:", error);
+      setFileError("파일을 불러오는데 실패했습니다.");
+    }
   };
 
   const handleEditComplete = async () => {
@@ -141,19 +157,19 @@ const handleDelete = async () => {
     }
   };
 
-  const handleQnaCommentEdit = async (commentId) => {
+  const handleQnaCommentEdit = async (qnaCommentId) => {
     try {
       if (!editedAnswerContent.trim()) {
         await SingleButtonAlert('수정할 내용을 입력해주세요.');
         return;
       }
 
-      console.log(commentId)
+      console.log(qnaCommentId)
   
-      await updateQnaComment(commentId, editedAnswerContent);
+      await updateQnaComment(qnaCommentId, editedAnswerContent);
       
       setAnswers(answers.map(answer => 
-        answer.id === commentId 
+        answer.id === qnaCommentId 
           ? { ...answer, content: editedAnswerContent }
           : answer
       ));
@@ -169,12 +185,12 @@ const handleDelete = async () => {
     }
   };
 
-  const handleQnaCommentDelete = async (commentId) => {
+  const handleQnaCommentDelete = async (qnaCommentId) => {
     try {
       const result = await DoubleButtonAlert("정말 댓글을 삭제하시겠습니까?");
       
       if (result.isConfirmed) {
-        await deleteQnaComment(commentId);
+        await deleteQnaComment(qnaCommentId);
         
         // 답변 목록에서 해당 댓글 제거
         setAnswers([]);
@@ -196,26 +212,40 @@ const handleDelete = async () => {
   };
 
   // 상대적 시간을 계산하는 함수
-const getTimeAgo = (dateString) => {
-  const now = new Date();
-  const past = new Date(dateString);
-  const diffInMilliseconds = now - past;
-  const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
-  const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-  const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
-
-  if (diffInMinutes < 1) {
-    return '방금 전';
-  } else if (diffInMinutes < 60) {
-    return `${diffInMinutes}분 전`;
-  } else if (diffInHours < 24) {
-    return `${diffInHours}시간 전`;
-  } else if (diffInDays < 7) {
-    return `${diffInDays}일 전`;
-  } else {
-    return past.toLocaleDateString();
-  }
-};
+  const getTimeAgo = (dateString) => {
+    // dateString이 유효한지 먼저 확인
+    if (!dateString) return '방금 전';
+  
+    try {
+      const now = new Date();
+      const past = new Date(dateString);
+      
+      // past가 유효한 날짜인지 확인
+      if (isNaN(past.getTime())) {
+        return '방금 전';
+      }
+  
+      const diffInMilliseconds = now - past;
+      const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
+      const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+      const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+  
+      if (diffInMinutes < 1) {
+        return '방금 전';
+      } else if (diffInMinutes < 60) {
+        return `${diffInMinutes}분 전`;
+      } else if (diffInHours < 24) {
+        return `${diffInHours}시간 전`;
+      } else if (diffInDays < 7) {
+        return `${diffInDays}일 전`;
+      } else {
+        return past.toLocaleDateString();
+      }
+    } catch (error) {
+      console.error('날짜 변환 중 오류:', error);
+      return '방금 전';
+    }
+  };
 
 const handleAnswerSubmit = async () => {
   try {
@@ -238,7 +268,7 @@ const handleAnswerSubmit = async () => {
       writer: response.name || "상담사",
       createDttm: response.createDttm, // 서버에서 받은 시간 사용
       time: getTimeAgo(response.createDttm), // 서버 시간 기준으로 계산
-      profileImageUrl: response.profileImageUrl || "/no.png"
+      // profileImageUrl: response.profileImageUrl || "/no.png"
     }]);
 
     setQnaData(prev => ({
@@ -269,10 +299,10 @@ const handleAnswerSubmit = async () => {
   const viewCountUpdated = useRef(false);
 
   // 공지사항 상세 정보 조회 함수
-  const fetchNoticeDetail = async (id) => {
+  const fetchNoticeDetail = async (noticeId) => {
     try {
       setIsLoading(true);
-      const response = await getNoticeDetail(id);
+      const response = await getNoticeDetail(noticeId);
       
       // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
       const formattedData = {
@@ -367,10 +397,13 @@ useEffect(() => {
   if (no && !viewCountUpdated.current) {
     if (type === "notice") {
       fetchNoticeDetail(no);
+      fetchFileUrls('N', no);
     } else if (type === "faq") {
       fetchFaqDetail(no);
+      // fetchFileUrls('N', no);
     } else if (type === "qna") {
       fetchQnaDetail(no);  // QnA 상세 조회 추가
+      fetchFileUrls('Q', no);
     }
     viewCountUpdated.current = true;
   }
@@ -520,7 +553,33 @@ useEffect(() => {
                   </span>
                 </>
               ) : (
-                "첨부파일"
+                <div className="co-detail-file-list">
+                  <h4>첨부파일</h4>
+                  {fileError ? (
+                    <p className="co-detail-file-error">{fileError}</p>
+                  ) : fileUrls.length > 0 ? (
+                    <div className="co-detail-file-buttons">
+                      {fileUrls.map((file, index) => (
+                        <button 
+                          key={index}
+                          onClick={async () => {
+                            try {
+                              await downloadFile(file.fileId, file.fileName);
+                            } catch (error) {
+                              console.error("파일 다운로드 실패:", error);
+                              await SingleButtonAlert("파일 다운로드에 실패했습니다.");
+                            }
+                          }}
+                          className="co-detail-file-download-btn"
+                        >
+                          <span className="p-file-name">{file.fileName}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>첨부파일이 없습니다.</p>
+                  )}
+                </div>
               )}
             </div>
           </div>

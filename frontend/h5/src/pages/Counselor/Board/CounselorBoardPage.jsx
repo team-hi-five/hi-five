@@ -104,8 +104,9 @@ function CounselorBoardPage() {
               paItemsPerPage
           );
           
-          const formattedData = response.notices.map(item => ({
-              no: item.id || "9999",
+          const formattedData = response.notices.map((item, index) => ({
+              no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+              id: item.id, // 실제 데이터베이스 ID
               title: item.title,
               writer: item.name || "운영자",
               views: item.viewCnt || 0,
@@ -130,8 +131,9 @@ function CounselorBoardPage() {
           setFaqLoading(true);
           const response = await getFaqList(paCurrentPage - 1, paItemsPerPage);
           
-          const formattedData = response.faqs.map(item => ({
-            no: item.id || "9999",
+          const formattedData = response.faqs.map((item, index) => ({
+            no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+            id: item.id, // 실제 데이터베이스 ID
             type: item.type || "기타",
             title: item.title,
             writer: item.name || "운영자",
@@ -156,8 +158,9 @@ function CounselorBoardPage() {
           
           const response = await getQnaList(paCurrentPage - 1, paItemsPerPage);
           
-          const formattedData = response.qnaList.map(item => ({
-            no: item.id || "9999",
+          const formattedData = response.qnaList.map((item, index) => ({
+            no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+            id: item.id, // 실제 데이터베이스 ID
             title: item.title,
             writer: item.name || "익명",
             status: item.answerCnt > 0 ? "답변완료" : "미답변",
@@ -265,7 +268,7 @@ function CounselorBoardPage() {
     };
   
     const handleRowClick = (type, item) => {
-      navigate(`/counselor/board/${type}/${item.no}`);
+      navigate(`/counselor/board/${type}/${item.id}`);
     };
   
     const colSpan = paActiveTab === "faq" ? 4 : paActiveTab === "qna" ? 5 : 5;
@@ -352,26 +355,26 @@ function CounselorBoardPage() {
                                         <tr>
                                             {paActiveTab === "faq" ? (
                                                 <>
-                                                    <th>번호</th>
-                                                    <th>유형</th>
-                                                    <th>제목</th>
-                                                    <th>작성자</th>
+                                                    <th style={{ width: "10%" }}>번호</th>
+                                                    <th style={{ width: "30%" }}>유형</th>
+                                                    <th style={{ width: "40%" }}>제목</th>
+                                                    <th style={{ width: "20%" }}>작성자</th>
                                                 </>
                                             ) : paActiveTab === "qna" ? (
                                                 <>
-                                                    <th>번호</th>
-                                                    <th>제목</th>
-                                                    <th>작성자</th>
-                                                    <th>답변상태</th>
-                                                    <th>작성일</th>
+                                                    <th style={{ width: "10%" }}>번호</th>
+                                                    <th style={{ width: "30%" }}>제목</th>
+                                                    <th style={{ width: "30%" }}>작성자</th>
+                                                    <th style={{ width: "10%" }}>답변상태</th>
+                                                    <th style={{ width: "20%" }}>작성일</th>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <th>번호</th>
-                                                    <th>제목</th>
-                                                    <th>작성자</th>
-                                                    <th>조회수</th>
-                                                    <th>작성일</th>
+                                                    <th style={{ width: "10%" }}>번호</th>
+                                                    <th style={{ width: "30%" }}>제목</th>
+                                                    <th style={{ width: "30%" }}>작성자</th>
+                                                    <th style={{ width: "10%" }}>조회수</th>
+                                                    <th style={{ width: "20%" }}>작성일</th>
                                                 </>
                                             )}
                                         </tr>

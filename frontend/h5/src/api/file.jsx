@@ -21,15 +21,14 @@ export const uploadFile = async (file, tblType, tblId) => {
         const formData = new FormData();
         formData.append('file', file);
         
-        // metaData를 JSON 문자열로 변환하여 추가
-        const metaData = JSON.stringify({ tblType, tblId });
+        // metaData를 JSON 배열 형태로 변환하여 추가
+        const metaData = JSON.stringify({ tblType: [tblType], tblId: [tblId] });
         formData.append('metaData', new Blob([metaData], { type: 'application/json' }));
 
         const response = await api.post("/file/upload", formData, {
-        headers: {
-            // Content-Type을 자동으로 설정되도록 제거
-            // FormData를 사용할 때는 브라우저가 자동으로 boundary를 포함한 Content-Type을 설정
-        },
+            headers: {
+                // Content-Type은 FormData 사용 시 자동 설정됨
+            },
         });
 
         return response.data;
@@ -48,7 +47,6 @@ export const uploadFile = async (file, tblType, tblId) => {
 };
 
 
-
 // ✅ 파일 URL 조회 API 요청
 export const getFileUrl = async (tblType, tblId) => {
     try {
@@ -63,9 +61,8 @@ export const getFileUrl = async (tblType, tblId) => {
         console.log("📢 파일 URL 조회 요청:", { tblType, tblId });
         
         const response = await api.get(`/file/urls/${tblType}/${tblId}`, {
-            params: {
-                tblType: tblType,
-                tblId: tblId
+            headers: {
+                'Content-Type': 'application/json'
             }
         });
         
@@ -78,10 +75,10 @@ export const getFileUrl = async (tblType, tblId) => {
     }
 };
 
+
 // ✅ 파일 다운로드 API 요청
-export const downloadFile = async (fileId) => {
+export const downloadFile = async (fileId, fileName) => {
     try {
-        // 필수값 검증
         if (!fileId) {
             throw new Error("파일 ID는 필수 입력값입니다.");
         }
@@ -89,26 +86,21 @@ export const downloadFile = async (fileId) => {
         console.log("📢 파일 다운로드 요청:", { fileId });
 
         const response = await api.get(`/file/download/${fileId}`, {
-            responseType: 'blob', // 파일 다운로드를 위해 responseType을 blob으로 설정
+            params: { fileId },
+            responseType: 'blob'
         });
 
-        // 파일 다운로드 처리
-        const blob = new Blob([response.data]);
+        const blob = new Blob([response.data], { 
+            type: response.headers['content-type'] || 'application/octet-stream'
+        });
+        
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         
-        // Content-Disposition 헤더에서 파일명 추출
-        const contentDisposition = response.headers['content-disposition'];
-        let fileName = 'download'; // 기본 파일명
-        if (contentDisposition) {
-            const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-            if (matches && matches[1]) {
-                fileName = matches[1].replace(/['"]/g, '');
-            }
-        }
-        
+        // 전달받은 원본 파일명 사용
         a.download = fileName;
+        
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);

@@ -50,8 +50,9 @@ function ParentBoardPage() {
         paItemsPerPage
       );
 
-      const formattedData = response.notices.map(item => ({
-        no: item.id || "9999",
+      const formattedData = response.notices.map((item, index) => ({
+        no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+        id: item.id, // 실제 데이터베이스 ID
         title: item.title,
         writer: item.name || "운영자",
         views: item.viewCnt || 0,
@@ -82,8 +83,9 @@ const fetchNoticeData = async () => {
       paItemsPerPage
     );
     
-    const formattedData = response.notices.map(item => ({
-      no: item.id || "9999",
+    const formattedData = response.notices.map((item, index) => ({
+      no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+      id: item.id, // 실제 데이터베이스 ID
       title: item.title,
       writer: item.name || "운영자",
       views: item.viewCnt || 0,
@@ -109,8 +111,9 @@ const fetchFaqData = async () => {
     setFaqLoading(true);
     const response = await getFaqList(paCurrentPage - 1, paItemsPerPage);
     
-    const formattedData = response.faqs.map(item => ({
-      no: item.id,
+    const formattedData = response.faqs.map((item, index) => ({
+      no:response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+      id: item.id, // 실제 데이터베이스 ID
       type: item.type || "일반",
       title: item.title,
       writer: item.name,
@@ -137,8 +140,8 @@ const fetchQnaData = async () => {
 
     const response = await getQnaList(paCurrentPage - 1, paItemsPerPage);
 
-    const formattedData = response.qnaList.map(item => ({
-      no: item.id,
+    const formattedData = response.qnaList.map((item, index) => ({
+      no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
       title: item.title,
       writer: item.name,
       status: item.answerCnt > 0 ? "답변완료" : "미답변",  
@@ -241,7 +244,7 @@ const fetchQnaData = async () => {
   // 테이블 행 클릭 -> 상세 페이지로 이동 (예시: /board/{tab}/{글번호})
   const handleRowClick = (type, item) => {
     // 이동: /board/notice/11 or /board/faq/2 or /board/qna/3 ...
-    navigate(`/parent/board/${type}/${item.no}`);
+    navigate(`/parent/board/${type}/${item.id}`);
   };
 
   // 탭별 열 수(FAQ=4, QnA=5, Notice=5)

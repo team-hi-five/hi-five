@@ -182,8 +182,8 @@ const CounselorMainPage = () => {
         <div className="co_main_container">
           <section className="co_notice_section">
             <p className="co_notice_title">새소식</p>
-            <div className="carousel-container">
-              <Carousel 
+            <div className="c-carousel-container">
+              {/* <Carousel 
                 value={notices} 
                 numVisible={numVisible} 
                 numScroll={numVisible} 
@@ -192,10 +192,10 @@ const CounselorMainPage = () => {
                 itemTemplate={noticeTemplate}
                 showNavigators={true}
                 showIndicators={false}
-                className="co_carousel"
+                className="c-co_carousel"
                 responsiveOptions={responsiveOptions}
-              />
-              <div className="custom-indicator">
+              /> */}
+              <div className="c-custom-indicator">
                 {currentPage}/{totalPages}
               </div>
             </div>
