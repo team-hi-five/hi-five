@@ -13,6 +13,7 @@ services:
       - DB_USER=mysql_h5
       - DB_PASSWORD=6cN0A5Fl
       - SERVER_URL=https://hi-five.site
+      - FILE_ACCESS_URL=https://cdn.hi-five.site
       - MAIL_USERNAME=noreply.mail.h5@gmail.com
       - MAIL_PASSWORD=ghsnycgzibikbkpk
       - OPENVIDU_URL=https://hi-five.site/openvidu
