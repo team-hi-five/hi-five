@@ -47,11 +47,16 @@ pipeline {
                         sh "cp \"$FRONT_ENV\" .env"
                     }
 
-                    sh 'docker run --rm -v $(pwd):/app -w /app node:22 sh -c "npm install && npm run build"'
+                    // 빌드 전 현재 디렉토리 확인
+                    sh 'pwd'
+                    sh 'ls -al'
+
+                    // Docker 컨테이너 내부에서 npm 실행
+                    sh "docker run --rm -v ${WORKSPACE}/frontend/h5:/app -w /app node:22 sh -c 'npm install && npm run build'"
 
                     sh """
                         docker build --rm \
-                          -t ${env.FRONTEND_IMAGE}:${env.BUILD_NUMBER} .
+                        -t ${env.FRONTEND_IMAGE}:${env.BUILD_NUMBER} .
                     """
 
                     sh "docker tag ${env.FRONTEND_IMAGE}:${env.BUILD_NUMBER} ${env.FRONTEND_IMAGE}:latest"
