@@ -22,7 +22,7 @@ function ChildGameFaceScreen() {
         <div className="ch-game-button-right">
           <img src="/child/button-right.png" alt="button-right" />
         </div>
-      </div>
+      </div> 
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// 차일드 리뷰 게임 스크린
 import "../ChildCss/ChildReviewGameScreen.css";
 import ChildProgressBar from "./ChildProgressBar";
 import PropTypes from "prop-types";
@@ -11,10 +12,17 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
   // 모달의 상태
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  // 정답 모달
+  const [showAnswerModal, setshowAnswerModal] =useState(false)
 
   // const [repeatCount, setRepeatCount] = useState(0);
   const videoRef = useRef(null);
 
+  const { gameStageId, gameVideo, optionImages, options, situation, answer } =
+  currentData;
+
+
+  // 1. 처음 들어갔을 때 화면
   useEffect(() => {
     Swal.fire({
       title: "감정아! 같이 공부해 볼까?",
@@ -24,6 +32,7 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
       showConfirmButton: false,
       timer: 2000,
     }).then(() => {
+      // 2. 모달이 사라지고 동영상 시작
       setShowContent(true);
       if (videoRef.current) {
         videoRef.current.play();
@@ -31,19 +40,10 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
     });
   }, []);
 
-  // useEffect(()=>{
-  //   if (repeatCount >= 3){
-  //     incrementStage()
-  //   }
-  // },[repeatCount, incrementStage])
 
-  if (!currentData) {
-    return console.log("현재 데이터가 없습니다.");
-  }
 
-  const { gameStageId, gameVideo, optionImages, options, situation, answer } =
-    currentData;
 
+  // 3. 동영상이 끝나면 아동 표정학습 순서
   const modalContents = [
     {
       header: "영상 속 감정이가 느낀 감정을 따라해 볼까요?!",
@@ -62,6 +62,9 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
       // ai 분석 필요
       isExpressionStep: true,
     },
+    {
+      
+    }
   ];
 
   const AiAnalysis = async () => {
@@ -81,7 +84,7 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
       } else {
         await Swal.fire({
           content:
-            "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요! 다시 해볼 까요?",
+            "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요!",
           imageWidth: 200,
           imageHeight: 200,
           showConfirmButton: true,
@@ -117,9 +120,8 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
         </div>
         {/* dialog + 정답  */}
         <Dialog
-          visibal={showAnswerModal}
-          onHide={(modalContents) => modalContents}
-          header="영상 속 감정이가 느낀 감정을 따라해 볼까요?!"
+          visible={showAnswerModal}
+          onHide={if(!) return; showAnswerModal(false)}
           className="ch-review-modal-style"
           // 모달이 떠있어도 뒤에 요소들과 상호작용 가능
           modal={false}

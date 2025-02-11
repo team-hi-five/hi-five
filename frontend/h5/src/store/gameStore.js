@@ -4,24 +4,24 @@ import { reviewGame } from "../api/childGameContent";
 const useGameStore = create((set, get) => ({
   chapterData: {},
   currentChapter: null,
-  currentStage: 1,
+  currentStageIndex: 0,
 
   fetchChapterData: async (chapterId) => {
     try {
       // 초기 상태
-      const chapterData = [];
-      for (let stage = 1; stage <= 5; stage++) {
-        const res = await reviewGame(chapterId, stage);
-        if (res) {
-          chapterData.push({ ...res, gameStageId: stage });
-        }
-      }
+      // 한번에 모든 스테이지 데이터 가져오기
+      const stagePromises = Array.from({length:5},(_, i)=>reviewGame(chapterId, i+1));
+      
+      const stageResults = await Promise.all(stagePromises);
+      const chapterData = stageResults.map((res, index) => res ? { ...res, gameStageId: index + 1 } : null).filter(Boolean);
+
       // zustand에서 상태를 업데이트할때 사용(상태 저장)
-      set((state) => ({
-        chapterData: { ...state.chapterData, [chapterId]: chapterData },
+      set(({
+        chapterData: { ...get().chapterData, [chapterId]: chapterData },
         currentChapter: chapterId,
-        currentStage: 1,
+        currentStageIndex: 0,
       }));
+
       return chapterData;
     } catch (error) {
       console.error(`❌: 챕터 ${chapterId} 데이터 가져오기 실패:`, error);
@@ -31,27 +31,26 @@ const useGameStore = create((set, get) => ({
 
   // 선택된 챕터의 스테이지 정보 가져오기
   getCurrentGameData: () => {
-    const { chapterData, currentChapter, currentStage } = get();
-    return (
-      chapterData[currentChapter]?.find(
-        (data) => data.gameStageId === currentStage
-      ) || null
-    );
+    const { chapterData, currentChapter, currentStageIndex } = get();
+    return chapterData[currentChapter]?.[currentStageIndex] || null;
   },
 
+  // 다음 스테이지로 이동
+  // 한번에 모든 데이터를 가져오지만 다음 스테이지로 이동할때 사용
   incrementStage: () =>
     set((state) => {
-      const newStage =
-        state.currentStage < 5 ? state.currentStage + 1 : state.currentStage;
-      return { currentStage: newStage };
+      const maxIndex = (state.chapterData[state.currentChapter]?.length || 1) - 1;
+      const newIndex = Math.min(state.currentStageIndex + 1, maxIndex);
+      return { currentStageIndex: newIndex };
     }),
 
+  // 챕터 설정(초기화)
   setCurrentChapter: (chapterId) =>
-    set({ currentChapter: chapterId, currentStage: 1 }),
+    set({ currentChapter: chapterId, currentStageIndex: 0 }),
 
   // 챕터 선택
   selectChapter: (chapterId) => {
-    set({ currentChapter: chapterId, currentStage: 1 });
+    set({ currentChapter: chapterId, currentStageIndex: 0 });
     get().fetchChapterData(chapterId);
   },
 }));
