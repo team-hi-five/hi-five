@@ -272,6 +272,17 @@ const handleDelete = async (scheduleToDelete) => {
                 ? { ...schedule, isCompleted: true }
                 : schedule
         ));
+
+        // 상담 유형에 따라 다른 창 열기
+        const path = targetSchedule.consultation_type === 'game' 
+            ? 'schedule/parent-video-call'
+            : 'schedule/child-video-call';
+            
+        window.open(
+            path,
+            '_blank',
+            'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+        );
     };
 
     const handleModalClose = async () => {
