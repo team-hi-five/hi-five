@@ -85,6 +85,7 @@ public class GameServiceImpl implements GameService {
     @Transactional
     @Override
     public SaveGameLogResponseDto saveGameLog(SaveGameLogRequestDto saveGameLogRequestDto) {
+
         GameLogEntity gameLogEntity = gameLogRepository.save(GameLogEntity.builder()
                 .selectedOpt(saveGameLogRequestDto.getSelectedOption())
                 .corrected(saveGameLogRequestDto.isCorrected())
