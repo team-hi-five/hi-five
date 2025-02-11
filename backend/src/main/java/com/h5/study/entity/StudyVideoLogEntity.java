@@ -50,6 +50,6 @@ public class StudyVideoLogEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "child_study_stage_id", nullable = false)
-    private ChildStudyStageEntity childStudyStage;
+    private ChildStudyStageEntity childStudyStageEntity;
 
 }
