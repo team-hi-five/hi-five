@@ -244,7 +244,36 @@ function OpenviduVideo() {
   // ====================================================================
   return (
     <div className="webcam-container">
-      <div className="webcam-video" ref={videoRef}>
+      <div className="webcam-video">
+       {/* 로컬 비디오 스트림을 위한 엘리먼트 */}
+    {publisher && (
+      <div className="local-video-container">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="local-video"
+        />
+      </div>
+    )}
+    
+    {/* 다른 참가자의 비디오 스트림 */}
+    {subscribers.map((subscriber, index) => (
+      <div key={index} className="remote-video-container">
+        <video
+          ref={(el) => {
+            if (el) {
+              subscriber.addVideoElement(el);
+            }
+          }}
+          autoPlay
+          playsInline
+          className="remote-video"
+        />
+      </div>
+    ))}
+
+
         <div className="control-buttons">
           <button onClick={toggleAudio} className="control-button-audio">
             음성

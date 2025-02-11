@@ -80,7 +80,6 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
         });
       } else {
         await Swal.fire({
-          title: "정답이에요!",
           content:
             "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요! 다시 해볼 까요?",
           imageWidth: 200,
