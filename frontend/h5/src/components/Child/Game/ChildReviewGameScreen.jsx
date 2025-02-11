@@ -90,7 +90,7 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
         });
       }
     } catch (error) {
-      console.log.error("감정분석에러!");
+      console.log.error("감정분석에러!", error);
     }
   };
 
