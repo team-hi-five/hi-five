@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
+import { Toast } from 'primereact/toast';
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import { getNoticeDetail, deleteNotice, updateNotice } from '../../../api/boardNotice';
 import { getFaqDetail, updateFaq, deleteFaq } from '../../../api/boardFaq';
 import { getQnaDetail, deleteQna, createQnaAnswer, updateQnaComment, deleteQnaComment } from '../../../api/boardQna';
-import { getFileUrl, downloadFile } from '../../../api/file';
+import { getFileUrl, downloadFile, uploadFile, deleteFile} from '../../../api/file';
 import '../Css/CounselorBoardDetailPage.css';
 
 
@@ -16,7 +17,8 @@ function CounselorBoardDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedContent, setEditedContent] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState([]);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const [noticeData, setNoticeData] = useState(null);  // 공지사항 데이터 state 추가
   const [isLoading, setIsLoading] = useState(false);   // 로딩 상태 추가
@@ -29,8 +31,52 @@ function CounselorBoardDetailPage() {
   const [editedAnswerContent, setEditedAnswerContent] = useState("");
   const editableRef = useRef(null);
 
+  const [deletedFileIds, setDeletedFileIds] = useState([]);
   const [fileUrls, setFileUrls] = useState([]);
   const [fileError, setFileError] = useState(null);
+  
+  // 해당하는 게시판 데이터를 가져옴
+  let postData;
+  if (type === "notice") {
+    postData = noticeData;  // API로 받아온 데이터 사용
+  } else if (type === "faq") {
+    postData = faqData;
+  } else if (type === "qna") {
+    postData = qnaData;
+  }
+
+  const handleFileDelete = async (fileId) => {
+    console.log("삭제 시도하는 fileId:", fileId); // 추가
+    try {
+      // UI에서 먼저 파일을 제거
+      setFileUrls(files => files.filter(file => file.fileId !== fileId));
+      setDeletedFileIds(prev => {
+        const newDeletedFileIds = [...prev, fileId];
+        console.log("fileId 추가 후 deletedFileIds:", newDeletedFileIds); // 추가
+        return newDeletedFileIds;
+      });
+      
+      // 수정 모드가 아닐 때만 즉시 서버에서 삭제
+      if (!isEditing) {
+        await deleteFile(fileId);
+      }
+    } catch (error) {
+      console.error('파일 삭제 중 오류:', error);
+      toast.current.show({
+        severity: 'error',
+        summary: '오류',
+        detail: '파일 삭제에 실패했습니다.',
+        life: 3000
+      });
+      
+      // 삭제 실패 시 UI 상태 복구
+      setFileUrls(prevFiles => {
+        const deletedFile = prevFiles.find(file => file.fileId === fileId);
+        return deletedFile ? [...prevFiles, deletedFile] : prevFiles;
+      });
+      setDeletedFileIds(prev => prev.filter(id => id !== fileId));
+    }
+  };
 
   useEffect(() => {
     if (editingAnswerId && editableRef.current) {
@@ -46,11 +92,20 @@ function CounselorBoardDetailPage() {
     }
   }, [editingAnswerId]);
 
+
   useEffect(() => {
     if (isEditing && editableRef.current) {
-        editableRef.current.innerHTML = editedContent || postData.content;
+      editableRef.current.innerHTML = editedContent || postData.content;
+      setEditedContent(postData.content);
+      setEditedTitle(postData.title);
+      if (fileUrls.length > 0) {
+        setSelectedFile({
+          name: fileUrls[0].fileName,
+          id: fileUrls[0].fileId
+        });
+      }
     }
-  }, [isEditing]);
+  }, [isEditing, postData,  editedContent, fileUrls]);
 
   const handleBack = () => {
     navigate(-1);
@@ -66,7 +121,10 @@ function CounselorBoardDetailPage() {
     try {
       const response = await getFileUrl(type, id);
       if (response) {
-        setFileUrls(Array.isArray(response) ? response : [response]);
+        const filteredFiles = Array.isArray(response) 
+          ? response.filter(file => !deletedFileIds.includes(file.fileId))
+          : [response];
+        setFileUrls(filteredFiles);
       }
     } catch (error) {
       console.error("파일 URL 조회 실패:", error);
@@ -74,46 +132,86 @@ function CounselorBoardDetailPage() {
     }
   };
 
+  const handleFileSelect = (event) => {
+    const files = event.files;
+    const oversizedFiles = files.filter(file => file.size > 1000000);
+    
+    if (oversizedFiles.length > 0) {
+      toast.current.show({
+        severity: 'warn',
+        summary: '알림',
+        detail: '1MB 이상의 파일은 업로드할 수 없습니다.',
+        life: 3000
+      });
+      return;
+    }
+    
+    setSelectedFiles(files);
+  };
+
   const handleEditComplete = async () => {
     try {
-        // 수정된 내용이 없으면 경고
-        if (!editedContent) {
-            await SingleButtonAlert('수정할 내용을 입력해주세요.');
-            return;
-        }
+      console.log("수정 시작 시점의 deletedFileIds:", deletedFileIds); // 추가
 
-        // 제목이 비어있으면 경고
-        if (!editedTitle) {
-          await SingleButtonAlert('제목을 입력해주세요.');
-          return;
-        }
+      if (!editedContent) {
+        await SingleButtonAlert('수정할 내용을 입력해주세요.');
+        return;
+      }
 
-        if (type === "notice") {
-            await updateNotice(no, editedTitle, editedContent);
-            // await SingleButtonAlert("성공적으로 수정되었습니다.");
-            await fetchNoticeDetail(no);
-        } else if (type === "faq") {
-            await updateFaq(no, editedTitle, "GENERAL", editedContent); // type은 임시로 "GENERAL"로 설정
-            // await SingleButtonAlert("성공적으로 수정되었습니다.");
-            await fetchFaqDetail(no);
-        }
-        
-        setIsEditing(false);
-        setEditedTitle("");
-        setEditedContent("");
-        setSelectedFile(null);
-        
-    } catch (error) {
-        console.error('수정 처리 중 오류 발생:', error);
-        const errorMessage = type === "notice" 
-            ? '공지사항 수정에 실패했습니다.' 
-            : 'FAQ 수정에 실패했습니다.';
-            
-        await SingleButtonAlert(
-            error.response?.data?.message || errorMessage
+      if (!editedTitle) {
+        await SingleButtonAlert('제목을 입력해주세요.');
+        return;
+      }
+
+      // 1. 게시글 수정
+      if (type === "notice") {
+        await updateNotice(no, editedTitle, editedContent);
+      } else if (type === "faq") {
+        await updateFaq(no, editedTitle, "GENERAL", editedContent);
+      }
+
+      // 2. 삭제된 파일들 처리
+      console.log("파일 삭제 직전의 deletedFileIds:", deletedFileIds); // 추가
+      const deletePromises = deletedFileIds.map(fileId => deleteFile(fileId));
+      await Promise.all(deletePromises);
+      console.log("파일 삭제 완료 후 deletedFileIds:", deletedFileIds); // 추가
+
+      // 3. 새로운 파일 업로드
+      if (selectedFiles.length > 0) {
+        const uploadPromises = selectedFiles.map(file => 
+          uploadFile(file, type === "notice" ? 'N' : 'F', no)
         );
+        
+        try {
+          await Promise.all(uploadPromises);
+        } catch (error) {
+          console.error("일부 파일 업로드 실패:", error);
+          await SingleButtonAlert('일부 파일 업로드에 실패했습니다.');
+        }
+      }
+
+      // 상태 초기화
+      setIsEditing(false);
+      setEditedTitle("");
+      setEditedContent("");
+      setSelectedFiles([]);
+      setDeletedFileIds([]);
+
+      // 데이터 새로고침
+      if (type === "notice") {
+        await fetchNoticeDetail(no);
+      } else if (type === "faq") {
+        await fetchFaqDetail(no);
+      }
+      await fetchFileUrls(type === "notice" ? 'N' : 'F', no);
+      
+    } catch (error) {
+      console.error('수정 처리 중 오류 발생:', error);
+      const errorMessage = type === "notice" ? '공지사항 수정에 실패했습니다.' : 'FAQ 수정에 실패했습니다.';
+      await SingleButtonAlert(error.response?.data?.message || errorMessage);
     }
-};
+  };
+
 
 const handleDelete = async () => {
   try {
@@ -149,13 +247,6 @@ const handleDelete = async () => {
       }
   }
 };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
 
   const handleQnaCommentEdit = async (qnaCommentId) => {
     try {
@@ -409,16 +500,6 @@ useEffect(() => {
   }
 }, [type, no]);
 
-  // 해당하는 게시판 데이터를 가져옴
-  let postData;
-  if (type === "notice") {
-    postData = noticeData;  // API로 받아온 데이터 사용
-  } else if (type === "faq") {
-    postData = faqData;
-  } else if (type === "qna") {
-    postData = qnaData;
-  }
-
   // 데이터가 없을 경우 처리
   if (!postData) {
     return (
@@ -540,18 +621,59 @@ useEffect(() => {
 
             <div className="co-detail-file">
               {isEditing ? (
-                <>
+                <div className="co-detail-file-upload">
+                  <label htmlFor="fileInput" className="co-detail-file-label">
+                    파일 추가
+                  </label>
                   <input
                     type="file"
-                    id="fileInput" 
-                    onChange={handleFileChange}
+                    id="fileInput"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      const oversizedFiles = files.filter(file => file.size > 1000000);
+                      
+                      if (oversizedFiles.length > 0) {
+                        toast.current.show({
+                          severity: 'warn',
+                          summary: '알림',
+                          detail: '1MB 이상의 파일은 업로드할 수 없습니다.',
+                          life: 3000
+                        });
+                        return;
+                      }
+                      setSelectedFiles(prev => [...prev, ...files]);
+                    }}
+                    accept="image/*,.pdf,.doc,.docx"
                     className="co-detail-file-input"
                   />
-                  <label htmlFor="fileInput" className="co-detail-file-label">파일 선택</label>
-                  <span className="co-detail-file-name">
-                    {selectedFile ? selectedFile.name : '선택된 파일 없음'}
-                  </span>
-                </>
+                  <div className="co-detail-selected-files">
+                    {/* 기존 파일 목록 */}
+                    {fileUrls.map((file, index) => (
+                      <div key={`existing-${index}`} className="co-detail-file-item">
+                        <span>{file.fileName}</span>
+                        <button
+                          onClick={() => handleFileDelete(file.fileId)}
+                          className="co-detail-file-remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    {/* 새로 선택한 파일 목록 */}
+                    {selectedFiles.map((file, index) => (
+                      <div key={`new-${index}`} className="co-detail-file-item">
+                        <span>{file.name}</span>
+                        <button
+                          onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                          className="co-detail-file-remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ) : (
                 <div className="co-detail-file-list">
                   <h4>첨부파일</h4>
@@ -562,14 +684,7 @@ useEffect(() => {
                       {fileUrls.map((file, index) => (
                         <button 
                           key={index}
-                          onClick={async () => {
-                            try {
-                              await downloadFile(file.fileId, file.fileName);
-                            } catch (error) {
-                              console.error("파일 다운로드 실패:", error);
-                              await SingleButtonAlert("파일 다운로드에 실패했습니다.");
-                            }
-                          }}
+                          onClick={() => downloadFile(file.fileId, file.fileName)}
                           className="co-detail-file-download-btn"
                         >
                           <span className="p-file-name">{file.fileName}</span>
