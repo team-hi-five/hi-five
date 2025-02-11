@@ -20,7 +20,7 @@ function ChildCardMainPage() {
         }
 
         const data = await getChildCards(childId);
-        setCards(data.cardAssetList); // API에서 받아온 카드 목록 저장
+        setCards(data.cardAssetList);
       } catch (error) {
         console.error("❌ 감정 카드 데이터 로딩 실패:", error);
       }
@@ -28,6 +28,29 @@ function ChildCardMainPage() {
 
     childCards();
   }, []);
+
+  // ✅ 페이지 들어올 때 감정 카드들이 자연스럽게 등장하도록 애니메이션 설정
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }, // 카드들이 순차적으로 등장
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, x: 200 }, // 오른쪽에서 시작
+    show: { opacity: 1, x: 0 }, // 왼쪽으로 이동
+  };
+
+  // ✅ 스크롤 시 카드 리스트가 자연스럽게 이동하는 애니메이션
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+    axis: "x",
+  });
+
+  const x = useTransform(scrollYProgress, [0, 1], ["0%", "-30%"]);
 
   // 감정 캐릭터 데이터
   const emotions = [
@@ -42,15 +65,25 @@ function ChildCardMainPage() {
       <div className="ch-card-main-container">
         <h1 className="ch-card-main-title">내가 모은 감정 카드</h1>
         <div className="ch-card-sticky-container">
-          <motion.div className="ch-card-big-list" ref={containerRef}>
+          <motion.div
+              className="ch-card-big-list"
+              ref={containerRef}
+              variants={container}
+              initial="hidden"
+              animate="show"
+              style={{ x }} // ✅ 스크롤 애니메이션 적용
+          >
             {emotions.map((emotion) => {
-              // ✅ 감정별 필터링된 카드 리스트 생성
               const filteredCards = cards.filter((card) => card.stageId % 5 === (emotion.id % 5));
 
               return (
-                  <motion.div key={emotion.id}>
+                  <motion.div
+                      key={emotion.id}
+                      variants={item}
+                      transition={{ type: "spring", stiffness: 150, damping: 9 }}
+                  >
                     <CardMainEmotionCard
-                        id={emotion.id} // ✅ id 전달 추가 (경고 해결)
+                        id={emotion.id}
                         image={emotion.image}
                         name={emotion.name}
                         bgColor={emotion.bgColor}
