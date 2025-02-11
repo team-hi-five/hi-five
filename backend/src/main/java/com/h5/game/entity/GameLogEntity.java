@@ -4,14 +4,16 @@ import com.h5.asset.entity.GameStageEntity;
 import com.h5.child.entity.ChildUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Table(name = "game_log")
 public class GameLogEntity {
 
