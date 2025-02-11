@@ -136,6 +136,7 @@
   gap: 15px;
   justify-content: center; 
   margin: 10px 0;
+  
 }
 
 /* 스크롤 영역을 감싸는 흰색 배경 컨테이너 */
@@ -144,6 +145,8 @@
   background-color: white;
   max-width: 1200px;
   height: 500px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);  /* 그림자 추가 */
+  
 }
 
 /* SimpleBar 커스텀 스타일 */
@@ -199,7 +202,7 @@
 }
 
 .co-register-button {
-  margin: 8px 0 10px 0;
+  margin: 15px 10px 10px 0;
   background-color: #B1CCE2;
   color: white;
   padding: 5px 20px;
