@@ -85,7 +85,7 @@ function CounselorBoardFaqWritePage() {
         
         for (const file of selectedFiles) {
           try {
-            const response = await uploadFile(file, TBL_TYPES.FAQ, faqId);
+            const response = await uploadFile(file, TBL_TYPES.FA, faqId);
             
             if (Array.isArray(response)) {
               uploadedFiles = [...uploadedFiles, ...response];

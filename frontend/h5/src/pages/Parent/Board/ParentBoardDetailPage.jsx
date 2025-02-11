@@ -6,7 +6,7 @@ import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import { getNoticeDetail } from '../../../api/boardNotice';
 import { getFaqDetail } from '../../../api/boardFaq';
 import { getQnaDetail, updateQna, deleteQna } from '../../../api/boardQna';
-import { getFileUrl, downloadFile } from '../../../api/file';
+import { getFileUrl, downloadFile, uploadFile, deleteFile } from '../../../api/file';
 import '../../Counselor/Css/CounselorBoardDetailPage.css'
 
 function CounselorBoardDetailPage() {
@@ -22,7 +22,8 @@ function CounselorBoardDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [answers, setAnswers] = useState([]);
-  // const [viewCountUpdated, setViewCountUpdated] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [deletedFileIds, setDeletedFileIds] = useState([]);
 
   const [fileUrls, setFileUrls] = useState([]);
   const [fileError, setFileError] = useState(null);
@@ -90,8 +91,27 @@ function CounselorBoardDetailPage() {
       }
   
       if (type === "qna") {
+        // 1. QNA 내용 수정
         const updatedQna = await updateQna(no, editedTitle, editedContent);
         
+        // 2. 삭제된 파일들 처리
+        const deletePromises = deletedFileIds.map(fileId => deleteFile(fileId));
+        await Promise.all(deletePromises);
+  
+        // 3. 새로운 파일 업로드
+        if (selectedFiles.length > 0) {
+          const uploadPromises = selectedFiles.map(file => 
+            uploadFile(file, 'Q', no)
+          );
+          
+          try {
+            await Promise.all(uploadPromises);
+          } catch (error) {
+            console.error("파일 업로드 실패:", error);
+            await SingleButtonAlert('파일 업로드에 실패했습니다.');
+          }
+        }
+  
         const formattedData = {
           ...qnaData,
           title: updatedQna.title || editedTitle,
@@ -102,18 +122,38 @@ function CounselorBoardDetailPage() {
         };
   
         setQnaData(formattedData);
+        
+        // 상태 초기화
+        setIsEditing(false);
+        setEditedTitle("");
+        setEditedContent("");
+        setSelectedFiles([]);
+        setDeletedFileIds([]);
+  
+        // 파일 목록 새로고침
+        await fetchFileUrls('Q', no);
       }
-      
-      setIsEditing(false);
-      setEditedTitle("");
-      setEditedContent("");
-      setSelectedFile(null);
-      
     } catch (error) {
       console.error('수정 처리 중 오류 발생:', error);
       await SingleButtonAlert(
         error.response?.data?.message || 'QnA 수정에 실패했습니다.'
       );
+    }
+  };
+
+  const handleFileDelete = async (fileId) => {
+    console.log("삭제 시도하는 fileId:", fileId);
+    
+    try {
+      await deleteFile(fileId);
+      console.log("✅ 파일 삭제 API 호출 성공");
+  
+      setFileUrls(files => files.filter(file => file.fileId !== fileId));
+      setDeletedFileIds(prev => [...prev, fileId]);
+  
+    } catch (error) {
+      console.error('파일 삭제 중 오류:', error);
+      await SingleButtonAlert("파일 삭제에 실패했습니다.");
     }
   };
 
@@ -176,7 +216,7 @@ function CounselorBoardDetailPage() {
             
             setFaqData(formattedData);
             // 파일 URL 조회
-            await fetchFileUrls('N', response.id);
+            await fetchFileUrls('FA', response.id);
 
           } else if (type === "qna") {
             const response = await getQnaDetail(no);
@@ -355,19 +395,55 @@ function CounselorBoardDetailPage() {
             </div>
 
             <div className="co-detail-file">
-              {isEditing ? (
-                <>
+            {isEditing ? (
+                <div className="co-detail-file-upload">
+                  <label htmlFor="fileInput" className="co-detail-file-label">
+                    파일 추가
+                  </label>
                   <input
                     type="file"
-                    id="fileInput" 
-                    onChange={handleFileChange}
+                    id="fileInput"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      const oversizedFiles = files.filter(file => file.size > 1000000);
+                      
+                      if (oversizedFiles.length > 0) {
+                        SingleButtonAlert('1MB 이상의 파일은 업로드할 수 없습니다.');
+                        return;
+                      }
+                      setSelectedFiles(prev => [...prev, ...files]);
+                    }}
+                    accept="image/*,.pdf,.doc,.docx"
                     className="co-detail-file-input"
                   />
-                  <label htmlFor="fileInput" className="co-detail-file-label">파일 선택</label>
-                  <span className="co-detail-file-name">
-                    {selectedFile ? selectedFile.name : '선택된 파일 없음'}
-                  </span>
-                </>
+                  <div className="co-detail-selected-files">
+                    {/* 기존 파일 목록 */}
+                    {fileUrls.map((file, index) => (
+                      <div key={`existing-${index}`} className="co-detail-file-item">
+                        <span>{file.fileName}</span>
+                        <button
+                          onClick={() => handleFileDelete(file.fileId)}
+                          className="co-detail-file-remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    {/* 새로 선택한 파일 목록 */}
+                    {selectedFiles.map((file, index) => (
+                      <div key={`new-${index}`} className="co-detail-file-item">
+                        <span>{file.name}</span>
+                        <button
+                          onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                          className="co-detail-file-remove"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ) : (
                 <div className="co-detail-file-list">
                   <h4>첨부파일</h4>

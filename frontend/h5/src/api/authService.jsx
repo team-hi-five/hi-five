@@ -21,10 +21,6 @@ export const login = async (email, password, role) => {
 export const logout = async () => {
     try {
         const accessToken = sessionStorage.getItem("access_token");
-        if (!accessToken) {
-            console.warn("❌ 로그아웃 실패: 토큰이 없습니다.");
-            return;
-        }
         const response = await api.post("/auth/logout", null, { 
             params:{token: accessToken}
          });

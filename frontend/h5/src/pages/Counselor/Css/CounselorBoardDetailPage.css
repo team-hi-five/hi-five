@@ -127,11 +127,11 @@
 .co-detail-content {
   min-height: 150px; /* 본문 영역 높이 (임의값) */
   background-color: #f9fcff;
-  border-radius: 4px;
-  padding: 10px;
+  border-radius: 5px;
+  padding: 5px 25px;
   margin-bottom: 20px;
   color: #444;
-  line-height: 1.6;
+  line-height: 1.8;
   font-weight: bold;
 }
 
@@ -157,10 +157,21 @@
   border: 0;
 }
 
+.co-detail-file-list h4 {
+  margin-bottom: 5px;
+  margin-top: 5px;
+  color: #333;
+}
+
+.co-detail-file-list p {
+  font-size: 14px;
+  font-weight: bold;
+}
+
 /* 커스텀 파일 선택 버튼 */
 .co-detail-file-label {
   display: inline-block;
-  padding: 6px 12px;
+  padding: 5px 12px;
   background-color: #3A5E8D;
   color: white;
   border-radius: 10px;
@@ -180,7 +191,7 @@
 .co-detail-file {
   background-color: #edf3fa;
   border-radius: 5px;
-  padding: 10px;
+  padding: 10px 20px;
   color: #444;
   min-height: 100px;
   font-weight: bold;
@@ -361,22 +372,32 @@ font-size: 1.2rem;
   border: none;
 }
 
-.co-detail-file-buttons {
-display: flex;
-flex-direction: column;
-gap: 8px;
+.co-detail-file-download-btn {
+  /* display: flex;
+  align-items: center;
+  justify-content: center; */
+  padding: 5px 20px;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 10px;
 }
 
-.co-detail-file-download-btn {
-display: block;
-width: 100%;
-text-align: left;
-padding: 8px 12px;
-border: 1px solid #e2e8f0;
-border-radius: 4px;
-background-color: #f8fafc;
-cursor: pointer;
-transition: all 0.2s ease;
+
+/* 첨부파일 버튼 컨테이너 수정 */
+.co-detail-file-buttons {
+  gap: 10px;        /* 버튼 사이의 간격 */
+  margin-top: 10px;
+}
+
+.p-file-name {
+  color: #495057;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: bold;
 }
 
 .co-detail-file-download-btn:hover {
@@ -384,10 +405,6 @@ background-color: #f1f5f9;
 border-color: #cbd5e1;
 }
 
-.p-file-name {
-color: #334155;
-font-size: 14px;
-}
 
 .co-detail-file-upload {
 margin-top: 15px;
@@ -397,27 +414,23 @@ margin-top: 15px;
 display: none;
 }
 
-.co-detail-file-label {
-display: inline-block;
-padding: 6px 12px;
-background-color: #4CAF50;
-color: white;
-cursor: pointer;
-border-radius: 4px;
-}
-
 .co-detail-selected-files {
-margin-top: 10px;
+  display: flex;   /* 가로 배치 */
+  flex-wrap: wrap; /* 넘치면 다음 줄로 */
+  gap: 8px;       /* 아이템 간격 */
+  margin-top: 10px;
 }
 
 .co-detail-file-item {
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 5px;
-margin: 5px 0;
-background-color: #f5f5f5;
-border-radius: 4px;
+  /* display: flex;
+  justify-content: space-between;
+  align-items: center; */
+  padding: 5px 5px 5px 10px;
+  margin: 5px 0;
+   border: 1px solid #dee2e6;
+  background-color: white;
+  border-radius: 20px;
+  font-size: 14px;
 }
 
 .co-detail-file-remove {
@@ -425,7 +438,7 @@ background: none;
 border: none;
 color: #ff4444;
 cursor: pointer;
-font-size: 18px;
-padding: 0 5px;
+font-size: 15px;
+
 }
 
