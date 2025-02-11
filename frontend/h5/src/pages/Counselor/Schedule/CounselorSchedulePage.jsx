@@ -265,6 +265,7 @@ const handleDelete = async (scheduleToDelete) => {
 
     const handleJoin = (index) => {
         const targetSchedule = filteredSchedules[index];
+
         setSchedules(prevSchedules => prevSchedules.map(schedule => 
             schedule.date === targetSchedule.date && 
             schedule.time === targetSchedule.time && 
@@ -272,11 +273,12 @@ const handleDelete = async (scheduleToDelete) => {
                 ? { ...schedule, isCompleted: true }
                 : schedule
         ));
+        console.log("childId : " + targetSchedule.childUserId)
 
         // 상담 유형에 따라 다른 창 열기
         const path = targetSchedule.consultation_type === 'game' 
-            ? 'schedule/parent-video-call'
-            : 'schedule/child-video-call';
+            ? `schedule/child-video-call?consultType=${targetSchedule.consultation_type}&childUserId=${targetSchedule.childUserId}`
+            : 'schedule/counselor-video-call';
             
         window.open(
             path,
