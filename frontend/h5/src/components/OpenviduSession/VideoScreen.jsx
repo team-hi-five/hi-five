@@ -88,8 +88,7 @@ function OpenviduVideo() {
       console.log("Sending request data:", res.data);
 
       // 응답 URL에서 token 추출
-      const urlObj = new URL(res.data);
-      const token = urlObj.searchParams.get("token");
+      const token = res.data
 
       if (!token) {
         throw new Error("토큰을 추출할 수 없습니다.");
