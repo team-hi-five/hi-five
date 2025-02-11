@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class StartGameChapterRequsetDto {
     private int childUserId;
     private int gameChapterId;
-    private String startDttm;
 }
