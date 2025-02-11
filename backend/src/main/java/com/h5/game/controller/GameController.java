@@ -21,23 +21,21 @@ public class GameController {
 
     @PostMapping("/start-game-chapter")
     public ResponseEntity<?> startGameChapter(@RequestBody StartGameChapterRequsetDto startGameChapterRequsetDto) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gameService.startGameChapter(startGameChapterRequsetDto));
     }
 
     @PostMapping("/end-game-chapter")
     public ResponseEntity<?> endGameChapter(@RequestBody EndGameChapterRequestDto endGameChapterRequestDto) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gameService.endGameChapter(endGameChapterRequestDto));
     }
 
     @PostMapping("/start-game-stage")
     public ResponseEntity<?> startGameStage(@RequestBody StartGameStageRequestDto startGameStageRequestDto) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gameService.startGameStage(startGameStageRequestDto));
     }
 
     @PostMapping("/save-log")
     public ResponseEntity<?> saveGameLog(SaveGameLogRequestDto saveGameLogRequestDto) {
-        gameService.saveGameLog(saveGameLogRequestDto);
-
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(gameService.saveGameLog(saveGameLogRequestDto));
     }
 }
