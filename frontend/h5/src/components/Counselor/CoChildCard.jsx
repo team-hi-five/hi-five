@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../Counselor/Css/CoChildCard.css';
 import ChildDetailModal from '../modals/ChildDetailModal';
-import defaultImg from '../../../public/child/character/angrymi.png'
+import defaultImg from '/child/character/angrymi.png'
 
 const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDate, parentPhone, parentEmail, treatmentPeriod, firstConsultDate, interests, notes, onDelete, onUpdate }) => {
  const [isModalOpen, setIsModalOpen] = useState(false);
