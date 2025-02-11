@@ -115,7 +115,6 @@ function ParentSchedulePage() {
             calendarCells.forEach((cell) => {
                 const dateText = cell.innerText.padStart(2, "0"); // "1" -> "01" 변환
                 const selectedDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${dateText}`;
-
                 if (scheduledDates.includes(selectedDate)) {
                     cell.classList.add("highlight-circle"); // ✅ 클래스 추가
                 }

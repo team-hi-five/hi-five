@@ -1,40 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './TimeSlotSelector.css';
 
 const TimeSlotSelector = ({ selectedDate, onTimeSelect, bookedSlots = [], value }) => {
-  const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(value || '');
 
-  useEffect(() => {
-    if (!selectedDate) {
-      setAvailableSlots([]); // 🔹 선택된 날짜가 없으면 슬롯 초기화
-      return;
-    }
-
+  // ⏳ 기본 시간 슬롯 생성 함수
+  const generateTimeSlots = (date) => {
     const slots = [];
     for (let hour = 9; hour < 18; hour++) {
       const startTime = `${String(hour).padStart(2, '0')}:00`;
       const endTime = `${String(hour + 1).padStart(2, '0')}:00`;
-      const timeSlot = `${startTime} ~ ${endTime}`; // 형식 맞추기
+      const timeSlot = `${startTime} ~ ${endTime}`;
 
-      const isBooked = bookedSlots.some(slot => 
-        slot.date === selectedDate && slot.time === startTime
-      );
+      const isBooked = bookedSlots.some(slot => slot.date === date && slot.time === startTime);
 
       if (!isBooked) {
-        slots.push({
-          value: timeSlot, // 전체 시간 범위를 value로 저장
-          label: timeSlot,
-        });
+        slots.push({ value: timeSlot, label: timeSlot });
       }
     }
+    return slots;
+  };
 
-    setAvailableSlots(prevSlots => 
-      JSON.stringify(prevSlots) !== JSON.stringify(slots) ? slots : prevSlots
-    ); // 🔹 기존 값과 다를 때만 상태 업데이트하여 불필요한 리렌더링 방지
-  }, [selectedDate, JSON.stringify(bookedSlots)]); // 🔹 bookedSlots를 문자열로 변환하여 변경 감지
+  // 🔹 `useMemo`를 사용하여 상태 업데이트 방지
+  const availableSlots = useMemo(() => {
+    return generateTimeSlots(selectedDate || "default");
+  }, [selectedDate, bookedSlots]);
 
-  // value prop이 변경될 때 selectedSlot 업데이트
   useEffect(() => {
     setSelectedSlot(value || '');
   }, [value]);
