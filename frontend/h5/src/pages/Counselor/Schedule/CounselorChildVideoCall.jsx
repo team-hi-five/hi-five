@@ -1,4 +1,4 @@
-import api from "../../api/api";
+import api from "../../../api/api.jsx";
 import { OpenVidu } from "openvidu-browser";
 import { useEffect, useRef, useState, useCallback } from "react";
 
@@ -10,18 +10,19 @@ function OpenviduVideo() {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
-  //화면 공유 상태
+  // 화면 공유 상태
   const [screenPublisher, setScreenPublisher] = useState(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
-
   // ref 선언
   const videoRef = useRef(null);
+  const screenVideoRef = useRef(null);
   const OVRef = useRef(null);
 
-  // 세션 스토리지에서 childId 가져오기
-  const childId = sessionStorage.getItem("childId");
-  console.log(childId);
+  // URL 파라미터에서 childUserId 가져오기
+  const params = new URLSearchParams(location.search);
+  const childUserId = params.get("childUserId");
+  console.log(childUserId);
 
   // ====================================================================
   // 1. 이벤트 리스너 함수들
@@ -39,7 +40,7 @@ function OpenviduVideo() {
   const subscribeToStreamDestroyed = useCallback((session) => {
     session.on("streamDestroyed", (event) => {
       setSubscribers((prev) =>
-        prev.filter((sub) => sub !== event.stream.streamManager)
+          prev.filter((sub) => sub !== event.stream.streamManager)
       );
     });
   }, []);
@@ -82,7 +83,7 @@ function OpenviduVideo() {
   const getToken = useCallback(async () => {
     try {
       const requestData = {
-        childId: Number(childId),
+        childId: Number(childUserId),
         type: "game",
       };
 
@@ -92,9 +93,7 @@ function OpenviduVideo() {
 
       console.log("Sending request data:", res.data);
 
-      // 응답 URL에서 token 추출
-      const token = res.data
-
+      const token = res.data;
       if (!token) {
         throw new Error("토큰을 추출할 수 없습니다.");
       }
@@ -108,25 +107,22 @@ function OpenviduVideo() {
       });
       throw error;
     }
-  }, [childId]);
+  }, [childUserId]);
 
   // 웹소켓 재연결 함수
   const connectWithRetry = async (session, token, maxAttempts = 3) => {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         console.log(`연결 시도 ${attempt}/${maxAttempts}`);
-        await session.connect(token, { clientData: String(childId) });
+        await session.connect(token, { clientData: String(childUserId) });
         console.log("연결 성공!");
         return true;
       } catch (error) {
         console.log(`연결 시도 ${attempt} 실패:`, error);
-
         if (attempt === maxAttempts) {
           alert("화상 연결에 실패했습니다. 페이지를 새로고침하거나 잠시 후 다시 시도해주세요.");
           throw error;
         }
-
-        // 다음 시도 전 2초 대기
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
@@ -169,8 +165,7 @@ function OpenviduVideo() {
 
       // 토큰으로 세션 연결 후 웹캠 연결
       const token = await getToken();
-      await newSession.connect(token, { clientData: String(childId),
-       });
+      await newSession.connect(token, { clientData: String(childUserId) });
       await connectWebCam(newSession);
     } catch (error) {
       console.error("Error in joinSession:", error);
@@ -184,15 +179,13 @@ function OpenviduVideo() {
       }
     }
   }, [
-    childId,
+    childUserId,
     connectWebCam,
     getToken,
     subscribeToStreamCreated,
     subscribeToStreamDestroyed,
     subscribeToUserChanged,
   ]);
-
-
 
   // ====================================================================
   // 4. UI 제어 함수들
@@ -221,11 +214,9 @@ function OpenviduVideo() {
     setSubscribers([]);
   }, [session]);
 
-  //화면 공유 기능
-  //화면 공유 시작
+  // 화면 공유 시작
   const startScreenShare = useCallback(async () => {
     if (!session || isScreenSharing) return;
-
     try {
       const screenPublisher = await OVRef.current.initPublisherAsync(undefined, {
         videoSource: "screen",
@@ -246,7 +237,7 @@ function OpenviduVideo() {
     }
   }, [session, isScreenSharing]);
 
-  //화면 중지 함수
+  // 화면 공유 중지
   const stopScreenShare = useCallback(() => {
     if (screenPublisher) {
       screenPublisher.stream.dispose();
@@ -255,7 +246,6 @@ function OpenviduVideo() {
       setIsScreenSharing(false);
     }
   }, [screenPublisher, session]);
-
 
   // ====================================================================
   // 5. 컴포넌트 라이프사이클 관리 (useEffect)
@@ -280,85 +270,113 @@ function OpenviduVideo() {
         try {
           const mediaStream = publisher.stream?.getMediaStream();
           if (mediaStream) {
-            mediaStream.getTracks().forEach(track => {
+            mediaStream.getTracks().forEach((track) => {
               track.stop();
             });
           }
         } catch (error) {
-          console.error('Error cleaning up stream:', error);
+          console.error("Error cleaning up stream:", error);
         }
       }
     };
   }, [session, joinSession, leaveSessionInternal, publisher]);
 
-
   useEffect(() => {
     if (publisher && videoRef.current) {
       try {
         const mediaStream = publisher.stream?.getMediaStream();
-
-        console.log('Publisher:', publisher);
-        console.log('MediaStream:', mediaStream);
-        console.log('VideoRef:', videoRef.current);
-        
+        console.log("Publisher:", publisher);
+        console.log("MediaStream:", mediaStream);
+        console.log("VideoRef:", videoRef.current);
         if (mediaStream) {
           videoRef.current.srcObject = mediaStream;
         }
       } catch (error) {
-        console.error('Error setting media stream:', error);
+        console.error("Error setting media stream:", error);
       }
     }
   }, [publisher]);
 
+  // 화면 공유 스트림을 video 요소에 연결
+  useEffect(() => {
+    if (screenPublisher && screenVideoRef.current) {
+      try {
+        const mediaStream = screenPublisher.stream?.getMediaStream();
+        if (mediaStream) {
+          screenVideoRef.current.srcObject = mediaStream;
+        }
+      } catch (error) {
+        console.error("화면 공유 스트림 오류:", error);
+      }
+    }
+  }, [screenPublisher]);
 
   // ====================================================================
   // 6. 렌더링
   // ====================================================================
   return (
-    <div className="webcam-container">
-      <div className="webcam-video">
-       {/* 로컬 비디오 스트림을 위한 엘리먼트 */}
-    {publisher && (
-      <div className="local-video-container">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          className="local-video"
-        />
-      </div>
-    )}
-    
-    {/* 다른 참가자의 비디오 스트림 */}
-    {subscribers.map((subscriber, index) => (
-      <div key={index} className="remote-video-container">
-        <video
-          ref={(el) => {
-            if (el) {
-              subscriber.addVideoElement(el);
-            }
-          }}
-          autoPlay
-          playsInline
-          className="remote-video"
-        />
-      </div>
-    ))}
+      <div className="webcam-container">
+        <div className="webcam-video">
+          {/* 로컬 비디오 스트림 */}
+          {publisher && (
+              <div className="local-video-container">
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="local-video"
+                />
+              </div>
+          )}
 
+          {/* 다른 참가자의 비디오 스트림 */}
+          {subscribers.map((subscriber, index) => (
+              <div key={index} className="remote-video-container">
+                <video
+                    ref={(el) => {
+                      if (el) {
+                        subscriber.addVideoElement(el);
+                      }
+                    }}
+                    autoPlay
+                    playsInline
+                    className="remote-video"
+                />
+              </div>
+          ))}
 
-        <div className="control-buttons">
-          <button onClick={toggleAudio} className="control-button-audio">
-            음성
-          </button>
-          <button onClick={toggleVideo} className="control-button-video">
-            화면
-          </button>
-          <button onClick={leaveSessionInternal} className="control-button-stop">
-            떠나기
-          </button>
+          {/* 화면 공유 스트림을 보여주는 영역 (화면 공유 중일 때) */}
+          {isScreenSharing && (
+              <div className="screen-share-container">
+                <h2>화면 공유 중...</h2>
+                <video
+                    ref={screenVideoRef}
+                    autoPlay
+                    playsInline
+                    className="screen-video"
+                />
+              </div>
+          )}
+
+          <div className="control-buttons">
+            <button onClick={toggleAudio} className="control-button-audio">
+              음성
+            </button>
+            <button onClick={toggleVideo} className="control-button-video">
+              화면
+            </button>
+            <button onClick={startScreenShare} className="control-button-share">
+              화면 공유 시작
+            </button>
+            <button onClick={stopScreenShare} className="control-button-stop-share">
+              화면 공유 중지
+            </button>
+            <button onClick={leaveSessionInternal} className="control-button-stop">
+              떠나기
+            </button>
+          </div>
         </div>
       </div>
-    </div>
   );
 }
 

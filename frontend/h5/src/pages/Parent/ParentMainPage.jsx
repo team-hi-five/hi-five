@@ -191,7 +191,7 @@ const CounselorMainPage = () => {
     <>
     <div className="co_page_wrapper" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <ParentHeader />
-      <main style={{ flex: 1 }}>
+      <main className='co_main'>
         <section className="co_hero_section">
           <div className="co_inner_left">
             <div className="co_hero_content">
@@ -226,48 +226,50 @@ const CounselorMainPage = () => {
             <img src="/메인이미지.png" alt="description" />
           </div>
         </section>
-        <div className="co_main_container">
-          <section className="co_notice_section">
-            <div className="co_notice_header">
-              <p className="co_notice_title">새소식</p>
-              <div className="co_notice_line"></div>
-              <button className="co_notice_line_end" onClick={() => navigate('/counselor/board')}>
-                <i className="pi pi-plus"></i>
-                더보기
-              </button>
-            </div>
-            <div className="c-carousel-container"
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}>
-              {notices.length === 0 ? (
-                <div className="flex justify-center items-center w-full h-48">
-                  <p className="text-gray-500">등록된 공지사항이 없습니다.</p>
-                </div>
-              ) : (
-                <>
-                  <Carousel 
-                    value={notices} 
-                    numVisible={numVisible} 
-                    numScroll={numVisible} 
-                    page={page}
-                    onPageChange={handlePageChange}
-                    itemTemplate={noticeTemplate}
-                    showNavigators={true}
-                    showIndicators={false}
-                    className="c-co_carousel"
-                    responsiveOptions={responsiveOptions}
-                    loading={isLoading}
-                    circular={false}
-                    autoplayInterval={0}
-                  />
-                  <div className="c-custom-indicator">
-                    {currentPage}/{totalPages}
+        <section className='co_notice_wrapper'>
+          <div className="co_main_container">
+            <section className="co_notice_section">
+              <div className="co_notice_header">
+                <p className="co_notice_title">새소식</p>
+                <div className="co_notice_line"></div>
+                <button className="co_notice_line_end" onClick={() => navigate('/counselor/board')}>
+                  <i className="pi pi-plus"></i>
+                  더보기
+                </button>
+              </div>
+              <div className="c-carousel-container"
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={handleMouseLeave}>
+                {notices.length === 0 ? (
+                  <div className="flex justify-center items-center w-full h-48">
+                    <p className="text-gray-500">등록된 공지사항이 없습니다.</p>
                   </div>
-                </>
-              )}
-            </div>
-          </section>
-        </div>
+                ) : (
+                  <>
+                    <Carousel 
+                      value={notices} 
+                      numVisible={numVisible} 
+                      numScroll={numVisible} 
+                      page={page}
+                      onPageChange={handlePageChange}
+                      itemTemplate={noticeTemplate}
+                      showNavigators={true}
+                      showIndicators={false}
+                      className="c-co_carousel"
+                      responsiveOptions={responsiveOptions}
+                      loading={isLoading}
+                      circular={false}
+                      autoplayInterval={0}
+                    />
+                    <div className="c-custom-indicator">
+                      {currentPage}/{totalPages}
+                    </div>
+                  </>
+                )}
+              </div>
+            </section>
+          </div>
+        </section>
       </main>
       <Footer />
     </div>
