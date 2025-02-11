@@ -3,77 +3,143 @@ import { Button } from 'primereact/button';
 import { Carousel } from 'primereact/carousel';
 import { Checkbox } from "primereact/checkbox";
 import { useState, useEffect } from 'react';
+import SingleButtonAlert from '/src/components/common/SingleButtonAlert';
 import ParentHeader from "../../components/Parent/ParentHeader";
 import Footer from "../../components/common/Footer";
 import '../Counselor/Css/CounselorMainPage.css';
+import { useNavigate } from 'react-router-dom';
 import { getParentChildren } from "/src/api/userParent";
+import { useUserStore } from "/src/store/userStore";
+import { getNoticePosts } from '../../../src/api/boardNotice';
 
 const CounselorMainPage = () => {
-
+  const navigate = useNavigate();  // 페이지 네비게이션을 위한 훅
   const [ingredientsList, setIngredientsList] = useState([]);
   const [selectedIngredient, setSelectedIngredient] = useState("");
-  const onIngredientChange = (e) => {
+  const [childName, setChildName] = useState("");
+  const [notices, setNotices] = useState([]); // 공지사항 상태 추가
+  const [isLoading, setIsLoading] = useState(true);
+  const [autoPlay, setAutoPlay] = useState(true); // 자동 재생 상태 추가
+  const [page, setPage] = useState(0);
+  const [numVisible, setNumVisible] = useState(4);
+
+
+  // 자동 재생을 위한 useEffect
+  useEffect(() => {
+    let interval;
+    
+    if (autoPlay && notices.length > 0) {
+      interval = setInterval(() => {
+        // 다음 페이지 계산
+        const nextPage = page >= Math.ceil(notices.length / numVisible) - 1 ? 0 : page + 1;
+        setPage(nextPage);
+      }, 4000); // 3초마다 실행
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [page, notices.length, numVisible, autoPlay]);
+
+  // 마우스 오버/아웃 핸들러 추가
+  const handleMouseEnter = () => setAutoPlay(false);
+  const handleMouseLeave = () => setAutoPlay(true);
+
+  const handlePageChange = (e) => {
+    // 마지막 페이지에서 다음으로 가면 처음으로
+    // 첫 페이지에서 이전으로 가면 마지막으로
+    const lastPage = Math.ceil(notices.length / numVisible) - 1;
+    
+    if (e.page < 0) {
+      setPage(lastPage);
+    } else if (e.page > lastPage) {
+      setPage(0);
+    } else {
+      setPage(e.page);
+    }
+  };
+
+  const onIngredientChange = (e, child) => {
     setSelectedIngredient(e.checked ? e.value : "");
-};
+    const { checked } = e;
+    if (checked) {
+      useUserStore.getState().setChildData(child.childUserId, child.childUserName);
+      setChildName(child.childUserName);
+    } else {
+      useUserStore.getState().setChildData(null, "");
+      setChildName(child.childUserName);
+    }
+  };
 
-const handleOpenChildPage = () => {
-  // console.log(selectedIngredient) 이거 사용해서 id 받아올예정
-  window.open(
-      '/child',
-      'ChildMainPage',
-      'left=0,top=0,width=' + screen.width + ',height=' + screen.height
-    );
-};
+  const handleOpenChildPage = async () => {
+    if(childName===""){
+      await SingleButtonAlert("아동을 선택해주세요.");
+    }
+    else{
+        window.open(
+          `/child/${useUserStore.getState().childUserId}`,
+          'ChildMainPage',
+          'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+        );
+    };
+  }
 
-  const notices = [
-    { id: 1, type: '공지사항', author: '작성자', isNew: true, content: '새글내ㅇㄹㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁㄹㅇㄴㅁ애낙어래ㅑㅑㅐ 야ㅓ멀 ㅐㅑㅓㅑㅐㄷ ㅁㄹ 러아님 랴댖 ㅁ러ㅑ댐  ㅑㄷㅁㄹ ㅓ댜ㅣㅁ;용', date: '2025.01.18' },
-    { id: 2, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 3, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 4, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 5, type: '공지사항', author: '작성자', isNew: true, content: '새글ddddddd내용', date: '2025.01.18' },
-    { id: 6, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 7, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 8, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 9, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 10, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 11, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-    { id: 12, type: '공지사항', author: '작성자', isNew: true, content: '새글내용', date: '2025.01.18' },
-  ];
+  // 날짜 포맷팅 함수 추가
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  };
 
   const noticeTemplate = (notice) => (
-    <Card key={notice.id} className="co_notice_card">
+    <Card 
+      key={notice.id} 
+      className="co_notice_card"
+      onClick={() => navigate(`/parent/board/notice/${notice.id}`)}  // 클릭 시 해당 글로 이동
+      style={{ cursor: 'pointer' }}  // 마우스 오버 시 포인터 커서 표시
+    >
       <div className="co_notice_tags">
         <div className="co_tag_group">
           <span className="co_tag co_tag_notice">{notice.type}</span>
           <span className="co_tag co_tag_author">{notice.author}</span>
         </div>
-        {notice.isNew && <span className="co_tag co_tag_new">새글</span>}
+        <span className="co_tag co_tag_new">새글</span>
       </div>
       <h3 className="co_notice_content">{notice.content}</h3>
       <div className="co_notice_date">{notice.date}</div>
     </Card>
   );
 
-  const [page, setPage] = useState(0);
-
-  const handlePageChange = (e) => {
-    setPage(e.page);
-  };
-
-  const [numVisible, setNumVisible] = useState(4); // 기본 값
-
   useEffect(() => {
-    async function fetchChildren() {
+    async function fetchData() {
       try {
+        // 아이 목록 가져오기
         const childrenData = await getParentChildren();
-        setIngredientsList(childrenData.map(child => child.childUserName)); // ✅ API 응답 데이터 적용
+        setIngredientsList(childrenData);
+
+        // 공지사항 가져오기
+        setIsLoading(true);
+        const response = await getNoticePosts(0, 12);
+        const noticeData = response.notices.map(notice => ({
+          id: notice.id,
+          type: '공지사항',
+          author: notice.name || '작성자',
+          content: notice.title || '제목 없음',
+          date: formatDate(notice.createDttm)
+        }));
+        setNotices(noticeData);
       } catch (error) {
-        console.error("❌ 아이 목록 불러오기 실패:", error);
+        console.error("❌ 데이터 불러오기 실패:", error);
+        setNotices([]);
+      } finally {
+        setIsLoading(false);
       }
     }
-    fetchChildren();
     
-    // 화면 크기에 따라 numVisible 동적 설정
+    fetchData();
+    
     const updateNumVisible = () => {
       const width = window.innerWidth;
       if (width <= 576) {
@@ -87,11 +153,9 @@ const handleOpenChildPage = () => {
       }
     };
 
-    // 초기 설정 및 리사이즈 이벤트 추가
     updateNumVisible();
     window.addEventListener('resize', updateNumVisible);
 
-    // 컴포넌트 언마운트 시 이벤트 제거
     return () => {
       window.removeEventListener('resize', updateNumVisible);
     };
@@ -139,18 +203,21 @@ const handleOpenChildPage = () => {
               </h2>
               <p className="co_service_subtitle">감정을 놀이로 전달하는 <span>HI 서비스</span> 입니다.</p>
               <div className="flex flex-wrap gap-5" style={{ marginBottom: '15px' }}>
-                {ingredientsList.map((ingredient, index) => (
-                  <div key={index} className="flex align-items-center">
-                    <Checkbox
-                      inputId={`ingredient${index}`} // 고유 ID 부여
-                      name="pizza"
-                      value={ingredient}
-                      onChange={onIngredientChange}
-                      checked={selectedIngredient === ingredient}
-                    />
-                    <label htmlFor={`ingredient${index}`} className="ml-2">{ingredient}</label>
-                  </div>
-                ))}
+              {ingredientsList.map((child, index) => (
+                <div key={child.childUserId} className="flex align-items-center">
+                  <Checkbox
+                    inputId={`ingredient${index}`}
+                    name="child"
+                    value={child.childUserName}
+                    onChange={(e) => onIngredientChange(e, child)}
+                    checked={
+                      useUserStore.getState().childUserId === child.childUserId || 
+                      selectedIngredient === child.childUserName
+                    }
+                  />
+                  <label htmlFor={`ingredient${index}`} className="ml-2">{child.childUserName}</label>
+                </div>
+              ))}
               </div>
               <Button label="게임하러 가기" className="co_schedule_btn" onClick={handleOpenChildPage} />
             </div>
@@ -161,23 +228,43 @@ const handleOpenChildPage = () => {
         </section>
         <div className="co_main_container">
           <section className="co_notice_section">
-            <p className="co_notice_title">새소식</p>
-            <div className="carousel-container">
-              <Carousel 
-                value={notices} 
-                numVisible={numVisible} 
-                numScroll={numVisible} 
-                page={page}
-                onPageChange={handlePageChange}
-                itemTemplate={noticeTemplate}
-                showNavigators={true}
-                showIndicators={false}
-                className="co_carousel"
-                responsiveOptions={responsiveOptions}
-              />
-              <div className="custom-indicator">
-                {currentPage}/{totalPages}
-              </div>
+            <div className="co_notice_header">
+              <p className="co_notice_title">새소식</p>
+              <div className="co_notice_line"></div>
+              <button className="co_notice_line_end" onClick={() => navigate('/counselor/board')}>
+                <i className="pi pi-plus"></i>
+                더보기
+              </button>
+            </div>
+            <div className="c-carousel-container"
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}>
+              {notices.length === 0 ? (
+                <div className="flex justify-center items-center w-full h-48">
+                  <p className="text-gray-500">등록된 공지사항이 없습니다.</p>
+                </div>
+              ) : (
+                <>
+                  <Carousel 
+                    value={notices} 
+                    numVisible={numVisible} 
+                    numScroll={numVisible} 
+                    page={page}
+                    onPageChange={handlePageChange}
+                    itemTemplate={noticeTemplate}
+                    showNavigators={true}
+                    showIndicators={false}
+                    className="c-co_carousel"
+                    responsiveOptions={responsiveOptions}
+                    loading={isLoading}
+                    circular={false}
+                    autoplayInterval={0}
+                  />
+                  <div className="c-custom-indicator">
+                    {currentPage}/{totalPages}
+                  </div>
+                </>
+              )}
             </div>
           </section>
         </div>

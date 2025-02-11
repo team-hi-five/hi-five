@@ -5,9 +5,11 @@ import DoubleButtonAlert from '../common/DoubleButtonAlert';
 import SingleButtonAlert from '../common/SingleButtonAlert';
 import ProfileImageModal from './ProfileImageModal';
 import { approveDeleteRequest, rejectDeleteRequest, modifyConsultantChild } from "/src/api/userCounselor"; // ✅ API 호출 추가
+import { uploadFile, getFileUrl, TBL_TYPES } from '../../api/file';
 
 
-const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
+const ChildDetailModal = ({ isOpen, onClose, initialChildData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
+    const [childData, setChildData] = useState(initialChildData);
     const [profileImage, setProfileImage] = useState(childData.imageUrl);
     const [isEditing, setIsEditing] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -18,6 +20,9 @@ const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCa
       imageUrl: childData.imageUrl
     });
     const [editingField, setEditingField] = useState(null);
+    // 이미지 파일 상태 추가
+    const [selectedImageFile, setSelectedImageFile] = useState(null);
+    
 
     const firstConsultDate = new Date(childData.firstConsultDate);
       const today = new Date();
@@ -119,37 +124,73 @@ const handleRejectDelete = async () => {
       setIsProfileModalOpen(true);
     };
 
-    const handleImageChange = (newImage) => {
-      setProfileImage(newImage);
-      setEditedData(prev => ({
-        ...prev,
-        imageUrl: newImage
-      }));
+    // ProfileImageModal에서 이미지가 선택됐을 때 호출되는 함수
+    const handleImageChange = async (newImage, imageFile) => {
+      console.log('새로 선택된 이미지 파일:', imageFile); // 디버깅용
+      console.log('새로 선택된 이미지 URL:', newImage); // 디버깅용
+      setProfileImage(newImage); // 미리보기용 URL 설정
+      setSelectedImageFile(imageFile); // 실제 파일 객체 저장
     };
 
-    // ✅ 저장 버튼 클릭 시 실행되는 함수 (정보 수정)
+    // 수정 완료 버튼 클릭 시 실행되는 함수
     const handleSaveClick = async () => {
       try {
-          console.log('📢 수정된 데이터:', editedData);
-          
-          // ✅ API 호출하여 아이 정보 수정
-          await modifyConsultantChild(childData.id, editedData.interests, editedData.notes);
+        let newImageUrl = profileImage;
+        if (selectedImageFile) {
+          try {
+            // 파일 업로드
+            const uploadResponse = await uploadFile(
+              selectedImageFile, 
+              TBL_TYPES.PROFILE, 
+              String(childData.id)
+            );
+            console.log('파일 업로드 응답:', uploadResponse); // 디버깅용
     
-          // ✅ UI 업데이트 (데이터 새로고침)
-          const updatedChildData = { ...childData, interests: editedData.interests, notes: editedData.notes };
-          setEditedData(updatedChildData);
+            // 잠시 대기 후 새 URL 조회 (파일 처리 시간 고려)
+            await new Promise(resolve => setTimeout(resolve, 500));
     
-          // ✅ 부모 컴포넌트에도 변경 내용 전달
-          onUpdate(childData.id, updatedChildData);
-          
-          setIsEditing(false);
-          setEditingField(null);
+            // 새로운 이미지 URL 가져오기
+            const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, childData.id);
+            console.log('조회된 이미지 URLs:', imageUrls); // 디버깅용
+    
+            if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0) {
+              // 가장 최근에 업로드된 이미지 URL 사용 (배열의 마지막 항목)
+              newImageUrl = imageUrls[imageUrls.length - 1].url;
+              console.log('선택된 새 이미지 URL:', newImageUrl);
+            }
+          } catch (error) {
+            console.error("이미지 업로드 실패:", error);
+            await SingleButtonAlert("이미지 업로드 중 오류가 발생했습니다.");
+            return;
+          }
+        }
+    
+        // 나머지 로직...
+        await modifyConsultantChild(childData.id, editedData.interests, editedData.notes);
+    
+        const updatedChildData = { 
+          ...childData, 
+          interests: editedData.interests, 
+          notes: editedData.notes,
+          imageUrl: newImageUrl,
+          profileImageUrl: newImageUrl // 둘 다 업데이트
+        };
+    
+        onUpdate(childData.childUserId, updatedChildData);
+        setChildData(updatedChildData); // state 업데이트
+        setEditedData(updatedChildData);
+        setProfileImage(newImageUrl);
+    
+        setIsEditing(false);
+        setEditingField(null);
+        setSelectedImageFile(null);
+        
+        await SingleButtonAlert("회원 정보가 성공적으로 수정되었습니다.");
       } catch (error) {
-          await SingleButtonAlert("아이 정보 수정 중 오류가 발생했습니다.");
-          console.error("❌ 아이 정보 수정 실패:", error);
+        console.error("회원 정보 수정 실패:", error);
+        await SingleButtonAlert("회원 정보 수정 중 오류가 발생했습니다.");
       }
     };
-    
 
     const handleClose = () => {
       setIsEditing(false);
@@ -217,7 +258,7 @@ const handleRejectDelete = async () => {
                 </div>
 
                 {isProfileModalOpen && (
-                  <ProfileImageModal onClose={() => setIsProfileModalOpen(false)} onImageChange={handleImageChange} />
+                  <ProfileImageModal onClose={() => setIsProfileModalOpen(false)} onImageChange={handleImageChange} initialImage={profileImage} />
                 )}
                 
                 <div className="info-grid">

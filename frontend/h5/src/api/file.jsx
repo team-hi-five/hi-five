@@ -1,27 +1,47 @@
 import api from "./api";
 
-// ✅ 파일 업로드 API 요청
+export const TBL_TYPES = {
+    PROFILE: 'P',
+    NOTICE: 'N', 
+    QNA: 'Q',    
+    GALLERY: 'G',
+    FA: 'FA'     
+};
+
 export const uploadFile = async (file, tblType, tblId) => {
     try {
-        console.log("📢 파일 업로드 요청:", { file, tblType, tblId });
+        // 파라미터 유효성 검사
+        if (!file) throw new Error('File is required');
+        if (!tblType) throw new Error('tblType is required');
+        if (!Object.values(TBL_TYPES).includes(tblType)) {
+            throw new Error(`Invalid tblType: ${tblType}. Valid types are: ${Object.values(TBL_TYPES).join(', ')}`);
+        }
+        if (!tblId) throw new Error('tblId is required');
 
-        // FormData 객체 생성
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('tblType', tblType);
-        formData.append('tblId', tblId);
+        
+        // metaData를 JSON 배열 형태로 변환하여 추가
+        const metaData = JSON.stringify({ tblType: [tblType], tblId: [tblId] });
+        formData.append('metaData', new Blob([metaData], { type: 'application/json' }));
 
         const response = await api.post("/file/upload", formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
+                // Content-Type은 FormData 사용 시 자동 설정됨
             },
         });
 
-        console.log("✅ 파일 업로드 성공:", response.data);
         return response.data;
 
     } catch (error) {
-        console.error("❌ 파일 업로드 실패:", error.response ? error.response.data : error.message);
+        console.error("❌ 파일 업로드 실패:", {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+            url: error.config?.url,
+            method: error.config?.method,
+        });
         throw error;
     }
 };
@@ -41,9 +61,8 @@ export const getFileUrl = async (tblType, tblId) => {
         console.log("📢 파일 URL 조회 요청:", { tblType, tblId });
         
         const response = await api.get(`/file/urls/${tblType}/${tblId}`, {
-            params: {
-                tblType: tblType,
-                tblId: tblId
+            headers: {
+                'Content-Type': 'application/json'
             }
         });
         
@@ -56,10 +75,10 @@ export const getFileUrl = async (tblType, tblId) => {
     }
 };
 
+
 // ✅ 파일 다운로드 API 요청
-export const downloadFile = async (fileId) => {
+export const downloadFile = async (fileId, fileName) => {
     try {
-        // 필수값 검증
         if (!fileId) {
             throw new Error("파일 ID는 필수 입력값입니다.");
         }
@@ -67,26 +86,21 @@ export const downloadFile = async (fileId) => {
         console.log("📢 파일 다운로드 요청:", { fileId });
 
         const response = await api.get(`/file/download/${fileId}`, {
-            responseType: 'blob', // 파일 다운로드를 위해 responseType을 blob으로 설정
+            params: { fileId },
+            responseType: 'blob'
         });
 
-        // 파일 다운로드 처리
-        const blob = new Blob([response.data]);
+        const blob = new Blob([response.data], { 
+            type: response.headers['content-type'] || 'application/octet-stream'
+        });
+        
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         
-        // Content-Disposition 헤더에서 파일명 추출
-        const contentDisposition = response.headers['content-disposition'];
-        let fileName = 'download'; // 기본 파일명
-        if (contentDisposition) {
-            const matches = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-            if (matches && matches[1]) {
-                fileName = matches[1].replace(/['"]/g, '');
-            }
-        }
-        
+        // 전달받은 원본 파일명 사용
         a.download = fileName;
+        
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -120,12 +134,4 @@ export const deleteFile = async (fileId) => {
         console.error("❌ 파일 삭제 실패:", error.response ? error.response.data : error.message);
         throw error;
     }
-};
-// tblType ENUM 값 상수 정의
-export const TBL_TYPES = {
-    PROFILE: 'P', // 프로필
-    NOTICE: 'N',  // 공지사항
-    QNA: 'Q',     // 질문게시판
-    GALLERY: 'G', // 게임영상
-    QA: 'QA'      // 질문 답변
 };

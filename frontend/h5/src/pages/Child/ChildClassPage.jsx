@@ -1,6 +1,6 @@
-import ChildGameScreen from "../../components/Child/Game/ChildGameScreen";
-import ChildGameFaceScreen from "../../components/Child/Game/ChildGameFaceScreen";
 import "./ChildCss/ChildClassPage.css"
+import ChildGameFaceScreen from "../../components/Child/Game/ChildGameFaceScreen"
+import ChildLearningGameScreen from "../../components/Child/Game/ChildLearningGameScreen"
 import { useNavigate } from "react-router-dom"
 
 function ChildClassPage() {
@@ -9,7 +9,7 @@ function ChildClassPage() {
         <>
             <div className='ch-class-container'>
                 <div className="ch-class-game-left">
-                    <ChildGameScreen/>
+                    <ChildLearningGameScreen/>
 
                 </div>
                 <div className="ch-class-game-right">

@@ -5,7 +5,7 @@ import PasswordChangeModal from "/src/components/modals/PasswordChangeModal";
 import DoubleButtonAlert from "/src/components/common/DoubleButtonAlert";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import { useState, useEffect } from "react";
-import { getParentMyPage, requestParentAccountDeletion } from "/src/api//userParent";
+import { getParentMyPage, requestParentAccountDeletion } from "/src/api/userParent";
 
 function ParentMyPage() {
   const [childrenData, setChildrenData] = useState([]);

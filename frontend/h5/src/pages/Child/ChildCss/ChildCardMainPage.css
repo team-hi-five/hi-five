@@ -1,3 +1,7 @@
+body {
+  background: linear-gradient(to bottom, #def0ff, #ffffff 100%); /* 원하는 색상 */
+}
+
 .ch-card-main-container {
   padding-top: 8%;
   background: linear-gradient(to bottom, #def0ff, #ffffff 100%);
@@ -18,9 +22,6 @@
   top: 7%;
 }
 
-.ch-card-sticky-container {
-  display: sticky;
-}
 
 .ch-card-big-list {
   display: flex;
