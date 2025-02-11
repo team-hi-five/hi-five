@@ -40,10 +40,10 @@ public class ChildStudyStageEntity {
     @Column(name = "end_dttm")
     private LocalDateTime endDttm;
 
-    @OneToMany(mappedBy = "childStudyStage")
+    @OneToMany(mappedBy = "childStudyStageEntity")
     private Set<StudyTextLogEntity> studyTextLogEntities = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "childStudyStage")
+    @OneToMany(mappedBy = "childStudyStageEntity")
     private Set<StudyVideoLogEntity> studyVideoLogEntities = new LinkedHashSet<>();
 
 }
