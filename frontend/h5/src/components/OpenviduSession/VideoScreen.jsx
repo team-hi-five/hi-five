@@ -79,6 +79,7 @@ function OpenviduVideo() {
   }, []);
 
   // 토큰 발급 함수
+  // 타입을 이전페이지에서 넘겨줘야함! (버튼에서?)
   const getToken = useCallback(async () => {
     try {
       const requestData = {
@@ -191,8 +192,6 @@ function OpenviduVideo() {
     subscribeToStreamDestroyed,
     subscribeToUserChanged,
   ]);
-
-
 
   // ====================================================================
   // 4. UI 제어 함수들
