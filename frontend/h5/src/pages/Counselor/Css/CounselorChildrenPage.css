@@ -101,13 +101,13 @@
   justify-content: flex-end;
 }
 
-.co-search-section .co-search-dropdown.p-dropdown {
+.co-search-section .co-search-dropdown2.p-dropdown {
   min-width: 120px;
   border-radius: 25px;
   flex-shrink: 0;
 }
 
-.co-search-section .co-search-dropdown .p-dropdown-label {
+.co-search-section .co-search-dropdown2 .p-dropdown-label {
   padding-right: 0;
   padding-left: 15px;
 }
@@ -150,16 +150,18 @@
 .simplebar-content {
   height: 500px;
 }
+
+/* 스크롤바 크기조절 */
 .simplebar-scrollbar:before {
   background-color: #B1CCE2 !important;
   border-radius: 10px;
-  width: 9px;
+  width: 10px;
   opacity: 1 !important;
 }
-
+/* 스크롤바 크기조절 */
 .simplebar-track.simplebar-vertical {
   background-color: #EEF5FC;
-  width: 8px;
+  width: 12px;
   right: 0;
 }
 
