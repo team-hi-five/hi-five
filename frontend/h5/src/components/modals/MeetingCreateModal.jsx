@@ -24,8 +24,8 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
     });
 
     useEffect(() => {
-        if (editData?.childId) {
-            console.log("🔍 초기 childId:", editData.childUserId);
+        if (editData?.childUserId) {
+            console.log("🔍 초기 childUserId:", editData.childUserId);
         } else {
             console.log("⚠️ childUserId 없음");
         }
@@ -87,7 +87,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
     const handleSelectChild = (child) => {
         setFormData((prev) => ({
             ...prev,
-            childId: child.id,  // 🔹 아이 ID 저장
+            childUserId: child.id,  // 🔹 아이 ID 저장
             childName: child.childName,
             parentUserId: child.parentUserId || null, // 🔹 학부모 ID 저장 (없을 수도 있음)
             parentName: child.parentName,
@@ -103,6 +103,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
         try {
             console.log(formData);
             if (!formData.childUserId || !formData.date || !formData.time) {
+                console.log(formData);
                 await SingleButtonAlert("필수 입력값을 모두 입력해주세요.");
                 return;
             }
@@ -111,14 +112,14 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
             const formattedDateTime = `${formData.date} ${formData.time.split('~')[0].trim()}:00`;
     
             const newSchedule = {
-                childId: parseInt(formData.childId, 10), // 🔹 ID를 정수로 변환
+                childId: parseInt(formData.childUserId, 10), // 🔹 ID를 정수로 변환
                 schdlDttm: formattedDateTime, // 🔹 올바른 날짜 형식 적용
                 type: formData.type === 'type1' ? 'game' : 'consult',
             };
 
             const udSchedule = {
                 scheduleId: parseInt(formData.scheduleId, 10),
-                childId: parseInt(formData.childId, 10), // 🔹 ID를 정수로 변환
+                childId: parseInt(formData.childUserId, 10), // 🔹 ID를 정수로 변환
                 schdlDttm: formattedDateTime, // 🔹 올바른 날짜 형식 적용
                 type: formData.type === 'type1' ? 'game' : 'consult',
             };
