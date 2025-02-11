@@ -53,10 +53,10 @@ public class SecurityConfig {
         // 필터 설정 및 경로별 권한 설정
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
-                        .requestMatchers("/auth/login").permitAll() // 로그인 API
-                        .requestMatchers("/user/consultant/find-id", "/user/consultant/temp-pwd").permitAll()
-                        .requestMatchers("/user/parent/find-id", "/user/parent/temp-pwd").permitAll()
+                        .requestMatchers("/api/swagger-ui/**", "/api/v3/api-docs/**", "/api/webjars/**").permitAll()
+                        .requestMatchers("/api/auth/login").permitAll() // 로그인 API
+                        .requestMatchers("/api/user/consultant/find-id", "/api/user/consultant/temp-pwd").permitAll()
+                        .requestMatchers("/api/user/parent/find-id", "/api/user/parent/temp-pwd").permitAll()
                         .anyRequest().authenticated()
                 );
 
