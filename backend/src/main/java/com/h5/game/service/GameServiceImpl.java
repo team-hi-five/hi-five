@@ -50,7 +50,7 @@ public class GameServiceImpl implements GameService {
                                 .orElseThrow(UserNotFoundException::new))
                         .gameChapterEntity(gameChapterRepository.findById(startGameChapterRequsetDto.getGameChapterId())
                                 .orElseThrow(() -> new ChildGameNotFoundException("Game chapter not found", HttpStatus.NOT_FOUND)))
-                        .startDttm(LocalDateTime.parse(startGameChapterRequsetDto.getStartDttm()))
+                        .startDttm(LocalDateTime.now())
                         .build())
                         .getId())
                 .build();
@@ -75,7 +75,7 @@ public class GameServiceImpl implements GameService {
     public EndGameChapterResponseDto endGameChapter(EndGameChapterRequestDto endGameChapterRequestDto) {
         ChildGameChapterEntity childGameChapterEntity = childGameChapterRepository.findById(endGameChapterRequestDto.getChildGameChapterId())
                 .orElseThrow(() -> new ChildGameNotFoundException("Entity not found", HttpStatus.NOT_FOUND));
-        childGameChapterEntity.setEndDttm(LocalDateTime.parse(endGameChapterRequestDto.getEndDttm()));
+        childGameChapterEntity.setEndDttm(LocalDateTime.now());
         childGameChapterRepository.save(childGameChapterEntity);
         return EndGameChapterResponseDto.builder()
                 .childGameChapterId(childGameChapterEntity.getId())
