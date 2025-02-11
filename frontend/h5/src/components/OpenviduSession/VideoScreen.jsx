@@ -10,6 +10,11 @@ function OpenviduVideo() {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
+  //화면 공유 상태
+  const [screenPublisher, setScreenPublisher] = useState(null);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+
+
   // ref 선언
   const videoRef = useRef(null);
   const OVRef = useRef(null);
@@ -187,6 +192,8 @@ function OpenviduVideo() {
     subscribeToUserChanged,
   ]);
 
+
+
   // ====================================================================
   // 4. UI 제어 함수들
   // ====================================================================
@@ -213,6 +220,42 @@ function OpenviduVideo() {
     setSession(null);
     setSubscribers([]);
   }, [session]);
+
+  //화면 공유 기능
+  //화면 공유 시작
+  const startScreenShare = useCallback(async () => {
+    if (!session || isScreenSharing) return;
+
+    try {
+      const screenPublisher = await OVRef.current.initPublisherAsync(undefined, {
+        videoSource: "screen",
+        publishAudio: true,  // 음성을 공유할지 선택
+        publishVideo: true,
+        mirror: false,
+      });
+
+      await session.publish(screenPublisher);
+      setScreenPublisher(screenPublisher);
+      setIsScreenSharing(true);
+
+      screenPublisher.on("streamDestroyed", () => {
+        stopScreenShare();
+      });
+    } catch (error) {
+      console.error("화면 공유 시작 오류:", error);
+    }
+  }, [session, isScreenSharing]);
+
+  //화면 중지 함수
+  const stopScreenShare = useCallback(() => {
+    if (screenPublisher) {
+      screenPublisher.stream.dispose();
+      session.unpublish(screenPublisher);
+      setScreenPublisher(null);
+      setIsScreenSharing(false);
+    }
+  }, [screenPublisher, session]);
+
 
   // ====================================================================
   // 5. 컴포넌트 라이프사이클 관리 (useEffect)
