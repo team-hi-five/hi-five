@@ -1,175 +1,185 @@
 .ch-review-container {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    padding-top: 100px;
-    gap: 70px;
-    position: relative; /* 부모 요소 기준 */
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  padding-top: 100px;
+  gap: 70px;
+  position: relative; /* 부모 요소 기준 */
 }
 
 .ch-review-container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: url("/test/sample3.jpg");
-    background-size: cover;
-    opacity: 0.4; 
-    z-index: -1; 
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url("/test/sample3.jpg");
+  background-size: cover;
+  opacity: 0.4;
+  z-index: -1;
 }
 
 .ch-review-game-left,
 .ch-review-game-right {
-    width: 40%; 
+  width: 40%;
 }
 
 .ch-game-screen-container {
-    display: flex;
-    justify-content: center;
-    /* font-family: "Jua"; */
-    border-radius: 3%;
-    background-color: rgb(251, 251, 251);
-
+  display: flex;
+  justify-content: center;
+  /* font-family: "Jua"; */
+  border-radius: 3%;
+  background-color: rgb(251, 251, 251);
 }
 
 .ch-game-screen-container h2 {
-    text-align: center;
-    font-family: "Jua";
-    font-size: 140%;
-    padding-top: 2px;
-    margin-bottom: 5px;
+  text-align: center;
+  font-family: "Jua";
+  font-size: 140%;
+  padding-top: 2px;
+  margin-bottom: 5px;
 }
 
 .ch-game-screen-container h3 {
-    text-align: center;
-    font-family: "Jua";
-    font-size: 150%;
-    margin-top: 10px;
-    margin-bottom: 4px;
+  text-align: center;
+  font-family: "Jua";
+  font-size: 150%;
+  margin-top: 10px;
+  margin-bottom: 4px;
 }
 
 .ch-game-screen {
-    width: 720px;
-    height: 540px;
-    min-height: 350px;
+  width: 720px;
+  height: 540px;
+  min-height: 350px;
 }
 
-.ch-gameVideo{
-    display: block;  
-    margin: 0 auto; 
-    width: 80%;
-    height: 80%;
+.ch-gameVideo {
+  display: block;
+  margin: 0 auto;
+  width: 80%;
+  height: 80%;
 }
 
-.ch-game-button{
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: center;
-    
+.ch-game-button {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
 }
 
-.ch-game-button img{
-    width: 100%;
-    height: 100%;
+.ch-game-button img {
+  width: 100%;
+  height: 100%;
 }
 
-
-.ch-option{
-    border: none;
-    background-color:  rgb(251, 251, 251);
+.ch-option {
+  border: none;
+  background-color: rgb(251, 251, 251);
 }
 
-.ch-options-number{
-    margin-bottom: 3px;
-    text-align: center;
+.ch-options-number {
+  font-size: 24px; /* 크기 조절 */
+  width: 40px; /* 원형 크기 */
+  height: 40px; /* 원형 크기 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: black;
+  color: white;
 }
-.ch-options-selection{
-    margin-top: 3px;
-    text-align: center;
-
-}
-
-
-.ch-game-Top-section{
-    height: 40vh;
-    border-radius: 2%;
-    display: flex;          
-    flex-direction: column;  
-    align-items: center; 
-    background-color: rgb(251, 251, 251);
+.ch-options-selection {
+  margin-top: 3px;
+  text-align: center;
 }
 
-.ch-game-child-screen{
-    width: 95%;
-    height: 80%;
-    min-height: 35vh;
-    min-width: 35vw;
+.ch-game-Top-section {
+  height: 40vh;
+  border-radius: 2%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgb(251, 251, 251);
 }
 
-.ch-game-middle-section{
-    width: 100%;
-    height: 20px;
-    border-radius: 10px;
-    background: linear-gradient(
-        to bottom,
-        #e0e0e0,
-        #f5f5f5 20%,
-        #e0e0e0 40%,
-        #d0d0d0 60%,
-        #e0e0e0 80%,
-        #f5f5f5
+.ch-game-child-screen {
+  width: 95%;
+  height: 80%;
+  min-height: 35vh;
+  min-width: 35vw;
+}
+
+.ch-game-middle-section {
+  width: 100%;
+  height: 20px;
+  border-radius: 10px;
+  background: linear-gradient(
+    to bottom,
+    #e0e0e0,
+    #f5f5f5 20%,
+    #e0e0e0 40%,
+    #d0d0d0 60%,
+    #e0e0e0 80%,
+    #f5f5f5
   );
-    position: relative;
-    border-top: 1px solid #ccc;
-    border-bottom: 1px solid #ccc;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.ch-game-bottom-section{
-    height: 40vh;
-    width: 100%;
-    display: flex !important;
-    flex-direction: row !important; 
-    border-radius: 2%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
-    background-color: rgb(251, 251, 251);
+.ch-game-bottom-section {
+  height: 40vh;
+  width: 100%;
+  display: flex !important;
+  flex-direction: row !important;
+  border-radius: 2%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  background-color: rgb(251, 251, 251);
 }
 /* 218, 186, 255 */
-.ch-game-button-left{
-    width: 15%;
-    height: 100%;
-    display: flex; 
-    align-items: center;
-    justify-content: center;
+.ch-game-button-left {
+  width: 15%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.ch-game-counselor-screen{
-    width: 70%;
-    height: 100%;
-    display: flex; 
-    align-items: center;
-    justify-content: center;
+.ch-game-counselor-screen {
+  width: 70%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.ch-game-button-right{
-    width: 15%;
-    height: 100%;
+.ch-game-button-right {
+  width: 15%;
+  height: 100%;
 }
 
 .ch-game-button-left img,
 .ch-game-button-right img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* 이미지 비율 유지 */
-    max-width: 100%;
-    max-height: 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 이미지 비율 유지 */
+  max-width: 100%;
+  max-height: 100%;
 }
 
-.ch-child-videoScreen{
-    width:50vw;
-    height: 50vh;
+.ch-child-videoScreen {
+  width: 50vw;
+  height: 50vh;
+}
+
+ch-option {
+  cursor: pointer;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  background-color: white;
+  transition: background-color 0.3s ease;
 }
