@@ -4,7 +4,7 @@ import CounselorHeader from "../../../components/Counselor/CounselorHeader";
 import Footer from "../../../components/common/Footer";
 import { getNoticePosts, searchNotices } from '../../../api/boardNotice';
 import { getFaqList, searchFaqs } from '../../../api/boardFaq';
-import { getQnaList } from '../../../api/boardQna';
+import { getQnaList, searchQnas } from '../../../api/boardQna';
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import '../Css/CounselorBoardPage.css';
 
@@ -49,8 +49,9 @@ function CounselorBoardPage() {
                     paItemsPerPage
                 );
     
-                const formattedData = response.notices.map(item => ({
-                    no: item.id || "9999",
+                const formattedData = response.notices.map((item, index) => ({
+                    no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),  // 역순 번호 부여
+                    id: item.id,
                     title: item.title,
                     writer: item.name || "운영자",
                     views: item.viewCnt || 0,
@@ -71,8 +72,9 @@ function CounselorBoardPage() {
                     paItemsPerPage
                 );
     
-                const formattedData = response.faqs.map(item => ({
-                    no: item.id || "9999",
+                const formattedData = response.faqs.map((item, index) => ({
+                    no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),  // 역순 번호 부여
+                    id: item.id,
                     type: item.type || "기타",
                     title: item.title,
                     writer: item.name || "운영자"
@@ -211,11 +213,11 @@ function CounselorBoardPage() {
       paTitle = "질문";
     }
   
-    const paFilteredData = (paActiveTab === "notice" || (paActiveTab === "faq" && isSearching))
-    ? paBoardData
-    : paBoardData.filter((item) =>
-        item[paSearchCategory]?.toLowerCase().includes(paSearchTerm.toLowerCase())
-    );
+    // paFilteredData 수정
+    const paFilteredData = (paActiveTab === "notice" || paActiveTab === "faq" || paActiveTab === "qna")
+        ? paBoardData
+        : paBoardData;
+    
   
     const paPageData = paFilteredData;
     const emptyRowsCount = paItemsPerPage - paPageData.length;
@@ -229,9 +231,99 @@ function CounselorBoardPage() {
     };
   
     const handleSearchChange = (e) => {
-      setPaSearchTerm(e.target.value);
-      setPaCurrentPage(1);
+        setPaSearchTerm(e.target.value);
+        setPaCurrentPage(1);
+        
+        // 검색어가 비어있으면 전체 목록을 보여줌
+        if (!e.target.value.trim()) {
+            setIsSearching(false);
+            if (paActiveTab === "notice") {
+                fetchNoticeData();
+            } else if (paActiveTab === "faq") {
+                fetchFaqData();
+            } else if (paActiveTab === "qna") {
+                fetchQnaData();
+            }
+            return;
+        }
+        
+        // 검색 실행
+        const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
+        setIsSearching(true);
+    
+        const timer = setTimeout(async () => {
+            try {
+                if (paActiveTab === "notice") {
+                    setIsLoading(true);
+                    const response = await searchNotices(
+                        e.target.value,
+                        searchType,
+                        paCurrentPage - 1,
+                        paItemsPerPage
+                    );
+    
+                    const formattedData = response.notices.map((item, index) => ({
+                        no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                        id: item.id,
+                        title: item.title,
+                        writer: item.name || "운영자",
+                        views: item.viewCnt || 0,
+                        date: new Date(item.createDttm).toISOString().split('T')[0]
+                    }));
+    
+                    setNoticeData(formattedData);
+                    setTotalPages(response.pagination.totalPages);
+                    setIsLoading(false);
+                } else if (paActiveTab === "faq") {
+                    setFaqLoading(true);
+                    const response = await searchFaqs(
+                        e.target.value,
+                        searchType,
+                        paCurrentPage - 1,
+                        paItemsPerPage
+                    );
+    
+                    const formattedData = response.faqs.map((item, index) => ({
+                        no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                        id: item.id,
+                        type: item.type || "기타",
+                        title: item.title,
+                        writer: item.name || "운영자"
+                    }));
+    
+                    setFaqData(formattedData);
+                    setTotalPages(response.pagination.totalPages);
+                    setFaqLoading(false);
+                } else if (paActiveTab === "qna") {
+                    setQnaLoading(true);
+                    const response = await searchQnas(
+                        e.target.value,
+                        searchType,
+                        paCurrentPage - 1,
+                        paItemsPerPage
+                    );
+    
+                    const formattedData = response.qnaList.map((item, index) => ({
+                        no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                        id: item.id,
+                        title: item.title,
+                        writer: item.name || "익명",
+                        status: item.answerCnt > 0 ? "답변완료" : "미답변",
+                        date: new Date(item.createDttm).toISOString().split('T')[0]
+                    }));
+    
+                    setQnaData(formattedData);
+                    setTotalPages(response.pagination.totalPages);
+                    setQnaLoading(false);
+                }
+            } catch (error) {
+                console.error("검색 에러:", error);
+            }
+        }, 300);
+    
+        return () => clearTimeout(timer);
     };
+    
   
     const handleCategoryClick = (category) => {
         setPaSearchCategory(category);
