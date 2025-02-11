@@ -119,7 +119,7 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
         {/* dialog + 정답  */}
         <Dialog
           visibal={showAnswerModal}
-          onHide={() => setShowAnswerModal(false)}
+          onHide={(modalContents) => modalContents}
           header="영상 속 감정이가 느낀 감정을 따라해 볼까요?!"
           className="ch-review-modal-style"
           // 모달이 떠있어도 뒤에 요소들과 상호작용 가능
