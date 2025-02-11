@@ -142,6 +142,7 @@ const fetchQnaData = async () => {
 
     const formattedData = response.qnaList.map((item, index) => ({
       no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+      id: item.id, 
       title: item.title,
       writer: item.name,
       status: item.answerCnt > 0 ? "답변완료" : "미답변",  
