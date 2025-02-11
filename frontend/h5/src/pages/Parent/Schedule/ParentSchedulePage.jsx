@@ -174,7 +174,7 @@ function ParentSchedulePage() {
 
     const handleJoin = () => {
       window.open(
-        '/parent/schedule/call',
+        '/parent/schedule/call?{}',
         '_blank',
         'left=0,top=0,width=' + screen.width + ',height=' + screen.height
       );
