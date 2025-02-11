@@ -7,6 +7,7 @@ import com.h5.global.exception.FileNotFoundException;
 import com.h5.global.exception.FileUploadIOException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +56,7 @@ public class FileServiceImpl implements FileService {
         return fileEntities;
     }
 
+    @Transactional
     @Override
     public List<GetFileUrlResponseDto> getFileUrl(FileEntity.TblType tblType, int tblId) {
         Session session = entityManager.unwrap(Session.class);
