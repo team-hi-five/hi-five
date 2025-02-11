@@ -46,35 +46,24 @@ function CounselorBoardDetailPage() {
   }
 
   const handleFileDelete = async (fileId) => {
-    console.log("삭제 시도하는 fileId:", fileId); // 추가
+    console.log("삭제 시도하는 fileId:", fileId);
+    
     try {
-      // UI에서 먼저 파일을 제거
+      // 즉시 서버에 삭제 요청
+      await deleteFile(fileId);
+      console.log("✅ 파일 삭제 API 호출 성공");
+  
+      // 성공 시 UI 업데이트
       setFileUrls(files => files.filter(file => file.fileId !== fileId));
-      setDeletedFileIds(prev => {
-        const newDeletedFileIds = [...prev, fileId];
-        console.log("fileId 추가 후 deletedFileIds:", newDeletedFileIds); // 추가
-        return newDeletedFileIds;
-      });
       
-      // 수정 모드가 아닐 때만 즉시 서버에서 삭제
-      if (!isEditing) {
-        await deleteFile(fileId);
-      }
+      // deletedFileIds 업데이트 (필요한 경우)
+      setDeletedFileIds(prev => [...prev, fileId]);
+  
     } catch (error) {
       console.error('파일 삭제 중 오류:', error);
-      toast.current.show({
-        severity: 'error',
-        summary: '오류',
-        detail: '파일 삭제에 실패했습니다.',
-        life: 3000
-      });
+      await SingleButtonAlert("파일 삭제에 실패했습니다.");
       
-      // 삭제 실패 시 UI 상태 복구
-      setFileUrls(prevFiles => {
-        const deletedFile = prevFiles.find(file => file.fileId === fileId);
-        return deletedFile ? [...prevFiles, deletedFile] : prevFiles;
-      });
-      setDeletedFileIds(prev => prev.filter(id => id !== fileId));
+      // 에러 발생 시 상태 롤백하지 않음
     }
   };
 
@@ -179,7 +168,7 @@ function CounselorBoardDetailPage() {
       // 3. 새로운 파일 업로드
       if (selectedFiles.length > 0) {
         const uploadPromises = selectedFiles.map(file => 
-          uploadFile(file, type === "notice" ? 'N' : 'F', no)
+          uploadFile(file, type === "notice" ? 'N' : 'FA', no)
         );
         
         try {
@@ -203,7 +192,7 @@ function CounselorBoardDetailPage() {
       } else if (type === "faq") {
         await fetchFaqDetail(no);
       }
-      await fetchFileUrls(type === "notice" ? 'N' : 'F', no);
+      await fetchFileUrls(type === "notice" ? 'N' : 'FA', no);
       
     } catch (error) {
       console.error('수정 처리 중 오류 발생:', error);
@@ -491,7 +480,7 @@ useEffect(() => {
       fetchFileUrls('N', no);
     } else if (type === "faq") {
       fetchFaqDetail(no);
-      // fetchFileUrls('N', no);
+      fetchFileUrls('FA', no);
     } else if (type === "qna") {
       fetchQnaDetail(no);  // QnA 상세 조회 추가
       fetchFileUrls('Q', no);

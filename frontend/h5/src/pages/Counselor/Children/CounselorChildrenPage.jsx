@@ -9,6 +9,7 @@ import { Dropdown } from 'primereact/dropdown';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import { getConsultantChildren, getConsultantChild, getParentDeleteRequests } from "/src/api/userCounselor";
+import { getFileUrl, TBL_TYPES } from "../../../api/file";
 import '../Css/CounselorChildrenPage.css';
 
 function CounselorChildrenPage() {
@@ -32,19 +33,47 @@ function CounselorChildrenPage() {
   }
 
   // ✅ 아이 리스트 및 탈퇴 요청 리스트 동시 불러오기
-  async function fetchChildren() {
-    try {
-      const childrenList = await getConsultantChildren();
-      const childrenDetailsPromises = childrenList.map(child => getConsultantChild(child.childUserID));
-      const childrenDetails = await Promise.all(childrenDetailsPromises);
-      setChildrenData(childrenDetails);
+async function fetchChildren() {
+  try {
+    const childrenList = await getConsultantChildren();
+    const childrenDetailsPromises = childrenList.map(async child => {
+      // 1. 아동 정보 가져오기
+      const childDetails = await getConsultantChild(child.childUserID);
+      
+      try {
+        // 2. 프로필 이미지 URL 가져오기
+        const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, child.childUserID);
+        console.log(`✅ 아동 ${child.childUserID}의 이미지 URL:`, imageUrls);
 
-      // 탈퇴 요청 리스트도 같이 불러옴
-      fetchDeleteRequests();
-    } catch (error) {
-      console.error("아동 정보 불러오기 실패:", error);
-    }
+        // 3. imageUrls의 구조 확인 및 최신 이미지 URL 사용
+        if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0) {
+          console.log('이미지 URLs:', imageUrls);
+          // 배열의 마지막 항목(최신 이미지) 사용
+          const latestImageUrl = imageUrls[imageUrls.length - 1].url;
+          console.log('최신 이미지 URL:', latestImageUrl);
+          
+          return {
+            ...childDetails,
+            profileImageUrl: latestImageUrl
+          };
+        }
+        
+        return childDetails;
+      } catch (error) {
+        console.error(`❌ 아동 ${child.childUserID}의 프로필 이미지 URL 조회 실패:`, error);
+        return childDetails;
+      }
+    });
+
+    const childrenDetails = await Promise.all(childrenDetailsPromises);
+    setChildrenData(childrenDetails);
+
+    // 탈퇴 요청 리스트도 같이 불러옴
+    fetchDeleteRequests();
+  } catch (error) {
+    console.error("아동 정보 불러오기 실패:", error);
   }
+}
 
   useEffect(() => {
     fetchChildren();
@@ -106,7 +135,7 @@ function CounselorChildrenPage() {
                 <span className="co-notification-badge">{deleteRequestCount}</span>
               </div>
               <div className="co-search-section">
-                <Dropdown value={searchType} onChange={(e) => setSearchType(e.value)} options={searchOptions} className="co-search-dropdown" />
+                <Dropdown value={searchType} onChange={(e) => setSearchType(e.value)} options={searchOptions} className="co-search-dropdown2" />
                 <div className="co-c-search-container">
                   <i className="pi pi-search co-search-icon"></i>
                   <InputText
@@ -127,7 +156,7 @@ function CounselorChildrenPage() {
               <div className="no-results">등록된 아동이 없습니다.</div>
             ) : filteredChildren.length > 0 ? (
               <div className="grid-container">
-                <SimpleBar style={{ width: "100%", maxHeight: 500 }} autoHide={false}>
+                <SimpleBar style={{ width: "100%", height: "100%" }} autoHide={false} forceVisible="y">
                   <div className="counselor-children-grid">
                     {filteredChildren.map((child) => (
                       <div key={child.childUserId} className={`counselor-children-item ${filteredChildren.length === 1 ? "single-item" : ""}`}>
