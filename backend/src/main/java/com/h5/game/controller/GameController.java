@@ -1,10 +1,14 @@
 package com.h5.game.controller;
 
+import com.h5.game.dto.request.EndGameChapterRequestDto;
 import com.h5.game.dto.request.SaveGameLogRequestDto;
+import com.h5.game.dto.request.StartGameChapterRequsetDto;
+import com.h5.game.dto.request.StartGameStageRequestDto;
 import com.h5.game.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,10 +19,23 @@ public class GameController {
 
     private final GameService gameService;
 
-    @PostMapping()
-    public ResponseEntity<?> saveGameLog(SaveGameLogRequestDto saveGameLogRequestDto) {
-        gameService.saveGameLog(saveGameLogRequestDto);
+    @PostMapping("/start-game-chapter")
+    public ResponseEntity<?> startGameChapter(@RequestBody StartGameChapterRequsetDto startGameChapterRequsetDto) {
+        return ResponseEntity.ok(gameService.startGameChapter(startGameChapterRequsetDto));
+    }
 
-        return ResponseEntity.ok().build();
+    @PostMapping("/end-game-chapter")
+    public ResponseEntity<?> endGameChapter(@RequestBody EndGameChapterRequestDto endGameChapterRequestDto) {
+        return ResponseEntity.ok(gameService.endGameChapter(endGameChapterRequestDto));
+    }
+
+    @PostMapping("/start-game-stage")
+    public ResponseEntity<?> startGameStage(@RequestBody StartGameStageRequestDto startGameStageRequestDto) {
+        return ResponseEntity.ok(gameService.startGameStage(startGameStageRequestDto));
+    }
+
+    @PostMapping("/save-log")
+    public ResponseEntity<?> saveGameLog(SaveGameLogRequestDto saveGameLogRequestDto) {
+        return ResponseEntity.ok(gameService.saveGameLog(saveGameLogRequestDto));
     }
 }
