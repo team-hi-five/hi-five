@@ -52,7 +52,7 @@ pipeline {
                     sh 'ls -al'
 
                     // Docker 컨테이너 내부에서 npm 실행
-                    sh "docker run --rm -v ${WORKSPACE}/frontend/h5:/app -w /app node:22 sh -c 'npm install && npm run build'"
+                    sh 'docker run --rm -v ${WORKSPACE}/frontend/h5:/app -w /app node:22 sh -c "npm install && npm run build"'
 
                     sh """
                         docker build --rm \
