@@ -43,7 +43,7 @@ public class FileEntity {
     private String deleteDttm;
 
     public enum TblType {
-        P, N, Q, G, QA
+        P, N, Q, G, FA
     }
 
     @NotNull
