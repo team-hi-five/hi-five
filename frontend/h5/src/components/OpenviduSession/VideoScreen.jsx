@@ -60,10 +60,7 @@ function OpenviduVideo() {
       });
 
       console.log("Sending request data:", res.data);
-
-      // console.log('Token response:', res);
-      const token = res.data.token;
-      console.log("데이터?:", token);
+      const token = res.data
       return token;
     } catch (error) {
       console.error("Error getting token:", error.message);
