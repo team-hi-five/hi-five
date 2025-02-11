@@ -84,7 +84,7 @@ public class StudyServiceImpl implements StudyService {
     public SaveStudyLogResponseDto saveStudyLog(SaveStudyLogRequestDto saveStudyLogRequestDto) {
 
         StudyVideoLogEntity studyVideoLogEntity = studyVideoLogRepository.save(StudyVideoLogEntity.builder()
-                        .childStudyStage(childStudyStageRepository.findById(saveStudyLogRequestDto.getChildGameStageId())
+                        .childStudyStageEntity(childStudyStageRepository.findById(saveStudyLogRequestDto.getChildGameStageId())
                                 .orElseThrow(() -> new GameNotFoundException("Child study stage not found", HttpStatus.NOT_FOUND)))
                         .fHappy(saveStudyLogRequestDto.getFHappy())
                         .fAnger(saveStudyLogRequestDto.getFAnger())
@@ -96,7 +96,7 @@ public class StudyServiceImpl implements StudyService {
                 .build());
 
         StudyTextLogEntity studyTextLogEntity = studyTextLogRepository.save(StudyTextLogEntity.builder()
-                        .childStudyStage(childStudyStageRepository.findById(saveStudyLogRequestDto.getChildGameStageId())
+                        .childStudyStageEntity(childStudyStageRepository.findById(saveStudyLogRequestDto.getChildGameStageId())
                                 .orElseThrow(() -> new GameNotFoundException("Child study stage not found", HttpStatus.NOT_FOUND)))
                         .tHappy(saveStudyLogRequestDto.getTHappy())
                         .tAnger(saveStudyLogRequestDto.getTAnger())
