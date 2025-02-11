@@ -164,7 +164,8 @@ function OpenviduVideo() {
 
       // 토큰으로 세션 연결 후 웹캠 연결
       const token = await getToken();
-      await newSession.connect(token, { clientData: String(childId) });
+      await newSession.connect(token, { clientData: String(childId),
+       });
       await connectWebCam(newSession);
     } catch (error) {
       console.error("Error in joinSession:", error);
@@ -231,9 +232,6 @@ function OpenviduVideo() {
     }
 
     return () => {
-      if (session) {
-        leaveSessionInternal();
-      }
       setSubscribers([]);
       if (publisher) {
         publisher.stream.dispose();
