@@ -80,7 +80,6 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
         });
       } else {
         await Swal.fire({
-          title: "정답이에요!",
           content:
             "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요! 다시 해볼 까요?",
           imageWidth: 200,
@@ -90,7 +89,7 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
         });
       }
     } catch (error) {
-      console.log.error("감정분석에러!");
+      console.log.error("감정분석에러!", error);
     }
   };
 
@@ -119,7 +118,7 @@ function ChildReveiwGameScreen({ chapterId, currentData, incrementStage }) {
         {/* dialog + 정답  */}
         <Dialog
           visibal={showAnswerModal}
-          onHide={() => setShowAnswerModal(false)}
+          onHide={(modalContents) => modalContents}
           header="영상 속 감정이가 느낀 감정을 따라해 볼까요?!"
           className="ch-review-modal-style"
           // 모달이 떠있어도 뒤에 요소들과 상호작용 가능

@@ -3,7 +3,7 @@ import './ProfileImageModal.css';
 import { BsCameraFill } from 'react-icons/bs';
 import { BsCloudUpload } from 'react-icons/bs';
 
-const ProfileImageModal = ({ onClose, onImageChange }) => {
+const ProfileImageModal = ({ onClose, onImageChange, initialImage }) => {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -12,16 +12,17 @@ const ProfileImageModal = ({ onClose, onImageChange }) => {
     if (!selectedFile) return;
     
     // 선택된 이미지의 URL을 부모 컴포넌트로 전달
-    onImageChange(previewUrl);
+    onImageChange(previewUrl, selectedFile);
     onClose();
   };
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedFile(file);
-      const imageUrl = URL.createObjectURL(file);
-      setPreviewUrl(imageUrl);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setSelectedFile(file);  // selectedFile 상태 설정
+      onImageChange(url, file); // URL과 파일 객체 모두 전달
     }
   };
 
@@ -41,9 +42,10 @@ const ProfileImageModal = ({ onClose, onImageChange }) => {
     
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
-      setSelectedFile(file);
       const imageUrl = URL.createObjectURL(file);
+      setSelectedFile(file);
       setPreviewUrl(imageUrl);
+      onImageChange(imageUrl, file);  // 부모 컴포넌트에 알림
     }
   };
 

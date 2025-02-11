@@ -3,39 +3,69 @@ import { OpenVidu } from "openvidu-browser";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 function OpenviduVideo() {
-  // 웹캠방 관리
+  // 상태 선언
   const [session, setSession] = useState(null);
-  // 비디오 오디오 스트림 관리
   const [publisher, setPublisher] = useState(null);
-  // 참가자 관리
   const [subscribers, setSubscribers] = useState([]);
-  // 비디오 on/off 관리
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
-  // DOM 참조를 위한 훅
+  // ref 선언
   const videoRef = useRef(null);
   const OVRef = useRef(null);
+
+  // 세션 스토리지에서 childId 가져오기
   const childId = sessionStorage.getItem("childId");
   console.log(childId);
 
-  // 1. 장치 연결
+  // ====================================================================
+  // 1. 이벤트 리스너 함수들
+  // ====================================================================
+
+  // 새로운 참가자 스트림 구독
+  const subscribeToStreamCreated = useCallback((session) => {
+    session.on("streamCreated", (event) => {
+      const subscriber = session.subscribe(event.stream, undefined);
+      setSubscribers((prev) => [...prev, subscriber]);
+    });
+  }, []);
+
+  // 참가자 스트림 제거
+  const subscribeToStreamDestroyed = useCallback((session) => {
+    session.on("streamDestroyed", (event) => {
+      setSubscribers((prev) =>
+        prev.filter((sub) => sub !== event.stream.streamManager)
+      );
+    });
+  }, []);
+
+  // 사용자 상태 변경 처리
+  const subscribeToUserChanged = useCallback((session) => {
+    session.on("signal:userChanged", (event) => {
+      console.log("User changed:", event.data);
+    });
+  }, []);
+
+  // ====================================================================
+  // 2. 헬퍼 함수들
+  // ====================================================================
+
+  // 웹캠 연결 함수
   const connectWebCam = useCallback(async (currentSession) => {
     try {
-      // 웹캠과 마이크를 스트림을 관리하는 객체를 생성
       const publisher = await OVRef.current.initPublisherAsync(undefined, {
         audioSource: undefined,
-        videoSource: undefined, // undefined : 기본 카메라
-        publishAudio: true, // 오디오 시작 상태(true: 켜짐)
-        publishVideo: true, // 비디오 시작 상태(true: 켜짐)
-        resolution: "640x480", // 비디오 해상도
-        frameRate: 30, // 초당 프레임 수
-        insertMode: "APPEND", // 비디오 요소에 돔을 추가하는 방식식
-        mirror: false, // 좌우반전
+        videoSource: undefined, // 기본 카메라 사용
+        publishAudio: true,
+        publishVideo: true,
+        resolution: "640x480",
+        frameRate: 30,
+        insertMode: "APPEND",
+        mirror: false,
       });
 
       if (currentSession) {
-        await currentSession.publish(publisher); // 세션에 발행자 추가
+        await currentSession.publish(publisher);
         setPublisher(publisher);
       }
     } catch (error) {
@@ -43,63 +73,102 @@ function OpenviduVideo() {
     }
   }, []);
 
-  //2. 토큰 발급(openVidu 서버에서 생성)
+  // 토큰 발급 함수
   const getToken = useCallback(async () => {
     try {
-      // type : 클릭이벤트로 game 인지 consult 인지 정해야함   // 백엔드 토큰 요청
       const requestData = {
         childId: Number(childId),
         type: "game",
       };
 
-      // 실제 전송되는 데이터 확인을 위한 커스텀 설정
       const res = await api.post("/session/join", requestData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
 
       console.log("Sending request data:", res.data);
+
+      // 응답 URL에서 token 추출
       const token = res.data
+
+      if (!token) {
+        throw new Error("토큰을 추출할 수 없습니다.");
+      }
       return token;
     } catch (error) {
-      console.error("Error getting token:", error.message);
-      console.error("Error details:", {
+      console.error("토큰 에러:", error.message);
+      console.error("토큰 에러 상세보기:", {
         status: error.response?.status,
         data: error.response?.data,
         headers: error.response?.headers,
       });
       throw error;
     }
-  }, []);
+  }, [childId]);
 
-  // 3. 세션에 참가 + 연결(사용자)
+  // 웹소켓 재연결 함수
+  const connectWithRetry = async (session, token, maxAttempts = 3) => {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        console.log(`연결 시도 ${attempt}/${maxAttempts}`);
+        await session.connect(token, { clientData: String(childId) });
+        console.log("연결 성공!");
+        return true;
+      } catch (error) {
+        console.log(`연결 시도 ${attempt} 실패:`, error);
+
+        if (attempt === maxAttempts) {
+          alert("화상 연결에 실패했습니다. 페이지를 새로고침하거나 잠시 후 다시 시도해주세요.");
+          throw error;
+        }
+
+        // 다음 시도 전 2초 대기
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
+  };
+
+  // ====================================================================
+  // 3. 세션 연결 및 관리 함수
+  // ====================================================================
+
+  // 세션 참가 및 연결 함수
   const joinSession = useCallback(async () => {
     try {
-      // 위 import문과 다른 OpenVidu 아래는 클래스문!
+      // OpenVidu 인스턴스 생성
       OVRef.current = new OpenVidu();
+      console.log("세션 들어가기:", OVRef.current);
 
-      console.log("세션들어가기기:", OVRef.current);
-
-      // 실제 화상방 생성
-      // 화상 채팅 세션 초기화(연결, 영상송출, 수신신)
+      // 새로운 세션 생성
       const newSession = OVRef.current.initSession();
 
-      // 이벤트처리(새로운 참가자가 들어왔을때, 나갔을때, 상태변경)
+      // 이벤트 리스너 등록
       subscribeToStreamCreated(newSession);
       subscribeToStreamDestroyed(newSession);
       subscribeToUserChanged(newSession);
 
+      // 세션 연결 끊김 시 재연결 처리
+      newSession.on("sessionDisconnected", async (event) => {
+        console.log("Session disconnected:", event.reason);
+        if (event.reason === "networkDisconnect") {
+          try {
+            const token = await getToken();
+            await connectWithRetry(newSession, token);
+          } catch (error) {
+            console.error("Reconnection failed after max attempts", error);
+            setSession(null);
+          }
+        }
+      });
+
       setSession(newSession);
 
-      // 토큰으로 세션 연결
+      // 토큰으로 세션 연결 후 웹캠 연결
       const token = await getToken();
-      // 오픈비두 서버에는 childId string으로 전달
-      await newSession.connect(token, { clientData: String(childId) });
-      // 세션 연결 후 웹캠 연결
+      await newSession.connect(token, { clientData: String(childId),
+       });
       await connectWebCam(newSession);
     } catch (error) {
-      console.error("Error getting token:", error);
+      console.error("Error in joinSession:", error);
       if (error) {
         console.error({
           error: error.error,
@@ -109,62 +178,46 @@ function OpenviduVideo() {
         });
       }
     }
-  }, [getToken, connectWebCam, childId]);
+  }, [
+    childId,
+    connectWebCam,
+    getToken,
+    subscribeToStreamCreated,
+    subscribeToStreamDestroyed,
+    subscribeToUserChanged,
+  ]);
 
-  // 이벤트 리스너 함수
-  // 4. 새로운 참가자 스트림 구독
-  const subscribeToStreamCreated = useCallback((session) => {
-    session.on("streamCreated", (event) => {
-      const subscriber = session.subscribe(event.stream, videoRef.current);
-      setSubscribers((prevSubscribers) => [...prevSubscribers, subscriber]);
-    });
-  }, []);
+  // ====================================================================
+  // 4. UI 제어 함수들
+  // ====================================================================
 
-  // 5. 참가자 나갔을 때 처리
-  const subscribeToStreamDestroyed = useCallback((session) => {
-    session.on("streamDestroyed", (event) => {
-      setSubscribers((prevSubscribers) =>
-        prevSubscribers.filter((sub) => sub !== event.stream.streamManager)
-      );
-    });
-  }, []);
-
-  // 6. 사용자 상태 변경 처리
-  const subscribeToUserChanged = useCallback((session) => {
-    session.on("signal:userChanged", (event) => {
-      console.log("User changed:", event.data);
-    });
-  }, []);
-
-  // 컨트롤 기능
-  // 비디오 ON/OFF
   const toggleVideo = useCallback(() => {
-    publisher?.publishVideo(!publisher.stream.videoActive);
-    setIsVideoEnabled(!isVideoEnabled);
-  }, [publisher, isVideoEnabled]);
+    if (publisher) {
+      publisher.publishVideo(!publisher.stream.videoActive);
+      setIsVideoEnabled((prev) => !prev);
+    }
+  }, [publisher]);
 
-  // 오디오 ON/OFF
   const toggleAudio = useCallback(() => {
-    publisher?.publishAudio(!publisher.stream.audioActive);
-    setIsAudioEnabled(!isAudioEnabled);
-  }, [publisher, isAudioEnabled]);
+    if (publisher) {
+      publisher.publishAudio(!publisher.stream.audioActive);
+      setIsAudioEnabled((prev) => !prev);
+    }
+  }, [publisher]);
 
-  // 세션 종료
-  // 상담사가 종료호출 api
   const leaveSessionInternal = useCallback(() => {
     if (session) {
       session.disconnect();
     }
-
     OVRef.current = null;
     setSession(null);
     setSubscribers([]);
   }, [session]);
 
-  // ... (Other functions like updateSubscribers, camStatusChanged, etc. would be converted similarly)
-  // 공유기능
+  // ====================================================================
+  // 5. 컴포넌트 라이프사이클 관리 (useEffect)
+  // ====================================================================
 
-  // 세션 마이크가 실행될때마다 처리
   useEffect(() => {
     const connect = async () => {
       try {
@@ -175,25 +228,81 @@ function OpenviduVideo() {
     };
 
     if (!session) {
-      // session이 없을 때만 연결 시도
       connect();
     }
 
     return () => {
-      if (session) {
-        leaveSessionInternal();
-      }
       setSubscribers([]);
       if (publisher) {
-        publisher.stream.dispose();
+        try {
+          const mediaStream = publisher.stream?.getMediaStream();
+          if (mediaStream) {
+            mediaStream.getTracks().forEach(track => {
+              track.stop();
+            });
+          }
+        } catch (error) {
+          console.error('Error cleaning up stream:', error);
+        }
       }
     };
-  }, [session]);
+  }, [session, joinSession, leaveSessionInternal, publisher]);
 
+
+  useEffect(() => {
+    if (publisher && videoRef.current) {
+      try {
+        const mediaStream = publisher.stream?.getMediaStream();
+
+        console.log('Publisher:', publisher);
+        console.log('MediaStream:', mediaStream);
+        console.log('VideoRef:', videoRef.current);
+        
+        if (mediaStream) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      } catch (error) {
+        console.error('Error setting media stream:', error);
+      }
+    }
+  }, [publisher]);
+
+
+  // ====================================================================
+  // 6. 렌더링
+  // ====================================================================
   return (
     <div className="webcam-container">
-      <div className="webcam-video" ref={videoRef}>
-        {/* 종료, 공유중지,시작,비디오끄기,켜기,음성끄기켜기 */}
+      <div className="webcam-video">
+       {/* 로컬 비디오 스트림을 위한 엘리먼트 */}
+    {publisher && (
+      <div className="local-video-container">
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          className="local-video"
+        />
+      </div>
+    )}
+    
+    {/* 다른 참가자의 비디오 스트림 */}
+    {subscribers.map((subscriber, index) => (
+      <div key={index} className="remote-video-container">
+        <video
+          ref={(el) => {
+            if (el) {
+              subscriber.addVideoElement(el);
+            }
+          }}
+          autoPlay
+          playsInline
+          className="remote-video"
+        />
+      </div>
+    ))}
+
+
         <div className="control-buttons">
           <button onClick={toggleAudio} className="control-button-audio">
             음성
@@ -201,10 +310,7 @@ function OpenviduVideo() {
           <button onClick={toggleVideo} className="control-button-video">
             화면
           </button>
-          <button
-            onClick={leaveSessionInternal}
-            className="control-button-stop"
-          >
+          <button onClick={leaveSessionInternal} className="control-button-stop">
             떠나기
           </button>
         </div>
@@ -212,4 +318,5 @@ function OpenviduVideo() {
     </div>
   );
 }
+
 export default OpenviduVideo;
