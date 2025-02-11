@@ -27,11 +27,11 @@ function ParentVideoMultiplePage() {
     <div className="video-page-container">
       <h1 className="page-title">학습 영상 조회</h1>
       
-      <div className="videos-container">
+      <div className="videos-container-m">
         {[0, 1].map((index) => (
-          <div key={index} className="video-section">
-            <div className="controls-row">
-              <div className="control-item date-picker">
+          <div key={index} className="video-section-m">
+            <div className="controls-row-m">
+              <div className="control-item date-picker-m">
                 <label>날짜 선택</label>
                 <Calendar
                   value={dates[index]}
@@ -46,7 +46,7 @@ function ParentVideoMultiplePage() {
                 />
               </div>
               
-              <div className="control-item emotion-picker">
+              <div className="control-item emotion-picker-m">
                 <label>감정 선택</label>
                 <Dropdown
                   value={emotions[index]}
@@ -61,7 +61,7 @@ function ParentVideoMultiplePage() {
                 />
               </div>
               
-              <div className="control-item video-picker">
+              <div className="control-item video-picker-m">
                 <label>영상 선택</label>
                 <Dropdown
                   value={selectedVideos[index]}
@@ -77,7 +77,7 @@ function ParentVideoMultiplePage() {
               </div>
             </div>
             
-            <div className="video-container">
+            <div className="video-container-m">
               <img 
                 src="/user.png" 
                 alt={`Video ${index + 1}`}

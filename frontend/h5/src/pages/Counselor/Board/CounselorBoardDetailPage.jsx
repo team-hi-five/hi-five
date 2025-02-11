@@ -5,14 +5,10 @@ import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import { getNoticeDetail, deleteNotice, updateNotice } from '../../../api/boardNotice';
 import { getFaqDetail, updateFaq, deleteFaq } from '../../../api/boardFaq';
+import { getQnaDetail, deleteQna, createQnaAnswer, updateQnaComment, deleteQnaComment } from '../../../api/boardQna';
+import { getFileUrl, downloadFile } from '../../../api/file';
 import '../Css/CounselorBoardDetailPage.css';
 
-// 샘플 데이터
-
-const qnaData = [
-  { no: 3, title: "문의드립니다", writer: "홍길동", status: "미답변", date: "2025-01-23", content: "문의드립니다." },
-  { no: 2, title: "결제 관련 문의", writer: "김철수", status: "답변완료", date: "2025-01-17", content: "결제 관련 문의입니다." },
-];
 
 function CounselorBoardDetailPage() {
   const navigate = useNavigate();
@@ -24,14 +20,17 @@ function CounselorBoardDetailPage() {
 
   const [noticeData, setNoticeData] = useState(null);  // 공지사항 데이터 state 추가
   const [isLoading, setIsLoading] = useState(false);   // 로딩 상태 추가
-
   const [faqData, setFaqData] = useState(null);
+  const [qnaData, setQnaData] = useState(null);
   
   const [answer, setAnswer] = useState("");
   const [answers, setAnswers] = useState([]);
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editedAnswerContent, setEditedAnswerContent] = useState("");
   const editableRef = useRef(null);
+
+  const [fileUrls, setFileUrls] = useState([]);
+  const [fileError, setFileError] = useState(null);
 
   useEffect(() => {
     if (editingAnswerId && editableRef.current) {
@@ -61,6 +60,18 @@ function CounselorBoardDetailPage() {
     setIsEditing(true);
     setEditedTitle(postData.title);
     setEditedContent(postData.content);
+  };
+
+  const fetchFileUrls = async (type, id) => {
+    try {
+      const response = await getFileUrl(type, id);
+      if (response) {
+        setFileUrls(Array.isArray(response) ? response : [response]);
+      }
+    } catch (error) {
+      console.error("파일 URL 조회 실패:", error);
+      setFileError("파일을 불러오는데 실패했습니다.");
+    }
   };
 
   const handleEditComplete = async () => {
@@ -116,6 +127,10 @@ const handleDelete = async () => {
               await deleteFaq(no);
               await SingleButtonAlert("성공적으로 삭제되었습니다.");
               navigate('/counselor/board');
+          } else if (type === "qna") {  // QnA 삭제 로직 추가
+              await deleteQna(no);
+              await SingleButtonAlert("성공적으로 삭제되었습니다.");
+              navigate('/counselor/board');
           }
       }
   } catch (error) {
@@ -125,7 +140,9 @@ const handleDelete = async () => {
       } else {
           const errorMessage = type === "notice" 
               ? '공지사항 삭제에 실패했습니다.' 
-              : 'FAQ 삭제에 실패했습니다.';
+              : type === "faq"
+              ? 'FAQ 삭제에 실패했습니다.'
+              : 'QnA 삭제에 실패했습니다.';  // QnA 에러 메시지 추가
           await SingleButtonAlert(
               error.response?.data?.message || errorMessage
           );
@@ -140,18 +157,135 @@ const handleDelete = async () => {
     }
   };
 
-  const handleAnswerSubmit = () => {
-    if (answer.trim()) {
-      const newAnswer = {
-        id: Date.now(),
-        content: answer,
-        writer: "ooo 상담사님",
-        time: "10분전"
-      };
-      setAnswers([...answers, newAnswer]);
-      setAnswer('');
+  const handleQnaCommentEdit = async (qnaCommentId) => {
+    try {
+      if (!editedAnswerContent.trim()) {
+        await SingleButtonAlert('수정할 내용을 입력해주세요.');
+        return;
+      }
+
+      console.log(qnaCommentId)
+  
+      await updateQnaComment(qnaCommentId, editedAnswerContent);
+      
+      setAnswers(answers.map(answer => 
+        answer.id === qnaCommentId 
+          ? { ...answer, content: editedAnswerContent }
+          : answer
+      ));
+  
+      setEditingAnswerId(null);
+      setEditedAnswerContent("");
+      await SingleButtonAlert('댓글이 성공적으로 수정되었습니다.');
+    } catch (error) {
+      console.error('댓글 수정 중 오류 발생:', error);
+      await SingleButtonAlert(
+        error.response?.data?.message || 'QnA 댓글 수정에 실패했습니다.'
+      );
     }
   };
+
+  const handleQnaCommentDelete = async (qnaCommentId) => {
+    try {
+      const result = await DoubleButtonAlert("정말 댓글을 삭제하시겠습니까?");
+      
+      if (result.isConfirmed) {
+        await deleteQnaComment(qnaCommentId);
+        
+        // 답변 목록에서 해당 댓글 제거
+        setAnswers([]);
+        
+        // QnA 상태를 답변 대기로 변경
+        setQnaData(prev => ({
+          ...prev,
+          status: "답변대기"
+        }));
+  
+        await SingleButtonAlert('댓글이 성공적으로 삭제되었습니다.');
+      }
+    } catch (error) {
+      console.error('댓글 삭제 중 오류 발생:', error);
+      await SingleButtonAlert(
+        error.response?.data?.message || 'QnA 댓글 삭제에 실패했습니다.'
+      );
+    }
+  };
+
+  // 상대적 시간을 계산하는 함수
+  const getTimeAgo = (dateString) => {
+    // dateString이 유효한지 먼저 확인
+    if (!dateString) return '방금 전';
+  
+    try {
+      const now = new Date();
+      const past = new Date(dateString);
+      
+      // past가 유효한 날짜인지 확인
+      if (isNaN(past.getTime())) {
+        return '방금 전';
+      }
+  
+      const diffInMilliseconds = now - past;
+      const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
+      const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+      const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+  
+      if (diffInMinutes < 1) {
+        return '방금 전';
+      } else if (diffInMinutes < 60) {
+        return `${diffInMinutes}분 전`;
+      } else if (diffInHours < 24) {
+        return `${diffInHours}시간 전`;
+      } else if (diffInDays < 7) {
+        return `${diffInDays}일 전`;
+      } else {
+        return past.toLocaleDateString();
+      }
+    } catch (error) {
+      console.error('날짜 변환 중 오류:', error);
+      return '방금 전';
+    }
+  };
+
+const handleAnswerSubmit = async () => {
+  try {
+    if (!answer.trim()) {
+      await SingleButtonAlert('답변 내용을 입력해주세요.');
+      return;
+    }
+
+    if (answers.length > 0) {
+      await SingleButtonAlert('이미 답변이 작성되었습니다.');
+      return;
+    }
+
+    const response = await createQnaAnswer(no, answer);
+    
+    // 서버 응답의 createDttm 사용
+    setAnswers([{
+      id: response.id,
+      content: answer,
+      writer: response.name || "상담사",
+      createDttm: response.createDttm, // 서버에서 받은 시간 사용
+      time: getTimeAgo(response.createDttm), // 서버 시간 기준으로 계산
+      // profileImageUrl: response.profileImageUrl || "/no.png"
+    }]);
+
+    setQnaData(prev => ({
+      ...prev,
+      status: "답변완료"
+    }));
+    
+    await SingleButtonAlert('답변이 등록되었습니다.');
+    setAnswer('');
+    
+  } catch (error) {
+    console.error('답글 작성 중 오류 발생:', error);
+    await SingleButtonAlert(
+      error.response?.data?.message || 'QnA 답글 작성에 실패했습니다.'
+    );
+  }
+};
 
   const handleAnswerEdit = (id) => {
   const targetAnswer = answers.find(a => a.id === id);
@@ -161,30 +295,14 @@ const handleDelete = async () => {
   }
 };
 
-  const handleAnswerEditComplete = () => {
-    if (editedAnswerContent.trim()) {
-      setAnswers(answers.map(answer => 
-        answer.id === editingAnswerId 
-          ? { ...answer, content: editedAnswerContent }
-          : answer
-      ));
-      setEditingAnswerId(null);
-      setEditedAnswerContent("");
-    }
-  };
-
-  const handleAnswerDelete = (id) => {
-    setAnswers(answers.filter(a => a.id !== id));
-  };
-
   // 조회 여부를 추적하기 위한 ref 추가
   const viewCountUpdated = useRef(false);
 
   // 공지사항 상세 정보 조회 함수
-  const fetchNoticeDetail = async (id) => {
+  const fetchNoticeDetail = async (noticeId) => {
     try {
       setIsLoading(true);
-      const response = await getNoticeDetail(id);
+      const response = await getNoticeDetail(noticeId);
       
       // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
       const formattedData = {
@@ -232,13 +350,60 @@ const fetchFaqDetail = async (id) => {
     setIsLoading(false);
   }
 };
+  // Qna 상세 정보 조회 함수
+  const fetchQnaDetail = async (id) => {
+    try {
+      setIsLoading(true);
+      const response = await getQnaDetail(id);
+      
+      // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
+      const formattedData = {
+        no: response.id,
+        title: response.title,
+        writer: response.name || "익명",
+        content: response.content,
+        status: response.qnaAnswerResponseList?.length > 0 ? "답변완료" : "답변대기",
+        date: new Date(response.createDttm).toISOString().split('T')[0]
+      };
+  
+      // 답변이 있으면 첫 번째 답변만 사용
+      if (response.qnaAnswerResponseList && response.qnaAnswerResponseList.length > 0) {
+        const firstAnswer = response.qnaAnswerResponseList[0];
+        setAnswers([{
+          id: firstAnswer.id,
+          content: firstAnswer.content,
+          writer: firstAnswer.name || "상담사",
+          createDttm: firstAnswer.createDttm, // 원본 시간 저장
+          time: getTimeAgo(firstAnswer.createDttm), // 상대적 시간으로 변환
+          profileImageUrl: firstAnswer.profileImageUrl || "/no.png"
+        }]);
+      } else {
+        setAnswers([]);
+      }
+    
+      setQnaData(formattedData);
+    } catch (error) {
+      console.error("QnA 상세 조회 실패:", error);
+      await SingleButtonAlert(
+        error.response?.data?.message || 'QnA를 불러오는데 실패했습니다.'
+      );
+      navigate('/counselor/board');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 useEffect(() => {
   if (no && !viewCountUpdated.current) {
     if (type === "notice") {
       fetchNoticeDetail(no);
+      fetchFileUrls('N', no);
     } else if (type === "faq") {
       fetchFaqDetail(no);
+      // fetchFileUrls('N', no);
+    } else if (type === "qna") {
+      fetchQnaDetail(no);  // QnA 상세 조회 추가
+      fetchFileUrls('Q', no);
     }
     viewCountUpdated.current = true;
   }
@@ -251,7 +416,7 @@ useEffect(() => {
   } else if (type === "faq") {
     postData = faqData;
   } else if (type === "qna") {
-    postData = qnaData.find((post) => post.no === Number(no));
+    postData = qnaData;
   }
 
   // 데이터가 없을 경우 처리
@@ -388,7 +553,33 @@ useEffect(() => {
                   </span>
                 </>
               ) : (
-                "첨부파일"
+                <div className="co-detail-file-list">
+                  <h4>첨부파일</h4>
+                  {fileError ? (
+                    <p className="co-detail-file-error">{fileError}</p>
+                  ) : fileUrls.length > 0 ? (
+                    <div className="co-detail-file-buttons">
+                      {fileUrls.map((file, index) => (
+                        <button 
+                          key={index}
+                          onClick={async () => {
+                            try {
+                              await downloadFile(file.fileId, file.fileName);
+                            } catch (error) {
+                              console.error("파일 다운로드 실패:", error);
+                              await SingleButtonAlert("파일 다운로드에 실패했습니다.");
+                            }
+                          }}
+                          className="co-detail-file-download-btn"
+                        >
+                          <span className="p-file-name">{file.fileName}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>첨부파일이 없습니다.</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -402,23 +593,43 @@ useEffect(() => {
                 <div className="co-detail-answer-header">
                   <h3 className="co-detail-answer-title">답변</h3>
                   {answers.length > 0 && (
-                    <div className="co-detail-answer-buttons">
-                      {editingAnswerId === answers[0].id ? (
-                        <button onClick={handleAnswerEditComplete} className="co-detail-answer-edit">
+                  <div className="co-detail-answer-buttons">
+                    {editingAnswerId === answers[0].id ? (
+                      <>
+                        <button 
+                          onClick={() => handleQnaCommentEdit(answers[0].id)} 
+                          className="co-detail-answer-edit"
+                        >
                           수정완료
                         </button>
-                      ) : (
-                        <>
-                          <button onClick={() => handleAnswerEdit(answers[0].id)} className="co-detail-answer-edit">
-                            수정
-                          </button>
-                          <button onClick={() => handleAnswerDelete(answers[0].id)} className="co-detail-answer-delete">
-                            삭제
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
+                        <button 
+                          onClick={() => {
+                            setEditingAnswerId(null);
+                            setEditedAnswerContent("");
+                          }} 
+                          className="co-detail-answer-delete"
+                        >
+                          취소
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => handleAnswerEdit(answers[0].id)} 
+                          className="co-detail-answer-edit"
+                        >
+                          수정
+                        </button>
+                        <button 
+                          onClick={() => handleQnaCommentDelete(answers[0].id)} 
+                          className="co-detail-answer-delete"
+                        >
+                          삭제
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
                 </div>
                 {answers.length === 0 ? (
                   <div className='co-detail-answer-input-area-full'>
@@ -441,15 +652,19 @@ useEffect(() => {
                 ) : (
                   <div className="co-detail-answer-content">
                     <div className="co-detail-answer-info">
-                      <img src="/no.png" alt="" className='co-detail-answer-info-img' />
-                      <span className="co-detail-answer-writer">{answers[0].writer}</span>
+                      <img 
+                        src={answers[0].profileImageUrl} 
+                        alt="프로필" 
+                        className='co-detail-answer-info-img' 
+                      />
+                      <span className="co-detail-answer-writer">{answers[0].writer}님</span>
                       <span className="co-detail-answer-time">{answers[0].time}</span>
                     </div>
                     <div 
-                      ref={editableRef}
-                      contentEditable={editingAnswerId === answers[0].id}
                       className="co-detail-answer-info-content"
-                      onInput={(e) => setEditedAnswerContent(e.target.textContent || "")}
+                      ref={editingAnswerId === answers[0].id ? editableRef : null}
+                      contentEditable={editingAnswerId === answers[0].id}
+                      onInput={(e) => editingAnswerId === answers[0].id && setEditedAnswerContent(e.target.textContent || "")}
                       suppressContentEditableWarning={true}
                     >
                       {!editingAnswerId && answers[0].content}

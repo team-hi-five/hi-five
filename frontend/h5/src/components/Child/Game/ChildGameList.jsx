@@ -1,20 +1,38 @@
 import "../ChildCss/ChildGameList.css";
 import { Card } from "primereact/card";
+import useGameStore from "../../../store/gameStore";
 import PropTypes from "prop-types";
-// import ChildMainBackground from "../three/Background"
+import { useEffect } from "react";
 
-function ChildGameList({ game_chapter_id, chapter_pic, title, onClick }) {
+function ChildGameList({ gameChapterId, chapterPic, title, isLocked, onClick }) {
+  const { gameReviewData, selectChapter } = useGameStore();
+
+  useEffect(() => {
+    // console.log("게임챕터데이터:", gameReviewData);
+  }, [gameReviewData]);
+
   const handleClick = () => {
-    onClick(game_chapter_id);
+    if (!isLocked && onClick) {
+        selectChapter(gameChapterId);
+        console.log(selectChapter)
+      onClick();
+    }
   };
 
   return (
     <div>
-      {/* <ChildMainBackground/> */}
       <Card className="ch-game-chapter-card" onClick={handleClick}>
         <div className="ch-game-screenshot">
-          <img src={chapter_pic} alt="샘플1" />
-          <h1 className="ch-game-chapter-title">{title}</h1>
+          {console.log("isLocked 상태:", isLocked)}
+          <img
+            src={chapterPic}
+            alt="chapterimg"
+            className={isLocked ? "isLocked-img" : ""}
+          />
+          <h1 className="ch-game-chapter-title">
+            {title}
+            {isLocked && <span className="lock-icon">🔒</span>}
+          </h1>
         </div>
       </Card>
     </div>
@@ -23,9 +41,10 @@ function ChildGameList({ game_chapter_id, chapter_pic, title, onClick }) {
 
 // PropTypes 정의
 ChildGameList.propTypes = {
-  game_chapter_id: PropTypes.number.isRequired,
-  chapter_pic: PropTypes.string.isRequired,
+  gameChapterId: PropTypes.number.isRequired,
+  chapterPic: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
+  isLocked: PropTypes.bool.isRequired,
 };
 export default ChildGameList;
