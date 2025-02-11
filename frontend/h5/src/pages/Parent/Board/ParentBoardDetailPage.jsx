@@ -7,7 +7,7 @@ import { getNoticeDetail } from '../../../api/boardNotice';
 import { getFaqDetail } from '../../../api/boardFaq';
 import { getQnaDetail, updateQna, deleteQna } from '../../../api/boardQna';
 import { getFileUrl, downloadFile } from '../../../api/file';
-import '/src/pages/counselor/Css/CounselorBoardDetailPage.css';
+import '../../Counselor/Css/CounselorBoardDetailPage.css'
 
 function CounselorBoardDetailPage() {
   const navigate = useNavigate();
