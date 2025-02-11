@@ -8,7 +8,8 @@ import { approveDeleteRequest, rejectDeleteRequest, modifyConsultantChild } from
 import { uploadFile, getFileUrl, TBL_TYPES } from '../../api/file';
 
 
-const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
+const ChildDetailModal = ({ isOpen, onClose, initialChildData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
+    const [childData, setChildData] = useState(initialChildData);
     const [profileImage, setProfileImage] = useState(childData.imageUrl);
     const [isEditing, setIsEditing] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -21,6 +22,7 @@ const ChildDetailModal = ({ isOpen, onClose, childData, onDelete, onUpdate, onCa
     const [editingField, setEditingField] = useState(null);
     // 이미지 파일 상태 추가
     const [selectedImageFile, setSelectedImageFile] = useState(null);
+    
 
     const firstConsultDate = new Date(childData.firstConsultDate);
       const today = new Date();
@@ -145,7 +147,7 @@ const handleRejectDelete = async () => {
             console.log('파일 업로드 응답:', uploadResponse); // 디버깅용
     
             // 잠시 대기 후 새 URL 조회 (파일 처리 시간 고려)
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 500));
     
             // 새로운 이미지 URL 가져오기
             const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, childData.id);
@@ -174,9 +176,10 @@ const handleRejectDelete = async () => {
           profileImageUrl: newImageUrl // 둘 다 업데이트
         };
     
+        onUpdate(childData.childUserId, updatedChildData);
+        setChildData(updatedChildData); // state 업데이트
         setEditedData(updatedChildData);
         setProfileImage(newImageUrl);
-        onUpdate(childData.id, updatedChildData);
     
         setIsEditing(false);
         setEditingField(null);

@@ -11,6 +11,8 @@ function ChildCardDetailsPage() {
   // ✅ 콘솔 로그로 데이터 확인
   console.log("📌 전달받은 감정 데이터:", emotion);
   console.log("📌 전달받은 필터링된 카드 리스트:", filteredCards);
+  console.log("📌 emotionType 전달 확인:", emotion?.type);
+
 
   // 감정 타입별 설명
   const emotionContent = useMemo(() => {
@@ -42,7 +44,7 @@ function ChildCardDetailsPage() {
   return (
       <div>
         {/* 감정 카드 상세 레이아웃 */}
-        <CardDetailsLayout emotion={emotion} filteredCards={filteredCards}/>
+        <CardDetailsLayout emotion={emotion} filteredCards={filteredCards} emotionType={emotion.type} />
         {emotionContent}
 
         {/* ✅ 필터링된 카드 리스트 렌더링 */}
