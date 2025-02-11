@@ -20,17 +20,17 @@ public class StudyController {
 
     private final StudyService studyService;
 
-    @PostMapping("/start-game-chapter")
+    @PostMapping("/start-study-chapter")
     public ResponseEntity<?> startGameChapter(@RequestBody StartStudyChapterRequsetDto startStudyChapterRequsetDto) {
         return ResponseEntity.ok(studyService.startStudyChapter(startStudyChapterRequsetDto));
     }
 
-    @PostMapping("/end-game-chapter")
+    @PostMapping("/end-study-chapter")
     public ResponseEntity<?> endGameChapter(@RequestBody EndStudyChapterRequestDto endStudyChapterRequestDto) {
         return ResponseEntity.ok(studyService.endStudyChapter(endStudyChapterRequestDto));
     }
 
-    @PostMapping("/start-game-stage")
+    @PostMapping("/start-study-stage")
     public ResponseEntity<?> startGameStage(@RequestBody StartStudyStageRequestDto startStudyStageRequestDto) {
         return ResponseEntity.ok(studyService.startStudyStage(startStudyStageRequestDto));
     }
