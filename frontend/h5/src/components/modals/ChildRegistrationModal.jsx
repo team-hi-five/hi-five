@@ -3,11 +3,13 @@ import './ChildRegistrationModal.css';
 import DoubleButtonAlert from '../common/DoubleButtonAlert';
 import SingleButtonAlert from '../common/SingleButtonAlert';
 import { registerParentAccount, checkConsultantParentEmail } from "/src/api/userCounselor"; // API 호출 추가
+import { uploadFile, TBL_TYPES } from '../../api/file';
 
 const RegistrationModal = ({ onClose }) => {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const isSubmitting = useRef(false);
   const [formData, setFormData] = useState({
     parentName: '',
     parentEmail: '',
@@ -22,6 +24,9 @@ const RegistrationModal = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting.current) return; // 이미 실행 중이면 중단
+    isSubmitting.current = true; // 실행 시작
     
     // ✅ 성별 값을 ENUM('M', 'F') 형식으로 변환
     const formattedGender = formData.childGender === 'male' ? 'M' : 'F';
@@ -46,16 +51,34 @@ const RegistrationModal = ({ onClose }) => {
         childInterest: formData.childInterest,
         childAdditionalInfo: formData.childAdditionalInfo
       });
+      
+      // 2. 파일이 선택되었다면 파일 업로드 수행
+      if (selectedFile && response.childUserId) {
+        try {
+          await uploadFile(
+            selectedFile,
+            TBL_TYPES.PROFILE,  // 프로필 이미지이므로 'P' 타입 사용
+            response.childUserId // tblId로 생성된 childUserId 사용
+          );
+        } catch (error) {
+          console.error("❌ 프로필 이미지 업로드 실패:", error);
+          await SingleButtonAlert("프로필 이미지 업로드에 실패했지만, 회원 등록은 완료되었습니다.");
+          onClose();
+          return;
+        }
+      }
 
       console.log("✅ 회원 등록 성공:", response);
       await SingleButtonAlert('회원 등록이 완료되었습니다.');
-      onClose(); // 폼 제출 후 모달 닫기
+      onClose();
 
-    } catch (error) {
+      } catch (error) {
       console.error("❌ 회원 등록 실패:", error);
       await SingleButtonAlert("회원 등록 중 오류가 발생했습니다.");
-    }
-  };
+      } finally {
+      isSubmitting.current = false;
+      }
+      };
 
   // 이메일 중복 확인
   const handleEmailCheck = async () => {

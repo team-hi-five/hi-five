@@ -5,7 +5,7 @@ export const TBL_TYPES = {
     NOTICE: 'N', 
     QNA: 'Q',    
     GALLERY: 'G',
-    QA: 'QA'     
+    FA: 'FA'     
 };
 
 export const uploadFile = async (file, tblType, tblId) => {
