@@ -178,7 +178,8 @@ public class GameServiceImpl implements GameService {
         if (isCrt) {
             statisticEntity.setCrtCnt(statisticEntity.getCrtCnt() + 1);
         }
-        statisticEntity.setRating((int) (statisticEntity.getRating() + (1.0 / whenCrt) * BASIC_SCORE));
+        double scoreIncrement = (whenCrt < 3 ? (1.0 / whenCrt) * BASIC_SCORE : 0.0);
+        statisticEntity.setRating((int) (statisticEntity.getRating() + scoreIncrement));
 
         StatisticEntity updatedStatistic = switch (gameChapterId) {
             case 1 -> StatisticEntity.builder()
