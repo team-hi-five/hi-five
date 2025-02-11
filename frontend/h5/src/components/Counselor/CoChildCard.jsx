@@ -58,7 +58,7 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
      <ChildDetailModal 
        isOpen={isModalOpen}
        onClose={handleModalClose}
-       childData={{
+       initialChildData={{
          id: id,
          name: childName,
          age: age,
