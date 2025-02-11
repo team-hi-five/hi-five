@@ -27,7 +27,7 @@ function ParentChildPage() {
   const [prevVideoMonth2, setPrevVideoMonth2] = useState(dateVideo2.getMonth());
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
-
+  
 
   // 🔹 달력이 렌더링된 후, 예약된 날짜에 스타일을 추가하는 함수
   const highlightScheduledDatesInDOM = useCallback((calendarSide) => {
@@ -99,25 +99,30 @@ function ParentChildPage() {
       setPrevVideoMonth2(newMonth);
     }
   };
-  
-  
 
-  
   // ✅ 챗봇 날짜 불러오기
-  const fetchChatBotDate = useCallback(async (selectedDate) => {
-    if (!selectedChild || !selectedChild.childUserId) return;
+const fetchChatBotDate = useCallback(async (selectedDate) => {
+  if (!selectedChild || !selectedChild.childUserId) return;
 
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth()+1;
+  const year = selectedDate.getFullYear();
+  const month = selectedDate.getMonth() + 1; // 0 기반 → 1 기반
 
-    try {
-      console.log(`📅 ChatBot 데이터 가져오기: ${year}년 ${month}월, childId: ${selectedChild.childUserId}`);
-      const response = await getChatBotDate(selectedChild.childUserId, year, month);
-      setChatBotDates(response.data);
-    } catch (error) {
-      console.error("❌ ChatBot 데이터 불러오기 실패:", error);
-    }
-  }, [selectedChild]);
+  try {
+    console.log(`📅 ChatBot 데이터 가져오기: ${year}년 ${month}월, childId: ${selectedChild.childUserId}`);
+    const response = await getChatBotDate(selectedChild.childUserId, year, month);
+    // API 응답에서 dateList 배열을 "YYYY-MM-DD" 형식의 문자열 배열로 변환
+    const formattedDates = response.dateList.map((dateArr) => {
+      const [year, month, day] = dateArr;
+      const formattedMonth = String(month).padStart(2, "0");
+      const formattedDay = String(day).padStart(2, "0");
+      return `${year}-${formattedMonth}-${formattedDay}`;
+    });
+    setChatBotDates(formattedDates);
+  } catch (error) {
+    console.error("❌ ChatBot 데이터 불러오기 실패:", error);
+  }
+}, [selectedChild]);
+
 
 
   // ✅ 학습 영상 날짜 불러오기 (페이지 로드 시 + 월 변경 시)
@@ -176,6 +181,17 @@ function ParentChildPage() {
       setPrevVideoMonth2(currentMonth); // ✅ 상태 업데이트하여 중복 실행 방지
     }
   }, [dateVideo2, fetchVideoDates, prevVideoMonth2]);
+
+  useEffect(() => {
+    if (selectedChild) {
+      // 페이지가 처음 로드되었을 때, 챗봇 및 비디오 날짜를 한 번 호출합니다.
+      fetchChatBotDate(dateChatBot);
+      fetchVideoDates(dateVideo1, 1);
+      fetchVideoDates(dateVideo2, 2);
+    }
+  }, [selectedChild, dateChatBot, dateVideo1, dateVideo2,
+    fetchChatBotDate, fetchVideoDates
+  ]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -603,6 +619,7 @@ function ParentChildPage() {
                 style={{ width: "400px" }}
                 appendTo="self"
                 onViewDateChange={handleViewDateChangeForChatBot}
+                onShow={() => fetchChatBotDate(dateChatBot)}
               />
             </div>
             <p>여기에 아이의 감정 일기 기록을 표시하거나 작성할 수 있습니다.</p>
