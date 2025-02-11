@@ -482,3 +482,12 @@
 //
 //
 // export default CounselorSchedulePage;
+function CounselorSchedulePage() {
+    return (
+        <div className="co-schedule-container">
+            <p>CounselorSchedulePage Component (주석 처리됨)</p>
+        </div>
+    );
+}
+
+export default CounselorSchedulePage;

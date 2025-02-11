@@ -262,3 +262,13 @@
 //
 //
 // export default ParentSchedulePage;
+
+function ParentSchedulePage() {
+    return (
+        <div className="pa-schedule-container">
+            <p>ParentSchedulePage Component (주석 처리됨)</p>
+        </div>
+    );
+}
+
+export default ParentSchedulePage;
