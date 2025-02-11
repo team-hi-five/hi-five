@@ -6,8 +6,9 @@ pipeline {
         BACKEND_TAG     = "latest"
         FRONTEND_IMAGE  = "nginx"
         FRONTEND_TAG    = "latest"
-
+        
         DOCKER_COMPOSE_FILE = "project/docker-compose.yml"
+        
     }
 
     stages {
@@ -27,15 +28,14 @@ pipeline {
                     }
 
                     sh 'chmod +x gradlew'
+                    
                     sh './gradlew clean build'
-
+                    
                     sh """
-                        docker build --rm \
-                          --build-arg JAR_FILE=build/libs/backend-0.0.1-SNAPSHOT.jar \
-                          -t ${env.BACKEND_IMAGE}:${env.BUILD_NUMBER} .
+                       docker build \
+                         --build-arg JAR_FILE=build/libs/backend-0.0.1-SNAPSHOT.jar \
+                         -t ${env.BACKEND_IMAGE}:${env.BACKEND_TAG} .
                     """
-
-                    sh "docker tag ${env.BACKEND_IMAGE}:${env.BUILD_NUMBER} ${env.BACKEND_IMAGE}:latest"
                 }
             }
         }
@@ -46,19 +46,15 @@ pipeline {
                     withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONT_ENV')]) {
                         sh "cp \"$FRONT_ENV\" .env"
                     }
-
-                    // Docker 내부에서 package.json이 존재하는지 확인
-                    sh 'docker run --rm -v ${WORKSPACE}/frontend/h5:/app -w /app node:22 sh -c "ls -al /app"'
-
-                    // npm 캐시를 정리하고 패키지 설치 및 빌드 실행
-                    sh 'docker run --rm -v ${WORKSPACE}/frontend/h5:/app -w /app node:22 sh -c "npm cache clean --force && npm install && npm run build"'
-
-                    sh """
-                        docker build --rm \
-                        -t ${env.FRONTEND_IMAGE}:${env.BUILD_NUMBER} .
-                    """
-
-                    sh "docker tag ${env.FRONTEND_IMAGE}:${env.BUILD_NUMBER} ${env.FRONTEND_IMAGE}:latest"
+                    
+                    script {
+                        docker.image('node:22').inside {
+                            sh 'npm install'
+                            sh 'npm run build'
+                        }
+                    }
+                    
+                    sh "docker build -t ${env.FRONTEND_IMAGE}:${env.FRONTEND_TAG} ."
                 }
             }
         }
@@ -67,14 +63,16 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    echo "기존 컨테이너를 정리합니다."
-                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} down"
-
-                    echo "새 이미지로 컨테이너를 실행합니다."
-                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} up -d --build"
+                    echo "기존 java_service 및 nginx 컨테이너를 중지 및 제거합니다."
+                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} stop java_service nginx || true"
+                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} rm -f java_service nginx || true"
+                    
+                    echo "새 이미지로 컨테이너를 기동합니다."
+                    sh "docker-compose -f ${env.DOCKER_COMPOSE_FILE} up -d java_service nginx"
                 }
             }
         }
+
     }
 
     post {
