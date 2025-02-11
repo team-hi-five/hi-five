@@ -139,7 +139,7 @@
   .co-detail-file {
     background-color: #edf3fa;
     border-radius: 4px;
-    padding: 10px;
+    padding: 10px 20px;
     color: #444;
     min-height: 60px; /* 파일 영역 높이 (임의값) */
     font-weight: bold;
@@ -208,7 +208,7 @@
 
 .co-detail-answer-input-area {
   background-color: #edf3fa;
-  border-radius: 4px;
+  border-radius: 5px;
   padding: 10px 15px;
   
 }
@@ -331,6 +331,14 @@
 
 }
 
+.co-detail-no-answer {
+  font-size: 18px;
+  text-align: center;
+  padding: 10px;
+  font-weight: bold;
+  color: #1A2A4D;
+}
+
 .co-detail-answer-info-content {
   margin-left: 40px;
 }
@@ -351,5 +359,33 @@
     margin-bottom: 20px;
     color: #1A2A4D;
     border: none;
+}
+
+.co-detail-file-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.co-detail-file-download-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.co-detail-file-download-btn:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.p-file-name {
+  color: #334155;
+  font-size: 14px;
 }
 

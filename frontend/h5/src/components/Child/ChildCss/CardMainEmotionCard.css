@@ -26,13 +26,14 @@
 }
 
 .ch-big-card img {
-    width: 60%;  
+    width: 80%;
     height: auto;
     object-fit: contain;
     display: block;
     position: relative;
     z-index: 5;
-    margin-top: -20px;
+    margin-top: -12px;
+
 }
 
 .ch-big-name-card {

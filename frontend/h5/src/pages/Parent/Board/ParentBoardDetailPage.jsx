@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
@@ -6,6 +6,7 @@ import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import { getNoticeDetail } from '../../../api/boardNotice';
 import { getFaqDetail } from '../../../api/boardFaq';
 import { getQnaDetail, updateQna, deleteQna } from '../../../api/boardQna';
+import { getFileUrl, downloadFile } from '../../../api/file';
 import '/src/pages/counselor/Css/CounselorBoardDetailPage.css';
 
 function CounselorBoardDetailPage() {
@@ -20,31 +21,54 @@ function CounselorBoardDetailPage() {
   const [qnaData, setQnaData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
-  const answers = [
-    {
-      id: 1,
-      writer: "김상담",
-      content: "문의하신 사항에 대해 답변드립니다. 해당 문제는 설정에서 해결 가능합니다.",
-      time: "2시간 전"
-    },
-    {
-      id: 2,
-      writer: "이상담",
-      content: "추가적인 정보가 필요하면 언제든 문의해주세요!",
-      time: "1시간 전"
-    },
-    {
-      id: 3,
-      writer: "박상담",
-      content: "해당 이슈는 현재 확인 중이며, 빠른 시일 내에 해결하겠습니다.",
-      time: "30분 전"
-    }
-  ];
+  const [answers, setAnswers] = useState([]);
+  // const [viewCountUpdated, setViewCountUpdated] = useState(false);
+
+  const [fileUrls, setFileUrls] = useState([]);
+  const [fileError, setFileError] = useState(null);
+
+
+  const viewCountUpdated = useRef(false);
 
   // HTML 태그를 제거하는 함수 추가
   const stripHtml = (html) => {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.textContent || "";
+  };
+
+  // getTimeAgo 함수 추가
+  const getTimeAgo = (dateString) => {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffInMilliseconds = now - past;
+    const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
+    const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
+
+    if (diffInMinutes < 1) {
+      return '방금 전';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}분 전`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours}시간 전`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays}일 전`;
+    } else {
+      return past.toLocaleDateString();
+    }
+  };
+
+  // 파일 URL을 가져오는 함수 추가
+  const fetchFileUrls = async (type, id) => {
+    try {
+      const response = await getFileUrl(type, id);
+      if (response) {
+        setFileUrls(Array.isArray(response) ? response : [response]);
+      }
+    } catch (error) {
+      console.error("파일 URL 조회 실패:", error);
+      setFileError("파일을 불러오는데 실패했습니다.");
+    }
   };
   
   const handleEdit = () => {
@@ -55,13 +79,11 @@ function CounselorBoardDetailPage() {
 
   const handleEditComplete = async () => {
     try {
-      // 수정된 내용이 없으면 경고
       if (!editedContent) {
         await SingleButtonAlert('수정할 내용을 입력해주세요.');
         return;
       }
   
-      // 제목이 비어있으면 경고
       if (!editedTitle) {
         await SingleButtonAlert('제목을 입력해주세요.');
         return;
@@ -70,7 +92,6 @@ function CounselorBoardDetailPage() {
       if (type === "qna") {
         const updatedQna = await updateQna(no, editedTitle, editedContent);
         
-        // 응답으로 받은 데이터로 상태 업데이트
         const formattedData = {
           ...qnaData,
           title: updatedQna.title || editedTitle,
@@ -81,7 +102,6 @@ function CounselorBoardDetailPage() {
         };
   
         setQnaData(formattedData);
-        // await SingleButtonAlert("성공적으로 수정되었습니다.");
       }
       
       setIsEditing(false);
@@ -104,7 +124,7 @@ function CounselorBoardDetailPage() {
         if (type === "qna") {
           await deleteQna(no);
           await SingleButtonAlert("성공적으로 삭제되었습니다.");
-          navigate('/counselor/board');
+          navigate('/parent/board');
         }
       }
     } catch (error) {
@@ -115,92 +135,92 @@ function CounselorBoardDetailPage() {
     }
   };
 
- // 상세 데이터 가져오기
- useEffect(() => {
-  const fetchData = async () => {
-    if (type === "notice") {
-      try {
-        setIsLoading(true);
-        const response = await getNoticeDetail(no);
-        
-        const formattedData = {
-          no: response.id,
-          title: response.title,
-          content: response.content,
-          writer: response.name || "운영자",
-          views: response.viewCnt || 0,
-          date: new Date(response.createDttm).toISOString().split('T')[0]
-        };
-        
-        setNoticeData(formattedData);
-      } catch (error) {
-        console.error("공지사항 상세 조회 실패:", error);
-        await SingleButtonAlert(
-          error.response?.data?.message || '공지사항을 불러오는데 실패했습니다.'
-        );
-        navigate(-1);
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (type === "faq") {
-      try {
-        setIsLoading(true);
-        const response = await getFaqDetail(no);
-        
-        // API 응답 데이터 포맷팅
-        const formattedData = {
-          no: response.id,
-          title: response.title,
-          content: response.faqAnswer,
-          type: response.type === "usage"
-            ? "이용안내"
-            : response.type === "child"
-            ? "아동상담/문의"
-            : response.type === "center"
-            ? "센터이용/문의"
-            : "기타"
-        };
-        
-        setFaqData(formattedData);
-      } catch (error) {
-        console.error("FAQ 상세 조회 실패:", error);
-        await SingleButtonAlert(
-          error.response?.data?.message || 'FAQ를 불러오는데 실패했습니다.'
-        );
-        navigate(-1);
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (type === "qna") {
-      try {
-        setIsLoading(true);
-        const response = await getQnaDetail(no);
+  // 상세 데이터 가져오기 (수정된 부분)
+  useEffect(() => {
+    if (no && !viewCountUpdated.current) {  
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          
+          if (type === "notice") {
+            const response = await getNoticeDetail(no);
+            
+            const formattedData = {
+              no: response.id,
+              title: response.title,
+              content: response.content,
+              writer: response.name || "운영자",
+              views: response.viewCnt || 0,
+              date: new Date(response.createDttm).toISOString().split('T')[0]
+            };
+            
+            setNoticeData(formattedData);
+            // 파일 URL 조회
+            await fetchFileUrls('N', response.id);
 
-        // API 응답 데이터 포맷팅
-        const formattedData = {
-          no: response.id,
-          title: response.title,
-          content: response.content,
-          writer: response.name,
-          status: response.answerCnt > 0 ? "답변완료" : "미답변",
-          date: new Date(response.createDttm).toISOString().split('T')[0]
-        };
+          } else if (type === "faq") {
+            const response = await getFaqDetail(no);
+            
+            const formattedData = {
+              no: response.id,
+              title: response.title,
+              content: response.faqAnswer,
+              type: response.type === "usage"
+                ? "이용안내"
+                : response.type === "child"
+                ? "아동상담/문의"
+                : response.type === "center"
+                ? "센터이용/문의"
+                : "기타"
+            };
+            
+            setFaqData(formattedData);
+            // 파일 URL 조회
+            await fetchFileUrls('N', response.id);
 
-        setQnaData(formattedData);
-      } catch (error) {
-        console.error("QnA 상세 조회 실패:", error);
-        await SingleButtonAlert(
-          error.response?.data?.message || 'QnA를 불러오는데 실패했습니다.'
-        );
-        navigate(-1);
-      } finally {
-        setIsLoading(false);
-      }
+          } else if (type === "qna") {
+            const response = await getQnaDetail(no);
+
+            const formattedData = {
+              no: response.id,
+              title: response.title,
+              content: response.content,
+              writer: response.name,
+              status: response.answerCnt > 0 ? "답변완료" : "미답변",
+              date: new Date(response.createDttm).toISOString().split('T')[0]
+            };
+
+            if (response.qnaAnswerResponseList && response.qnaAnswerResponseList.length > 0) {
+              const formattedAnswers = response.qnaAnswerResponseList.map(answer => ({
+                id: answer.id,
+                writer: answer.name || "상담사",
+                content: answer.content,
+                time: getTimeAgo(answer.createDttm),
+                profileImageUrl: answer.profileImageUrl || "/no.png"
+              }));
+              setAnswers(formattedAnswers);
+            } else {
+              setAnswers([]);
+            }
+        
+            setQnaData(formattedData);
+            // 파일 URL 조회
+            await fetchFileUrls('Q', response.id);
+          }
+        } catch (error) {
+          console.error("데이터 조회 실패:", error);
+          await SingleButtonAlert(
+            error.response?.data?.message || '데이터를 불러오는데 실패했습니다.'
+          );
+          navigate(-1);
+        } finally {
+          setIsLoading(false);
+        }
+        viewCountUpdated.current = true;
+      };
+      fetchData();
     }
-  };
-
-  fetchData();
-}, [type, no]);
+  }, [type, no]);
 
   const handleBack = () => {
     navigate(-1);
@@ -213,7 +233,7 @@ function CounselorBoardDetailPage() {
     }
   };
 
-  // 해당하는 게시판 데이터를 가져옴
+  // 게시판 데이터 선택
   let postData;
   if (type === "notice") {
     postData = noticeData;
@@ -349,7 +369,33 @@ function CounselorBoardDetailPage() {
                   </span>
                 </>
               ) : (
-                "첨부파일"
+                <div className="co-detail-file-list">
+                  <h4>첨부파일</h4>
+                  {fileError ? (
+                    <p className="co-detail-file-error">{fileError}</p>
+                  ) : fileUrls.length > 0 ? (
+                    <div className="co-detail-file-buttons">
+                      {fileUrls.map((file, index) => (
+                        <button 
+                          key={index}
+                          onClick={async () => {
+                            try {
+                              await downloadFile(file.fileId, file.fileName);
+                            } catch (error) {
+                              console.error("파일 다운로드 실패:", error);
+                              await SingleButtonAlert("파일 다운로드에 실패했습니다.");
+                            }
+                          }}
+                          className="co-detail-file-download-btn"
+                        >
+                          <span className="p-file-name">{file.fileName}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>첨부파일이 없습니다.</p>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -357,33 +403,35 @@ function CounselorBoardDetailPage() {
 
         {/* 답변 영역 */}
         {type === "qna" && (
-  <div className="answer-section">
-    <div className="co-detail-card">
-      <div className="co-detail-answer">
-        <div className="co-detail-answer-header">
-          <h3 className="co-detail-answer-title">답변</h3>
-        </div>
-        
-        {answers.length > 0 ? (
-          answers.map((ans) => (
-            <div key={ans.id} className="co-detail-answer-content">
-              <div className="co-detail-answer-info">
-                <img src="/no.png" alt="프로필" className="co-detail-answer-info-img" />
-                <span className="co-detail-answer-writer">{ans.writer}</span>
-                <span className="co-detail-answer-time">{ans.time}</span>
-              </div>
-              <div className="co-detail-answer-info-content">
-                {ans.content}
+          <div className="answer-section">
+            <div className="co-detail-card">
+              <div className="co-detail-answer">
+                <div className="co-detail-answer-header">
+                  <h3 className="co-detail-answer-title">답변</h3>
+                </div>
+                
+                {answers.length > 0 ? (
+                  answers.map((ans) => (
+                    <div key={ans.id} className="co-detail-answer-content">
+                      <div className="co-detail-answer-info">
+                        <img src="/no.png" alt="프로필" className="co-detail-answer-info-img" />
+                        <span className="co-detail-answer-writer">{ans.writer}</span>
+                        <span className="co-detail-answer-time">{ans.time}</span>
+                      </div>
+                      <div className="co-detail-answer-info-content">
+                        {ans.content}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="co-detail-answer-input-area">
+                    <p className="co-detail-no-answer">아직 답변이 없습니다.</p>
+                  </div>
+                )}
               </div>
             </div>
-          ))
-        ) : (
-          <p className="co-detail-no-answer">아직 답변이 없습니다.</p>
+          </div>
         )}
-      </div>
-    </div>
-  </div>
-)}
 
       </div>
     </div>

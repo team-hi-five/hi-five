@@ -1,108 +1,121 @@
-@import 'primereact/resources/themes/lara-light-indigo/theme.css';  /* 테마 */
-@import 'primereact/resources/primereact.min.css';                  /* 코어 css */
-@import 'primeicons/primeicons.css';                               /* 아이콘 */
-@import 'primeflex/primeflex.css';                                 /* flexbox & grid */
-
-
-/* * {
-    font-family: 'Jua';
-} */
+@import "primereact/resources/themes/lara-light-indigo/theme.css"; /* 테마 */
+@import "primereact/resources/primereact.min.css"; /* 코어 css */
+@import "primeicons/primeicons.css"; /* 아이콘 */
+@import "primeflex/primeflex.css"; /* flexbox & grid */
 
 .ch-main-container {
-    position: relative;
-    padding-top: 100px;
-    min-height: 100vh;
-
+  position: relative;
+  padding-top: 100px;
+  min-height: 100vh;
 }
 
-.ch-main-foreground{
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
+.ch-main-foreground {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
+.ch-childName {
+  color: rgb(55, 191, 182);
+  display: inline;
+}
 
 /* 로그인상태 스타일 */
 .ch-login-state {
-    display: flex;
-    justify-content: center;
-    border-radius: 20px !important;
-    margin: auto;
-    margin-bottom: 30px;
-    background: #ffffff !important;
-    position: relative;
-    max-width: 600px;
-    pointer-events: auto;
+  display: flex;
+  justify-content: center;
+  border-radius: 20px !important;
+  margin: auto;
+  margin-bottom: 30px;
+  background: #ffffff !important;
+  position: relative;
+  max-width: 600px;
+  pointer-events: auto;
 }
 
 /* 카드 내부 텍스트 스타일링 */
 .ch-login-state .p-card-body {
-    text-align: center;
-    padding: 20px 40px;
-    font-size: clamp(18px, 2.5vw, 24px); /* 반응형 폰트 크기 */
-    font-weight: 600; /* 글씨 진하게 */
+  text-align: center;
+  padding: 20px 40px;
+  font-size: clamp(18px, 2.5vw, 24px); /* 반응형 폰트 크기 */
+  font-weight: 600; /* 글씨 진하게 */
 }
 
 /* 각 기능으로 이동하는 페이지 스타일일 */
 .ch-menu-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2열 그리드 */
-    gap: 20px; /* 카드 사이 간격 */
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    pointer-events: auto; 
-    position: relative; 
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2열 그리드 */
+  gap: 20px; /* 카드 사이 간격 */
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  pointer-events: auto;
+  position: relative;
 }
 
 /* 카드 스타일  */
-.ch-class, .ch-review, .ch-cardmain, .ch-chatbot {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box; 
-    background-color: #A0D6FF !important;
-    border-radius: 15px !important;
-    padding: 2rem !important;
-    cursor: pointer;
-    transition: transform 0.2s;
-    pointer-events: auto;
+.ch-class,
+.ch-review,
+.ch-cardmain,
+.ch-chatbot {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background-color: #a0d6ff !important;
+  border-radius: 15px !important;
+  padding: 2rem !important;
+  cursor: pointer;
+  transition: transform 0.2s;
+  pointer-events: auto;
 }
 
 /* 카드 호버 효과 */
-.ch-class:hover, .ch-review:hover, .ch-cardmain:hover, .ch-chatbot:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
-} 
+.ch-class:hover,
+.ch-review:hover,
+.ch-cardmain:hover,
+.ch-chatbot:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
 
 /* 제목 */
-.ch-class h1, .ch-review h1, .ch-cardmain h1, .ch-chatbot h1 {
-    font-size: clamp(20px, 4vw, 32px); /* 반응형 폰트 크기 */
-    margin-bottom: 16px;
-    color: #333;
-    text-align: center; /* 가운데 정렬 */
-    width: 100%;
-    font-weight: 600;
+.ch-class h1,
+.ch-review h1,
+.ch-cardmain h1,
+.ch-chatbot h1 {
+  font-size: clamp(20px, 4vw, 32px); /* 반응형 폰트 크기 */
+  margin-bottom: 16px;
+  color: #333;
+  text-align: center; /* 가운데 정렬 */
+  width: 100%;
+  font-weight: 600;
 }
 
 /* 부제목 */
-.ch-class p, .ch-review p, .ch-cardmain p, .ch-chatbot p {
-    font-size: clamp(14px, 2vw, 18px); /* 반응형 폰트 크기 */
-    color: #333;
-    margin: 0;
-    text-align: center; /* 가운데 정렬 */
-    width: 100%;
-    line-height: 1.5;
+.ch-class p,
+.ch-review p,
+.ch-cardmain p,
+.ch-chatbot p {
+  font-size: clamp(14px, 2vw, 18px); /* 반응형 폰트 크기 */
+  color: #333;
+  margin: 0;
+  text-align: center; /* 가운데 정렬 */
+  width: 100%;
+  line-height: 1.5;
 }
 
 /* 반응형 미디어 쿼리 */
 @media screen and (max-width: 768px) {
-    .ch-class h1, .ch-review h1, .ch-cardmain h1, .ch-chatbot h1 {
-        margin-bottom: 12px;
-    }
+  .ch-class h1,
+  .ch-review h1,
+  .ch-cardmain h1,
+  .ch-chatbot h1 {
+    margin-bottom: 12px;
+  }
 }
