@@ -25,7 +25,7 @@ function OpenviduVideo() {
   // 새로운 참가자 스트림 구독
   const subscribeToStreamCreated = useCallback((session) => {
     session.on("streamCreated", (event) => {
-      const subscriber = session.subscribe(event.stream, videoRef.current);
+      const subscriber = session.subscribe(event.stream, undefined);
       setSubscribers((prev) => [...prev, subscriber]);
     });
   }, []);
@@ -234,7 +234,16 @@ function OpenviduVideo() {
     return () => {
       setSubscribers([]);
       if (publisher) {
-        publisher.stream.dispose();
+        try {
+          const mediaStream = publisher.stream?.getMediaStream();
+          if (mediaStream) {
+            mediaStream.getTracks().forEach(track => {
+              track.stop();
+            });
+          }
+        } catch (error) {
+          console.error('Error cleaning up stream:', error);
+        }
       }
     };
   }, [session, joinSession, leaveSessionInternal, publisher]);
@@ -242,11 +251,23 @@ function OpenviduVideo() {
 
   useEffect(() => {
     if (publisher && videoRef.current) {
-      videoRef.current.srcObject = publisher.stream;
+      try {
+        const mediaStream = publisher.stream?.getMediaStream();
+
+        console.log('Publisher:', publisher);
+        console.log('MediaStream:', mediaStream);
+        console.log('VideoRef:', videoRef.current);
+        
+        if (mediaStream) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      } catch (error) {
+        console.error('Error setting media stream:', error);
+      }
     }
   }, [publisher]);
 
-  
+
   // ====================================================================
   // 6. 렌더링
   // ====================================================================
