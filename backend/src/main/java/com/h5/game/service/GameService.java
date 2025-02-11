@@ -18,4 +18,5 @@ public interface GameService {
     EndGameChapterResponseDto endGameChapter(EndGameChapterRequestDto endGameChapterRequestDto);
 
     SaveGameLogResponseDto saveGameLog(SaveGameLogRequestDto saveGameLogRequestDto);
+
 }

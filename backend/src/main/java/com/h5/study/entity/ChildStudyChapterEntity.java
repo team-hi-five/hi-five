@@ -4,8 +4,7 @@ import com.h5.asset.entity.GameChapterEntity;
 import com.h5.child.entity.ChildUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
@@ -15,11 +14,15 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "child_study_chapter")
 public class ChildStudyChapterEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "child_game_chapter_id", nullable = false)
+    @Column(name = "child_study_chapter_id", nullable = false)
     private Integer id;
 
     @NotNull
@@ -40,7 +43,7 @@ public class ChildStudyChapterEntity {
     @Column(name = "end_dttm")
     private LocalDateTime endDttm;
 
-    @OneToMany(mappedBy = "childStudyChapterEntity")
+    @OneToMany(mappedBy = "childStudyChapter")
     private Set<ChildStudyStageEntity> childStudyStageEntities = new LinkedHashSet<>();
 
 }
