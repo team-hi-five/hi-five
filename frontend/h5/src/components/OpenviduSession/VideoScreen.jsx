@@ -363,3 +363,14 @@
 // }
 //
 // export default OpenviduVideo;
+
+
+function OpenviduVideo() {
+    return (
+        <div className="webcam-container">
+            <p>OpenviduVideo Component (주석 처리됨)</p>
+        </div>
+    );
+}
+
+export default OpenviduVideo;
