@@ -60,18 +60,49 @@ function OpenviduVideo() {
       });
 
       console.log("Sending request data:", res.data);
-      const token = res.data
+
+      // 응답 문자열에서 token 파라미터 추출 (예: wss://hi-five.site:4443?sessionId=...&token=xxx)
+      const urlObj = new URL(res.data);
+      const token = urlObj.searchParams.get("token");
+
+      if (!token) {
+        throw new Error("토큰을 추출할 수 없습니다.");
+      }
       return token;
+
     } catch (error) {
-      console.error("Error getting token:", error.message);
-      console.error("Error details:", {
+      console.error("토큰 에러:", error.message);
+      console.error("토큰 에러 상세보기기:", {
         status: error.response?.status,
         data: error.response?.data,
         headers: error.response?.headers,
       });
       throw error;
     }
-  }, []);
+  }, [childId]);
+
+ // 웹소켓 재연결
+  const connectWithRetry = async (session, token, maxAttempts = 3) => {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        console.log(`연결 시도 ${attempt}/${maxAttempts}`);
+        await session.connect(token, { clientData: String(childId) });
+        console.log('연결 성공!');
+        return true;
+      } catch (error) {
+        console.log(`연결 시도 ${attempt} 실패:`, error);
+        
+        // 마지막 시도였다면
+        if (attempt === maxAttempts) {
+          alert("화상 연결에 실패했습니다. 페이지를 새로고침하거나 잠시 후 다시 시도해주세요.");
+          throw error;
+        }
+        
+        // 다음 시도 전 대기
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  };
 
   // 3. 세션에 참가 + 연결(사용자)
   const joinSession = useCallback(async () => {
@@ -89,6 +120,22 @@ function OpenviduVideo() {
       subscribeToStreamCreated(newSession);
       subscribeToStreamDestroyed(newSession);
       subscribeToUserChanged(newSession);
+
+
+      // 연결 끊김 처리를 위한 새로운 이벤트 리스너
+    newSession.on('sessionDisconnected', async (event) => {
+      console.log('Session disconnected:', event.reason);
+      if (event.reason === 'networkDisconnect') {
+        try {
+          const token = await getToken();
+          await connectWithRetry(newSession, token);
+        } catch (error) {
+          console.error('Reconnection failed after max attempts', error);
+          setSession(null);
+        }
+      }
+    });
+
 
       setSession(newSession);
 
@@ -109,7 +156,7 @@ function OpenviduVideo() {
         });
       }
     }
-  }, [getToken, connectWebCam, childId]);
+  }, [getToken, connectWebCam, childId, subscribeToStreamCreated, subscribeToStreamDestroyed, subscribeToUserChanged]);
 
   // 이벤트 리스너 함수
   // 4. 새로운 참가자 스트림 구독
@@ -171,6 +218,7 @@ function OpenviduVideo() {
         await joinSession();
       } catch (error) {
         console.error("Failed to join session:", error);
+        
       }
     };
 
@@ -188,7 +236,7 @@ function OpenviduVideo() {
         publisher.stream.dispose();
       }
     };
-  }, [session]);
+  }, [session, joinSession, leaveSessionInternal, publisher]);
 
   return (
     <div className="webcam-container">
