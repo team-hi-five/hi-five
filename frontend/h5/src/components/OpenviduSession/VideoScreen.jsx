@@ -239,6 +239,14 @@ function OpenviduVideo() {
     };
   }, [session, joinSession, leaveSessionInternal, publisher]);
 
+
+  useEffect(() => {
+    if (publisher && videoRef.current) {
+      videoRef.current.srcObject = publisher.stream;
+    }
+  }, [publisher]);
+
+  
   // ====================================================================
   // 6. 렌더링
   // ====================================================================
