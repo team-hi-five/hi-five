@@ -1,0 +1,10 @@
+# Node modules (npm install 하면 생성되는 폴더)
+node_modules/
+
+# 환경 변수 파일 (서비스 계정 등 민감 정보)
+.env
+google-credentials.json
+google-credentials-HSW.json
+
+# 결과 파일들 (예: 녹음된 WAV 파일)
+logs/
