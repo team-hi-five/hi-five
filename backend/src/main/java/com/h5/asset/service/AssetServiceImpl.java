@@ -72,6 +72,9 @@ public class AssetServiceImpl implements AssetService {
         GameAssetEntity gameAssetEntity = gameAssetRepository.findById(gameStageId)
                 .orElseThrow(RuntimeException::new);
 
+        CardAssetEntity cardAssetEntity = cardAssetRepository.findByGameStageEntity_Id(gameStageId)
+                .orElseThrow(RuntimeException::new);
+
         return LoadAssetResponseDto.builder()
                 .gameStageId(gameAssetEntity.getId())
                 .chapterId(gameAssetEntity.getGameStageEntity().getGameChapterEntity().getId())
@@ -80,6 +83,8 @@ public class AssetServiceImpl implements AssetService {
                 .optionImages(new String[]{gameAssetEntity.getOptPic1(), gameAssetEntity.getOptPic2(), gameAssetEntity.getOptPic3()})
                 .situation(gameAssetEntity.getSituation())
                 .answer(stageAnswer)
+                .cardFront(cardAssetEntity.getCardFront())
+                .cardBack(cardAssetEntity.getCardBack())
                 .build();
     }
 
