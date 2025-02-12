@@ -40,4 +40,8 @@ public class AssetController {
         return ResponseEntity.ok(assetService.loadStudyAsset(loadStudyAssetRequestDto));
     }
 
+    @GetMapping("/get-stage/{childId}")
+    public ResponseEntity<?> getStage(@PathVariable int childId) {
+        return ResponseEntity.ok(assetService.getStage(childId));
+    }
 }
