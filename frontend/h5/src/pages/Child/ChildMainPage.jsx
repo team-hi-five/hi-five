@@ -3,6 +3,7 @@ import "./ChildCss/ChildMainPage.css";
 import { Card } from "primereact/card";
 import ChildMainBackground from "../../components/Child/ChildMainBackground";
 import useChildIdstore from "../../store/childIdStore";
+import useGameStore from "../../store/gameStore";
 import { limitGamedata } from "../../api/childGameContent";
 
 //✅ api 호출과 변수 관리에 필요한 import ✅
@@ -55,20 +56,24 @@ function ChildMainPage() {
   // 스테이지, 챕터 limitGameData API 호출
   const handleLimitClick = async () => {
     try {
+      console.log("1. 학습 제한 데이터 불러오는 중...");
       const data = await limitGamedata(childId);
       if (data) {
+        console.log("2. 학습 제한 데이터:", data);
+        console.log(`3. ${data.chapter}단원 전체 데이터 불러오는 중...`);
+        await useGameStore.getState().fetchChapterData(data.chapter);
+        console.log("4. 중앙 저장소에 데이터 저장 완료");
         navigate(`/child/${childId}/todayclass`, {
           state: {
             stageId: data.stage,
-            chapterId: data.chapter
-          }
+            chapterId: data.chapter,
+          },
         });
       }
     } catch (error) {
       console.error("데이터 로드 실패:", error);
     }
   };
-
 
   return (
     <div className="ch-main-container">
@@ -82,27 +87,45 @@ function ChildMainPage() {
         </Card>
 
         <div className="ch-menu-container">
-          <Card
-            className="ch-class"
-            onClick={handleLimitClick}
-          >
-            <h1>오늘의 수업</h1>
-            <p>선생님과 함께하는 감정게임!</p>
+          <Card className="ch-class" onClick={handleLimitClick}>
+            <div className="ch-class-wrapper">
+              <div className="ch-today-class-img">
+                <img src="/child/main/today-class-img.png" alt="todayImg" />
+              </div>
+              <div className="ch-today-class-content">
+                <h1>오늘의 수업</h1>
+                <p>선생님과 함께하는 감정게임!</p>
+              </div>
+            </div>
           </Card>
 
           <Card
             className="ch-review"
             onClick={() => navigate(`/child/${childId}/review`)}
           >
-            <h1>감정놀이 복습</h1>
-            <p>혼자서 다시해봐요~!</p>
+            <div className="ch-review-wrapper">
+              <div className="ch-review-img">
+                <img src="/child/main/review-img.png" alt="" />
+              </div>
+              <div className="ch-review-content">
+                <h1>감정놀이 복습</h1>
+                <p>혼자서 다시해봐요~!</p>
+              </div>
+            </div>
           </Card>
           <Card
             className="ch-cardmain"
             onClick={() => navigate(`/child/${childId}/cardmain`)}
           >
-            <h1>카드상자</h1>
-            <p>내가 모은 카드, 한번 볼까요?</p>
+            <div className="ch-cardmain-wrapper">
+              <div className="ch-cardmain-page-img">
+                <img src="/child/main/card-list-img.png" alt="" />
+              </div>
+              <div className="ch-cardmain-page-content">
+                <h1>카드상자</h1>
+                <p>내가 모은 카드, 한번 볼까요?</p>
+              </div>
+            </div>
           </Card>
           <Card
             className="ch-chatbot"
