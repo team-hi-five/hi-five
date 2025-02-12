@@ -1,10 +1,17 @@
 import { Card } from 'primereact/card';
 import { useState } from 'react';
-import './CoChildCard.css';
+import { useNavigate } from 'react-router-dom';
+import '../Counselor/Css/CoChildCard.css';
 import ChildDetailModal from '../modals/ChildDetailModal';
+import defaultImg from '/child/character/angrymi.png'
 
 const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDate, parentPhone, parentEmail, treatmentPeriod, firstConsultDate, interests, notes, onDelete, onUpdate }) => {
  const [isModalOpen, setIsModalOpen] = useState(false);
+ const navigate = useNavigate();
+
+ const handleImageError = (e) => {
+  e.target.src = defaultImg;  // import한 이미지 사용
+};
 
 //  const handleImageChange = (newImageUrl) => {
 //   onUpdate(id, { imageUrl: newImageUrl });
@@ -12,6 +19,11 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
 
   const handleModalClose = () => {
     setIsModalOpen(false);
+  };
+
+  const handleStatusClick = () => {
+    // childName을 state로 전달하면서 페이지 이동
+    navigate('/counselor/children/data', { state: { selectedChild: childName } });
   };
 
 
@@ -23,7 +35,7 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
        <Card className="co-child-card">
          <div className="co-card-content">
            <div className="co-image-section" onClick={() => setIsModalOpen(true)}>
-             <img src={imageUrl} alt={childName} className="co-child-image" />
+             <img src={imageUrl || defaultImg} alt={childName} className="co-child-image" onError={handleImageError}/>
            </div>
            <div className="co-info-section">
              <div className="co-info-item">
@@ -31,9 +43,13 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
                <p>{age}살</p>
                <p>{parentName}</p>
              </div>
-             <div className="co-status-badge">
-               <span><strong>학습 현황</strong></span>
-             </div>
+             <div 
+                className="co-status-badge"
+                onClick={handleStatusClick}
+                style={{ cursor: 'pointer' }}
+              >
+                <span><strong>학습 현황</strong></span>
+              </div>
            </div>
          </div>
        </Card>
@@ -42,12 +58,12 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
      <ChildDetailModal 
        isOpen={isModalOpen}
        onClose={handleModalClose}
-       childData={{
+       initialChildData={{
          id: id,
          name: childName,
          age: age,
          parentName: parentName,
-         imageUrl: imageUrl,
+         imageUrl: imageUrl || defaultImg,
          gender: gender,
          birthDate: birthDate,
          parentPhone: parentPhone,

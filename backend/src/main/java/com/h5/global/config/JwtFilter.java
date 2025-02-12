@@ -28,10 +28,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
     // Swagger 경로를 제외할 리스트
     private static final List<String> EXCLUDED_PATHS = List.of(
-            "/swagger-ui/",
-            "/v3/api-docs",
-            "/swagger-resources",
-            "/webjars"
+            "/api/swagger-ui/",
+            "/api/v3/api-docs",
+            "/api/swagger-resources",
+            "/api/webjars"
     );
 
     @Autowired
