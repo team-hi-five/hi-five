@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import ChildDetailModal from './ChildDetailModal';
 import { getParentDeleteRequests, getConsultantChild } from "/src/api/userCounselor";
+import defaultImg from '/child/character/angrymi.png';  // 기본 이미지 import
 import './DeleteChildModal.css';
+import { getFileUrl, TBL_TYPES } from '../../api/file';
 
 const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
   const [deleteRequests, setDeleteRequests] = useState([]);
@@ -26,36 +28,41 @@ const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
     }
   };
 
-  const handleChildClick = async (childUserId, deleteUserRequestId) => {
-      try {
-        const data = await getConsultantChild(childUserId);
-        console.log("📢 변환 전 받아온 Child Data:", data);
+  // DeleteChildModal.jsx
+const handleChildClick = async (childUserId, deleteUserRequestId) => {
+  try {
+    const data = await getConsultantChild(childUserId);
     
-        // ✅ ChildDetailModal에 맞게 데이터 변환
-        const formattedData = {
-          id: data.childUserId,
-          name: data.childName,
-          age: data.age,
-          birthDate: data.birth,
-          gender: data.gender,
-          imageUrl: data.profileImgUrl,
-          parentName: data.parentName,
-          parentPhone: data.parentPhone,
-          parentEmail: data.parentEmail,
-          firstConsultDate: data.firstConsultDate,
-          interests: data.interest,
-          notes: data.additionalInfo,
-          deleteUserRequestId: deleteUserRequestId, // ✅ 여기에 넣고싶어~
-        };
+    // 이미지 URL 가져오기 (CounselorChildrenPage와 동일한 방식으로)
+    const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, childUserId);
+    let profileImageUrl = data.profileImgUrl; // 기본값
     
-        console.log("✅ 변환 후 Child Data:", formattedData);
-    
-        setChildData(formattedData);
-        setSelectedChild(true);
-      } catch (error) {
-        console.error("❌ 아이 정보 불러오기 실패:", error);
-      }
-  };
+    if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0) {
+      profileImageUrl = imageUrls[imageUrls.length - 1].url;
+    }
+
+    const formattedData = {
+      id: data.childUserId,
+      name: data.childName,
+      age: data.age,
+      birthDate: data.birth,
+      gender: data.gender,
+      imageUrl: profileImageUrl || defaultImg,  // 여기를 수정
+      parentName: data.parentName,
+      parentPhone: data.parentPhone,
+      parentEmail: data.parentEmail,
+      firstConsultDate: data.firstConsultDate,
+      interests: data.interest,
+      notes: data.additionalInfo,
+      deleteUserRequestId: deleteUserRequestId,
+    };
+
+    setChildData(formattedData);
+    setSelectedChild(true);
+  } catch (error) {
+    console.error("❌ 아이 정보 불러오기 실패:", error);
+  }
+};
 
   
 
@@ -113,7 +120,7 @@ const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
         <ChildDetailModal
           isOpen={true}
           onClose={handleCloseDetail}
-          childData={childData}
+          initialChildData={childData}
           isDeleteRequest={true}
         />
       )}
