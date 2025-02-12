@@ -63,7 +63,7 @@ function ChildReviewPage() {
             }
             // console.log("clicked:", item.gameChapterId);
             navigate(`/child/${childId}/review/${item.gameChapterId}`, {
-              state: { item },
+              state: { chapterId: item.gameChapterId },
             });
           }}
         />
