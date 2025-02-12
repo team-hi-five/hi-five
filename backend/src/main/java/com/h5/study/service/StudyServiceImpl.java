@@ -24,7 +24,6 @@ import com.h5.study.repository.StudyVideoLogRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -49,7 +48,7 @@ public class StudyServiceImpl implements StudyService {
                         .childUserEntity(childUserRepository.findById(startStudyChapterRequsetDto.getChildUserId())
                                 .orElseThrow(UserNotFoundException::new))
                         .gameChapterEntity(gameChapterRepository.findById(startStudyChapterRequsetDto.getStudyChapterId())
-                                .orElseThrow(() -> new GameNotFoundException("Chapter not found", HttpStatus.NOT_FOUND)))
+                                .orElseThrow(() -> new GameNotFoundException("Chapter not found")))
                         .startDttm(LocalDateTime.now())
                         .build())
                         .getId())
@@ -61,9 +60,9 @@ public class StudyServiceImpl implements StudyService {
         return StartStudyStageResponseDto.builder()
                 .childStudyStageId(childStudyStageRepository.save(ChildStudyStageEntity.builder()
                         .gameStageEntity(gameStageRepository.findById(startStudyStageRequestDto.getGameStageId())
-                                .orElseThrow(() -> new GameNotFoundException("Game stage not found", HttpStatus.NOT_FOUND)))
+                                .orElseThrow(() -> new GameNotFoundException("Game stage not found")))
                         .childStudyChapterEntity(childStudyChapterRepository.findById(startStudyStageRequestDto.getChildStudyChapterId())
-                                .orElseThrow(() -> new GameNotFoundException("Child game chapter not found", HttpStatus.NOT_FOUND)))
+                                .orElseThrow(() -> new GameNotFoundException("Child game chapter not found")))
                         .build())
                         .getId())
                 .build();
@@ -72,7 +71,7 @@ public class StudyServiceImpl implements StudyService {
     @Override
     public EndStudyChapterResponseDto endStudyChapter(EndStudyChapterRequestDto endStudyChapterRequestDto) {
         ChildStudyChapterEntity childStudyChapterEntity = childStudyChapterRepository.findById(endStudyChapterRequestDto.getChildStudyChapterId())
-                .orElseThrow(() -> new GameNotFoundException("Child study chapter not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new GameNotFoundException("Child study chapter not found"));
         childStudyChapterEntity.setEndDttm(LocalDateTime.now());
         childStudyChapterRepository.save(childStudyChapterEntity);
         return EndStudyChapterResponseDto.builder()
@@ -85,7 +84,7 @@ public class StudyServiceImpl implements StudyService {
 
         StudyVideoLogEntity studyVideoLogEntity = studyVideoLogRepository.save(StudyVideoLogEntity.builder()
                         .childStudyStageEntity(childStudyStageRepository.findById(saveStudyLogRequestDto.getChildGameStageId())
-                                .orElseThrow(() -> new GameNotFoundException("Child study stage not found", HttpStatus.NOT_FOUND)))
+                                .orElseThrow(() -> new GameNotFoundException("Child study stage not found")))
                         .fHappy(saveStudyLogRequestDto.getFHappy())
                         .fAnger(saveStudyLogRequestDto.getFAnger())
                         .fSad(saveStudyLogRequestDto.getFSad())
@@ -97,7 +96,7 @@ public class StudyServiceImpl implements StudyService {
 
         StudyTextLogEntity studyTextLogEntity = studyTextLogRepository.save(StudyTextLogEntity.builder()
                         .childStudyStageEntity(childStudyStageRepository.findById(saveStudyLogRequestDto.getChildGameStageId())
-                                .orElseThrow(() -> new GameNotFoundException("Child study stage not found", HttpStatus.NOT_FOUND)))
+                                .orElseThrow(() -> new GameNotFoundException("Child study stage not found")))
                         .tHappy(saveStudyLogRequestDto.getTHappy())
                         .tAnger(saveStudyLogRequestDto.getTAnger())
                         .tSad(saveStudyLogRequestDto.getTSad())
