@@ -3,6 +3,7 @@ import "./ChildCss/ChildMainPage.css";
 import { Card } from "primereact/card";
 import ChildMainBackground from "../../components/Child/ChildMainBackground";
 import useChildIdstore from "../../store/childIdStore";
+import { limitGamedata } from "../../api/childGameContent";
 
 //✅ api 호출과 변수 관리에 필요한 import ✅
 import { getParentChildren } from "/src/api/userParent";
@@ -49,7 +50,25 @@ function ChildMainPage() {
   //❌ api 호출, 호출된 data 중 childId와 일치하는 아이 이름 꺼내오기기 ❌
 
   // Zustand 스토어에서 childName 가져오기
-  const { childName: childName } = useChildIdstore();
+  const { childName } = useChildIdstore();
+
+  // 스테이지, 챕터 limitGameData API 호출
+  const handleLimitClick = async () => {
+    try {
+      const data = await limitGamedata(childId);
+      if (data) {
+        navigate(`/child/${childId}/todayclass`, {
+          state: {
+            stageId: data.stage,
+            chapterId: data.chapter
+          }
+        });
+      }
+    } catch (error) {
+      console.error("데이터 로드 실패:", error);
+    }
+  };
+
 
   return (
     <div className="ch-main-container">
@@ -65,7 +84,7 @@ function ChildMainPage() {
         <div className="ch-menu-container">
           <Card
             className="ch-class"
-            onClick={() => navigate(`/child/${childId}/todayclass`)}
+            onClick={handleLimitClick}
           >
             <h1>오늘의 수업</h1>
             <p>선생님과 함께하는 감정게임!</p>

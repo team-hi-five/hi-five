@@ -1,37 +1,36 @@
 import "./ChildCss/ChildReviewGamePage.css";
-// import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import useGameStore from "../../store/gameStore";
+import { useLocation, useNavigate } from "react-router-dom";
+import useGameStore from "../../store/gameStore"
 import { Card } from "primereact/card";
 import Swal from "sweetalert2";
 import { useState, useEffect, useRef } from "react";
 
 function ChildReviewGamePage() {
   // 챕터 아이디 불러오기
-
-  // 데이터 넘어오는지 확인용
-  // const location = useLocation();
-  // const chapterId = location.state?.chapterId;
-  // console.log("넘어온 아이템:", location.state?.chapterId);
+  const location = useLocation();
+  const {stageId, chapterId } = location.state
+  
+  console.log("받은데이터",stageId)
+  console.log("받은데이터",chapterId)
 
   // 저장소에서 데이터 가져오기
-  const { getCurrentGameData, incrementStage, setCurrentChapter } =
-    useGameStore();
-  const [currentData, setCurrentData] = useState(null);
-  const [timer, setTimer] = useState(null); // 타이머 추가
+  const { getCurrentGameData, incrementStage, setCurrentChapter } = useGameStore();
+     
+    const [currentData, setCurrentData] = useState(null);
+    const [timer, setTimer] = useState(null); // 타이머 추가
 
-  useEffect(() => {
-    // 초기값 설정
-    setCurrentChapter(1);
-    const data = getCurrentGameData();
-    // console.log("Zustand에서 가져온 데이터:", data);
-
-    if (data) {
-      setCurrentData(data);
-    } else {
-      console.warn("데이터가 없습니다.");
-    }
-  }, [getCurrentGameData, setCurrentChapter]);
+    useEffect(() => {
+      setTimeout(() => {
+        setCurrentChapter(chapterId);
+        const data = getCurrentGameData();
+  
+        if (data) {
+          setCurrentData(data);
+        } else {
+          console.warn("데이터가 없습니다.");
+        }
+      }, 200); // 타이밍은 필요에 따라 조절
+    }, [getCurrentGameData, setCurrentChapter, currentData, chapterId]);
 
   console.log("현재 데이터 상태:", currentData); // 상태 출력
   console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
@@ -39,14 +38,13 @@ function ChildReviewGamePage() {
 
   // 상태관리
   const navigate = useNavigate();
-  const childId = sessionStorage.getItem("childId");
   const videoRef = useRef(null);
   const [showContent, setShowContent] = useState(false); // 비디오 끄고 모달 및 내용 보여주는 상태관리
   const [feedback, setFeedback] = useState(null); // 임시(정답시 오답시 피드백)
   const [selectedAnswer, setSelectedAnswer] = useState(null); // 임시
   const [showAnswer, setShowAnswer] = useState(false); // 비디오 종료 시 정답 보여주는 상태 관리
   const [currentStep, setCurrentStep] = useState(0); // 현재 내용 스텝 인덱스
-
+  const [attempts, setAttempts] = useState(0)
   // 1. 처음 들어갔을 때 화면
   useEffect(() => {
     Swal.fire({
@@ -63,7 +61,7 @@ function ChildReviewGamePage() {
         videoRef.current.play();
       }
     });
-  }, []);
+  }, [currentData]);
 
   // 2-1.비디오 종료 감지
   useEffect(() => {
@@ -81,9 +79,11 @@ function ChildReviewGamePage() {
     return () => {
       videoRef.current?.removeEventListener("ended", videoEnd);
     };
-  }, [videoRef.current]);
+  }, []);
 
   // 3. 동영상이 끝나면 아동 표정학습 순서
+  // 제어가 들어오면 띄우고 내리고 시간초
+  // 버튼태그로 넘어가게끔 만들기기
   const createReviewContents = () => {
     const baseContents = [
       {
@@ -107,20 +107,12 @@ function ChildReviewGamePage() {
         // 아동 표정 분석 필요 : true
         isExpressionStep: true,
         type: "expression",
-        feedbacks: {
-          success: "감정 표현을 이렇게 잘하다니, 정말 대단해요!",
-          failure: "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요!",
-        },
       },
       {
         header: "이제 상황에 어울리는 말을 표현해볼까요?",
         duration: 5000,
         isExpressionStep: true,
         type: "speech",
-        feedbacks: {
-          success: "감정 표현을 이렇게 잘하다니, 정말 대단해요!",
-          failure: "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요!",
-        },
       },
     ];
     // AI 실시간 표정 분석
@@ -139,7 +131,7 @@ function ChildReviewGamePage() {
       // 타이머 만료 시 실패 처리
       setFeedback(reviewContents[currentStep]?.feedbacks?.failure);
       moveToNextStep();
-    }, 5000);
+    }, 3000);
 
     setTimer(newTimer);
   };
@@ -171,14 +163,6 @@ function ChildReviewGamePage() {
       }, 2000);
     } else {
       setAttempts((prev) => prev + 1);
-
-      if (isCorrect) {
-        setTimeout(() => {
-          setFeedback(reviewContents[currentStep]?.feedbacks?.success);
-          moveToNextStep();
-        }, 2000);
-      } else {
-        setAttempts((prev) => prev + 1);
 
         // 1번 더 시도 가능
         if (attempts < 1) {
@@ -345,5 +329,4 @@ function ChildReviewGamePage() {
       </div>
     );
   };
-}
 export default ChildReviewGamePage;
