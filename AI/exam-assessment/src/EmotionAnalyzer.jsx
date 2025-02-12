@@ -7,7 +7,7 @@ const EmotionAnalyzer = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // test.json 파일을 불러오는 함수 (public 폴더에 있어야 합니다)
+  // test.json 파일을 불러오는 함수 (파일은 반드시 public 폴더에 위치해야 합니다)
   const loadJson = async () => {
     try {
       const res = await fetch('/test.json');
@@ -52,7 +52,7 @@ JSON 데이터:
 ${JSON.stringify(dataToAnalyze, null, 2)}
 
 출력 형식 (예시):
-"현재 아이는 <놀라움>이나 <두려움> 관련 단어들을 조금 어려워하는거 같으니 다음주에는 <놀라움>과 <두려움> 관련 감정어를 더 많이 학습하면 좋을 거 같습니다."
+"현재 아이는 <strong>놀라움</strong>이나 <strong>두려움</strong> 관련 단어들을 조금 어려워하는거 같으니 다음주에는 <strong>놀라움</strong>과 <strong>두려움</strong> 관련 감정어를 더 많이 학습하면 좋을 거 같습니다."
     `;
 
     setLoading(true);
@@ -62,7 +62,7 @@ ${JSON.stringify(dataToAnalyze, null, 2)}
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // 환경 변수 이름이 REACT_APP_로 시작해야 합니다.
+          // 환경 변수 이름은 반드시 REACT_APP_ 접두어로 시작해야 합니다.
           "Authorization": `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`
         },
         body: JSON.stringify({
@@ -153,7 +153,7 @@ ${JSON.stringify(dataToAnalyze, null, 2)}
           }}
         >
           <h2>분석 결과</h2>
-          <p>{result}</p>
+          <div dangerouslySetInnerHTML={{ __html: result }} />
         </div>
       )}
     </div>

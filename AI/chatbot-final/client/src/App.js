@@ -1,3 +1,4 @@
+// client/src/App.js
 import React, { useState, useEffect, useRef } from 'react';
 
 function App() {
@@ -7,13 +8,12 @@ function App() {
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  const recognitionRef = useRef(null);
 
   // 챗봇 기본 질문 및 감정별 최종 응답 메시지
   const chatbotPrompts = {
-    stage1: "안녕! 만나서 반가워!, 오늘 하루 어떤 일이 있었니?",
-    stage2: "그래서 어떤 감정이 들었어?",
+    stage1: "안녕! 만나서 반가워! 오늘 하루 어떤 일이 있었니?",
+    stage2: "그래서 어떤 감정이 들었어?"
   };
 
   const finalResponses = {
@@ -21,7 +21,7 @@ function App() {
     sad: "오늘은 슬픔이 느껴지는 날이었구나. 때로는 슬픔도 우리를 성장시키는 법이야. 내일은 더 좋은 날이 될 거야.",
     angry: "오늘은 화가 나는 일이 있었구나. 마음을 진정시키고 쉬어가며 내일을 준비해보자.",
     fear: "두려움이 있었던 하루였네. 하지만 용기를 내어 앞으로 나아가는 너를 응원해!",
-    surprised: "오늘은 놀라움이 가득했던 하루였구나! 새로운 경험이 너에게 많은 영감을 주었길 바래!",
+    surprised: "오늘은 놀라움이 가득했던 하루였구나! 새로운 경험이 너에게 많은 영감을 주었길 바래!"
   };
 
   // 메시지 추가 함수
@@ -29,28 +29,63 @@ function App() {
     setMessages(prev => [...prev, { sender, text }]);
   };
 
-  // TTS API 호출 및 음성 재생 함수
-  const playTTS = async (text) => {
-    try {
-      const response = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, languageCode: 'ko-KR' })
-      });
-      const data = await response.json();
-      if (data.audioContent) {
-        const audio = new Audio("data:audio/mp3;base64," + data.audioContent);
-        audio.play();
-      }
-    } catch (error) {
-      console.error("TTS 에러:", error);
-    }
+  // TTS: Web Speech API를 이용한 음성 출력
+  const playTTS = (text) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ko-KR';
+    speechSynthesis.speak(utterance);
   };
 
   // 챗봇 질문 처리 함수
-  const handleChatbotPrompt = async (prompt) => {
+  const handleChatbotPrompt = (prompt) => {
     addMessage("bot", prompt);
-    await playTTS(prompt);
+    playTTS(prompt);
+  };
+
+  // GPT-4 감정 분석 API 호출 (직접 OpenAI 엔드포인트 호출)
+  const callGPT4 = async (sentence) => {
+    const prompt = `다음 문장에 대해 다섯 가지 감정(happy, sad, angry, fear, surprised)이 각각 몇 퍼센트인지 분석해줘.
+문장: "${sentence}"
+출력은 JSON 형식으로 해줘. 예시: {"happy": 92, "sad": 0, "angry": 0, "fear": 0, "surprised": 8}`;
+    const messagesForGPT = [
+      { role: "system", content: "당신은 감정 분석 전문가입니다." },
+      { role: "user", content: prompt }
+    ];
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 클라이언트에서 API 키를 사용하는 것은 보안에 매우 취약합니다.
+          'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-2024-08-06",
+          messages: messagesForGPT,
+          temperature: 0,
+        })
+      });
+      const json = await response.json();
+      const reply = json.choices[0].message.content;
+      let emotionData;
+      try {
+        emotionData = JSON.parse(reply);
+      } catch (jsonError) {
+        // JSON 파싱이 실패하면 텍스트 내 JSON 부분만 추출
+        const jsonStart = reply.indexOf('{');
+        const jsonEnd = reply.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+          const jsonString = reply.substring(jsonStart, jsonEnd + 1);
+          emotionData = JSON.parse(jsonString);
+        } else {
+          throw new Error("JSON 파싱 실패");
+        }
+      }
+      return emotionData;
+    } catch (error) {
+      console.error("GPT-4 에러:", error);
+      throw error;
+    }
   };
 
   // 컴포넌트 마운트 시 stage1 질문 출력
@@ -66,6 +101,7 @@ function App() {
     if (inputText.trim() === '' || chatEnded) return;
     addMessage("user", inputText);
     setUserResponses(prev => [...prev, inputText]);
+    const currentInput = inputText;
     setInputText('');
 
     if (stage === 1) {
@@ -75,16 +111,10 @@ function App() {
         handleChatbotPrompt(chatbotPrompts.stage2);
       }, 500);
     } else if (stage === 2) {
-      // 텍스트 입력 방식의 stage 2: 두 응답 합쳐서 GPT-4 호출 및 로그 저장
-      const combined = userResponses.concat(inputText).join(', ');
+      // 두 응답 합쳐서 GPT-4 호출 및 로그 저장
+      const combined = [...userResponses, currentInput].join(', ');
       try {
-        const response = await fetch('/api/gpt4', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sentence: combined })
-        });
-        const data = await response.json();
-        const emotionScores = data.emotion;
+        const emotionScores = await callGPT4(combined);
         let dominantEmotion = '';
         let maxScore = -1;
         for (let [emotion, score] of Object.entries(emotionScores)) {
@@ -95,8 +125,8 @@ function App() {
         }
         const finalMessage = finalResponses[dominantEmotion] || "오늘 하루 수고했어!";
         addMessage("bot", finalMessage);
-        await playTTS(finalMessage);
-        // 로그 저장
+        playTTS(finalMessage);
+        // 로그 저장 (백엔드 /api/log 엔드포인트 호출)
         const logData = {
           userID: "홍길동",
           timestamp: new Date().toISOString(),
@@ -117,96 +147,79 @@ function App() {
     }
   };
 
-  // 음성 녹음을 위한 MediaRecorder 함수
-  const startRecording = async () => {
+  // 음성 인식을 위한 SpeechRecognition API 사용
+  const startVoiceRecognition = () => {
     if (chatEnded) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/mp3' });
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = async () => {
-          const base64data = reader.result.split(',')[1];
-          try {
-            const response = await fetch('/api/stt', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ audioContent: base64data })
-            });
-            const data = await response.json();
-            const transcription = data.transcription;
-            if (transcription) {
-              addMessage("user", transcription);
-              setUserResponses(prev => [...prev, transcription]);
-              if (stage === 1) {
-                setStage(2);
-                setTimeout(() => {
-                  handleChatbotPrompt(chatbotPrompts.stage2);
-                }, 500);
-              } else if (stage === 2) {
-                const combined = userResponses.concat(transcription).join(', ');
-                try {
-                  const gptResponse = await fetch('/api/gpt4', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sentence: combined })
-                  });
-                  const gptData = await gptResponse.json();
-                  const emotionScores = gptData.emotion;
-                  let dominantEmotion = '';
-                  let maxScore = -1;
-                  for (let [emotion, score] of Object.entries(emotionScores)) {
-                    if (score > maxScore) {
-                      maxScore = score;
-                      dominantEmotion = emotion;
-                    }
-                  }
-                  const finalMessage = finalResponses[dominantEmotion] || "오늘 하루 수고했어!";
-                  addMessage("bot", finalMessage);
-                  await playTTS(finalMessage);
-                  // 로그 저장
-                  const logData = {
-                    userID: "홍길동",
-                    timestamp: new Date().toISOString(),
-                    sentence: combined,
-                    emotion: emotionScores,
-                    result_emotion: dominantEmotion
-                  };
-                  await fetch('/api/log', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(logData)
-                  });
-                  setChatEnded(true);
-                } catch (error) {
-                  console.error("GPT-4 처리 에러:", error);
-                  setChatEnded(true);
-                }
-              }
-            }
-          } catch (error) {
-            console.error("STT 요청 에러:", error);
-          }
-        };
-      };
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-    } catch (error) {
-      console.error("녹음 에러:", error);
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.error("이 브라우저는 SpeechRecognition을 지원하지 않습니다.");
+      return;
     }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ko-KR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    setIsRecording(true);
+    recognition.onresult = async (event) => {
+      const transcript = event.results[0][0].transcript;
+      addMessage("user", transcript);
+      setUserResponses(prev => [...prev, transcript]);
+      if (stage === 1) {
+        setStage(2);
+        setTimeout(() => {
+          handleChatbotPrompt(chatbotPrompts.stage2);
+        }, 500);
+      } else if (stage === 2) {
+        const combined = [...userResponses, transcript].join(', ');
+        try {
+          const emotionScores = await callGPT4(combined);
+          let dominantEmotion = '';
+          let maxScore = -1;
+          for (let [emotion, score] of Object.entries(emotionScores)) {
+            if (score > maxScore) {
+              maxScore = score;
+              dominantEmotion = emotion;
+            }
+          }
+          const finalMessage = finalResponses[dominantEmotion] || "오늘 하루 수고했어!";
+          addMessage("bot", finalMessage);
+          playTTS(finalMessage);
+          // 로그 저장
+          const logData = {
+            userID: "홍길동",
+            timestamp: new Date().toISOString(),
+            sentence: combined,
+            emotion: emotionScores,
+            result_emotion: dominantEmotion
+          };
+          await fetch('/api/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(logData)
+          });
+          setChatEnded(true);
+        } catch (error) {
+          console.error("GPT-4 처리 에러:", error);
+          setChatEnded(true);
+        }
+      }
+      setIsRecording(false);
+    };
+    recognition.onerror = (event) => {
+      console.error("음성 인식 에러:", event.error);
+      setIsRecording(false);
+    };
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+    recognition.start();
+    recognitionRef.current = recognition;
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+  // 음성 인식 중지 (사용자가 원할 경우)
+  const stopVoiceRecognition = () => {
+    if (recognitionRef.current && isRecording) {
+      recognitionRef.current.stop();
       setIsRecording(false);
     }
   };
@@ -230,13 +243,19 @@ function App() {
           onChange={(e) => setInputText(e.target.value)}
           style={{ width: '70%', padding: '10px' }}
         />
-        <button type="submit" disabled={chatEnded} style={{ padding: '10px 20px', marginLeft: '10px' }}>전송</button>
+        <button type="submit" disabled={chatEnded} style={{ padding: '10px 20px', marginLeft: '10px' }}>
+          전송
+        </button>
       </form>
       <div style={{ marginTop: '10px' }}>
         {!isRecording ? (
-          <button onClick={startRecording} disabled={chatEnded} style={{ padding: '10px 20px' }}>음성 녹음 시작</button>
+          <button onClick={startVoiceRecognition} disabled={chatEnded} style={{ padding: '10px 20px' }}>
+            음성 녹음 시작
+          </button>
         ) : (
-          <button onClick={stopRecording} disabled={chatEnded} style={{ padding: '10px 20px' }}>음성 녹음 종료</button>
+          <button onClick={stopVoiceRecognition} disabled={chatEnded} style={{ padding: '10px 20px' }}>
+            음성 녹음 종료
+          </button>
         )}
       </div>
       <p>chatEnded: {chatEnded.toString()}</p>

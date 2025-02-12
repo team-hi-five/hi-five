@@ -1,7 +1,7 @@
 {
   "userID": "홍길동",
   "emotion": {
-    "happy": 75,
+    "happy": 20,
     "sad": 52,
     "angry": 47,
     "fear": 12,
