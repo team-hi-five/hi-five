@@ -1,6 +1,5 @@
 package com.h5.global.config;
 
-import com.h5.session.service.SessionWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
