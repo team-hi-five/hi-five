@@ -23,6 +23,27 @@ const ChildDetailModal = ({ isOpen, onClose, initialChildData, onDelete, onUpdat
     const [editingField, setEditingField] = useState(null);
     // 이미지 파일 상태 추가
     const [selectedImageFile, setSelectedImageFile] = useState(null);
+
+    // 전화번호 포맷팅 함수 추가 (컴포넌트 내부, 최상단에 추가)
+    const formatPhoneNumber = (phoneNumber) => {
+      if (!phoneNumber) return '';
+      
+      // 숫자만 추출
+      const numbers = phoneNumber.replace(/[^\d]/g, '');
+      
+      // 11자리 전화번호 형식으로 변환
+      if (numbers.length === 11) {
+        return numbers.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+      }
+      
+      // 10자리 전화번호 형식으로 변환
+      if (numbers.length === 10) {
+        return numbers.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+      }
+      
+      // 그 외의 경우 원본 반환
+      return phoneNumber;
+    };
     
 
     const firstConsultDate = new Date(childData.firstConsultDate);
@@ -279,7 +300,7 @@ const handleRejectDelete = async () => {
               <div className="contact-info">
                 <div className="info-row">
                   <span className="label">부모님 연락처</span>
-                  <span className="value">{childData.parentPhone}</span>
+                  <span className="value">{formatPhoneNumber(childData.parentPhone)}</span>
                 </div>
                 <div className="info-row">
                   <span className="label">부모님 이메일</span>
