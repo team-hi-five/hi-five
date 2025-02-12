@@ -1,6 +1,7 @@
 package com.h5.chatbot.service;
 
 import com.h5.chatbot.document.ChatBotDocument;
+import com.h5.chatbot.dto.request.InsertChatbotReqeustDto;
 import com.h5.chatbot.repository.ChatbotRepository;
 import com.h5.chatbot.dto.response.GetChatbotResponseDto;
 import com.h5.chatbot.dto.response.GetChatbotDatesResponseDto;
@@ -23,87 +24,22 @@ public class ChatbotServiceImpl implements ChatbotService {
         this.chatbotRepository = chatbotRepository;
     }
 
-    @Override
-    public ChatBotDocument startChat(int childUserId) {
-        String chatbotId = UUID.randomUUID().toString();
-
-        ChatBotDocument gptFirst = ChatBotDocument.builder()
-                .chatbotId(chatbotId)
-                .childUserId(childUserId)
-                .chatBotUseDttm(LocalDateTime.now())
-                .sender("GPT")
-                .messageIndex(1)
-                .message(gptFirstChat())
-                .build();
-
-        chatbotRepository.save(gptFirst);
-
-        return gptFirst;
-    }
 
     @Override
-    public List<ChatBotDocument> continueChat(String chatbotId, int childUserId, String voidData) {
-        List<ChatBotDocument> chatBotDocumentList = chatbotRepository.findByChatbotIdOrderByMessageIndexAsc(chatbotId)
-                .orElseThrow(() -> new IllegalStateException("Chatbot " + chatbotId + " not found"));
+    public String insertChatbot(List<InsertChatbotReqeustDto> insertChatbotReqeustDtoList) {
+        chatbotRepository.saveAll(
+                insertChatbotReqeustDtoList.stream()
+                        .map(insertChatbotReqeustDto -> ChatBotDocument.builder()
+                                .childUserId(insertChatbotReqeustDto.getChildUserId())
+                                .chatBotUseDttm(LocalDateTime.now())
+                                .sender(insertChatbotReqeustDto.getSender())
+                                .messageIndex(insertChatbotReqeustDto.getMessageIndex())
+                                .message(insertChatbotReqeustDto.getMessage())
+                                .build())
+                        .toList()
+        );
 
-        int lastIndex = chatBotDocumentList.get(chatBotDocumentList.size() - 1).getMessageIndex();
-
-        int maxChatbotSize = 5;
-        if (lastIndex >= maxChatbotSize) {
-            throw new IllegalStateException("Chatbot " + chatbotId + " is full");
-        }
-
-        int userIndex = lastIndex + 1;
-        String userText = speechToText(voidData);
-        ChatBotDocument userMessage = ChatBotDocument.builder()
-                .chatbotId(chatbotId)
-                .childUserId(childUserId)
-                .chatBotUseDttm(LocalDateTime.now())
-                .sender("USER")
-                .messageIndex(userIndex)
-                .message(userText)
-                .build();
-
-        chatbotRepository.save(userMessage);
-
-        String sentiment = analyzeSentiment(userText);
-
-        int gptIndex = userIndex + 1;
-        boolean isFinal = (gptIndex == maxChatbotSize);
-        String gptReply = isFinal ? finalGPTReply(sentiment) : generateGPTReply(sentiment);
-
-        ChatBotDocument gptMessage = ChatBotDocument.builder()
-                .chatbotId(chatbotId)
-                .childUserId(childUserId)
-                .chatBotUseDttm(LocalDateTime.now())
-                .sender("GPT")
-                .messageIndex(gptIndex)
-                .message(gptReply)
-                .build();
-
-        chatbotRepository.save(gptMessage);
-
-        return List.of(userMessage, gptMessage);
-    }
-
-    private String gptFirstChat() {
-        return "";
-    }
-
-    private String speechToText(String voiceData) {
-        return "";
-    }
-
-    private String analyzeSentiment(String text) {
-        return "";
-    }
-
-    private String finalGPTReply(String sentiment) {
-        return "";
-    }
-
-    private String generateGPTReply(String sentiment) {
-        return "";
+        return "Success store chatbot data";
     }
 
     @Override
