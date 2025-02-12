@@ -20,7 +20,6 @@ import com.h5.game.repository.AiLogRepository;
 import com.h5.game.repository.ChildGameChapterRepository;
 import com.h5.game.repository.ChildGameStageRepository;
 import com.h5.game.repository.GameLogRepository;
-import com.h5.global.exception.GameLogNotFoundException;
 import com.h5.global.exception.GameNotFoundException;
 import com.h5.global.exception.StatisticNotFoundException;
 import com.h5.global.exception.UserNotFoundException;
