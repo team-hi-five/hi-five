@@ -65,25 +65,25 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/consultant/change-pwd", "/api/user/consultant/get-child",
                                 "/api/user/consultant/email-check","/api/user/consultant/search-child/",
                                 "/api/user/consultant/get-my-children", "/api/user/consultant/modify-child",
-                                "/api/user/consultant/register-parent-account", "/api/user/consultant/my-profile").hasRole("ROLE_CONSULTANT")
-                        .requestMatchers("/api/user/delete/approve", "/api/user/delete/reject", "/api/user/delete/get-my-delete").hasRole("ROLE_CONSULTANT")
-                        .requestMatchers("/api/faq/write", "/api/faq/delete/", "/api/faq/update").hasRole("ROLE_CONSULTANT")
-                        .requestMatchers("/api/notice/write","/api/notice/delete/","/api/notice/update").hasRole("ROLE_CONSULTANT")
-                        .requestMatchers("/api/qna/write-qna-comment","/api/qna/update-comment","/api/qna/delete-comment/").hasRole("ROLE_CONSULTANT")
+                                "/api/user/consultant/register-parent-account", "/api/user/consultant/my-profile").hasRole("CONSULTANT")
+                        .requestMatchers("/api/user/delete/approve", "/api/user/delete/reject", "/api/user/delete/get-my-delete").hasRole("CONSULTANT")
+                        .requestMatchers("/api/faq/write", "/api/faq/delete/", "/api/faq/update").hasRole("CONSULTANT")
+                        .requestMatchers("/api/notice/write","/api/notice/delete/","/api/notice/update").hasRole("CONSULTANT")
+                        .requestMatchers("/api/qna/write-qna-comment","/api/qna/update-comment","/api/qna/delete-comment/").hasRole("CONSULTANT")
                         .requestMatchers("/api/schedule/create","/api/schedule/update","/api/schedule/delete/",
-                                "/api/schedule/list-by-date","/api/schedule/available-times").hasRole("ROLE_CONSULTANT")
+                                "/api/schedule/list-by-date","/api/schedule/available-times").hasRole("CONSULTANT")
 
                         // 학부모만 가능
                         .requestMatchers("/api/user/parent/change-pwd","/api/user/parent/my-page",
-                                "/api/user/parent/my-children").hasRole("ROLE_PARENT")
-                        .requestMatchers("/api/qna/write","/api/qna/update").hasRole("ROLE_PARENT")
-                        .requestMatchers("/api/chatbot/insert-chatbot").hasRole("ROLE_PARENT")
-                        .requestMatchers("/api/user/delete/request").hasRole("ROLE_PARENT")
+                                "/api/user/parent/my-children").hasRole("PARENT")
+                        .requestMatchers("/api/qna/write","/api/qna/update").hasRole("PARENT")
+                        .requestMatchers("/api/chatbot/insert-chatbot").hasRole("PARENT")
+                        .requestMatchers("/api/user/delete/request").hasRole("PARENT")
                         .requestMatchers("/api/game/start-game-chapter","/api/game/start-game-stage",
-                                "/api/game/end-game-chapter","/api/game/save-log").hasRole("ROLE_PARENT")
+                                "/api/game/end-game-chapter","/api/game/save-log").hasRole("PARENT")
                         .requestMatchers("/api/study/start-study-chapter","/api/study/start-study-stage",
-                                "/api/study/end-study-chapter","/api/study/save-log").hasRole("ROLE_PARENT")
-                        .requestMatchers("/api/schedule/list-by-parent","/api/schedule/dates-by-parent").hasRole("ROLE_PARENT")
+                                "/api/study/end-study-chapter","/api/study/save-log").hasRole("PARENT")
+                        .requestMatchers("/api/schedule/list-by-parent","/api/schedule/dates-by-parent").hasRole("PARENT")
 
                         // 인증된 사용자 전부 가능
                         .anyRequest().authenticated()
