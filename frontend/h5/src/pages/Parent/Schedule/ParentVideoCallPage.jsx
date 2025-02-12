@@ -10,16 +10,16 @@ function ParentVideoCallPage() {
       <div className="pa-video-layout">
         {/* 메인 비디오 */}
         <div className="pa-main-video">
-          <img src="/user.png" alt="Main Video" className="pa-main-video-feed" />
+            {/*화면 공유*/}
         </div>
 
         {/* 참여자 비디오 */}
         <div className="pa-participant-videos">
           <div className="pa-participant">
-            <img src="/user.png" alt="Participant 1" />
+          {/*  학부모 캠 */}
           </div>
           <div className="pa-participant">
-            <img src="/user.png" alt="Participant 2" />
+          {/* 상담사 캠 */}
           </div>
         </div>
       </div>
