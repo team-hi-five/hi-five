@@ -17,6 +17,10 @@
   width: auto;
 }
 
+.error-message {
+  color: rgb(230, 64, 64) !important;
+}
+
 .logo-container {
   display: flex;
   justify-content: center;

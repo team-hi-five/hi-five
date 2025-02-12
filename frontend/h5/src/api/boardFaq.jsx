@@ -58,7 +58,7 @@ export const searchFaqs = async (keyword, searchType = 'title', pageNumber = 0, 
             throw new Error("검색 타입은 'title' 또는 'writer'만 가능합니다.");
         }
 
-        console.log("📢 FAQ 검색 요청");
+        console.log("📢 FAQ 검색 요청", { keyword, searchType, pageNumber, pageSize });
 
         // 검색 타입에 따른 URL 설정
         const searchUrl = searchType === 'title' 
@@ -72,6 +72,8 @@ export const searchFaqs = async (keyword, searchType = 'title', pageNumber = 0, 
                 pageSize
             }
         });
+        console.log("응답 맞음?" , response.data);
+        
 
         console.log("✅ FAQ 검색 성공:", response.data);
         return response.data;

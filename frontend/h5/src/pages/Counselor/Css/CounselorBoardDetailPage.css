@@ -125,7 +125,7 @@
 
 /* 본문 내용 */
 .co-detail-content {
-  min-height: 150px; /* 본문 영역 높이 (임의값) */
+  min-height: 200px; /* 본문 영역 높이 (임의값) */
   background-color: #f9fcff;
   border-radius: 5px;
   padding: 5px 25px;
