@@ -26,10 +26,10 @@ public interface FaqRepository extends JpaRepository<FaqEntity, Integer> {
 
     // 제목으로 검색
     @Query("SELECT f FROM FaqEntity f " +
-            "WHERE (:role = 'ROLE_PARENT' AND f.consultantUser.center.id = " +
+            "WHERE ((:role = 'ROLE_PARENT' AND f.consultantUser.center.id = " +
             "(SELECT p.consultantUserEntity.center.id FROM ParentUserEntity p WHERE p.id = :parentUserId)) " +
             "OR (:role = 'ROLE_CONSULTANT' AND f.consultantUser.center.id = " +
-            "(SELECT c.center.id FROM ConsultantUserEntity c WHERE c.id = :consultantUserId)) " +
+            "(SELECT c.center.id FROM ConsultantUserEntity c WHERE c.id = :consultantUserId))) " +
             "AND f.title LIKE %:title%")
     Page<FaqEntity> findByTitle(
             @Param("role") String role,
@@ -41,11 +41,11 @@ public interface FaqRepository extends JpaRepository<FaqEntity, Integer> {
 
     // 작성자로 검색
     @Query("SELECT f FROM FaqEntity f " +
-            "WHERE (:role = 'ROLE_PARENT' AND f.consultantUser.center.id = " +
+            "WHERE ((:role = 'ROLE_PARENT' AND f.consultantUser.center.id = " +
             "(SELECT p.consultantUserEntity.center.id FROM ParentUserEntity p WHERE p.id = :parentUserId)) " +
             "OR (:role = 'ROLE_CONSULTANT' AND f.consultantUser.center.id = " +
-            "(SELECT c.center.id FROM ConsultantUserEntity c WHERE c.id = :consultantUserId)) " +
-            "AND f.consultantUser.name LIKE %:writer%")
+            "(SELECT c.center.id FROM ConsultantUserEntity c WHERE c.id = :consultantUserId))) " +
+            "AND f.consultantUser.name LIKE CONCAT('%', :writer, '%')")
     Page<FaqEntity> findByEmail(
             @Param("role") String role,
             @Param("parentUserId") Integer parentUserId,
