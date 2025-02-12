@@ -9,7 +9,7 @@ import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.service.FileService;
-import com.h5.global.exception.ParentAccountRegistrationException;
+import com.h5.global.exception.MailSendException;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.global.util.MailUtil;
 import com.h5.global.util.PasswordUtil;
@@ -139,7 +139,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 mailUtil.sendRegistrationEmail(registerParentAccountDto.getParentEmail(),
                         registerParentAccountDto.getParentEmail(), initPwd);
             } catch (Exception e) {
-                throw new ParentAccountRegistrationException("Failed to send registration email", e);
+                throw new MailSendException("Failed to send registration email", e);
             }
         }
 

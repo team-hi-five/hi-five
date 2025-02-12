@@ -56,7 +56,7 @@ public class StatisticServiceImpl implements StatisticService {
             int emotionEntityId = emotionEntity.getId();
 
             StatisticEntity statisticEntity = statisticRepository.findByEmotionEntity_IdAndChildUserEntity_Id(emotionEntityId, childUserId)
-                    .orElseThrow(() -> new StatisticNotFoundException("Statistic not found", HttpStatus.NOT_FOUND));
+                    .orElseThrow(() -> new StatisticNotFoundException("Statistic not found"));
 
             DataAnalysisResponseDto dataAnalysisRequestDto = DataAnalysisResponseDto.builder()
                     .childUserId(childUserId)

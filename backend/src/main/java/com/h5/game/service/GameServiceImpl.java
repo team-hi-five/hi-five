@@ -60,7 +60,7 @@ public class GameServiceImpl implements GameService {
                         .childUserEntity(childUserRepository.findById(startGameChapterRequsetDto.getChildUserId())
                                 .orElseThrow(UserNotFoundException::new))
                         .gameChapterEntity(gameChapterRepository.findById(startGameChapterRequsetDto.getGameChapterId())
-                                .orElseThrow(() -> new GameNotFoundException("Game chapter not found", HttpStatus.NOT_FOUND)))
+                                .orElseThrow(() -> new GameNotFoundException("Game chapter not found")))
                         .startDttm(LocalDateTime.now())
                         .build())
                         .getId())
@@ -73,9 +73,9 @@ public class GameServiceImpl implements GameService {
         return StartGameStageResponseDto.builder()
                 .childGameStageId(childGameStageRepository.save(ChildGameStageEntity.builder()
                                 .gameStageEntity(gameStageRepository.findById(startGameStageRequestDto.getGameStageId())
-                                        .orElseThrow(() -> new GameNotFoundException("Game stage not found", HttpStatus.NOT_FOUND)))
+                                        .orElseThrow(() -> new GameNotFoundException("Game stage not found")))
                                 .childGameChapterEntity(childGameChapterRepository.findById(startGameStageRequestDto.getChildGameChapterId())
-                                        .orElseThrow(() -> new GameNotFoundException("Child game chapter not found", HttpStatus.NOT_FOUND)))
+                                        .orElseThrow(() -> new GameNotFoundException("Child game chapter not found")))
                         .build())
                         .getId())
                 .build();
@@ -85,7 +85,7 @@ public class GameServiceImpl implements GameService {
     @Override
     public EndGameChapterResponseDto endGameChapter(EndGameChapterRequestDto endGameChapterRequestDto) {
         ChildGameChapterEntity childGameChapterEntity = childGameChapterRepository.findById(endGameChapterRequestDto.getChildGameChapterId())
-                .orElseThrow(() -> new GameNotFoundException("Entity not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new GameNotFoundException("Entity not found"));
         childGameChapterEntity.setEndDttm(LocalDateTime.now());
         childGameChapterRepository.save(childGameChapterEntity);
 
@@ -106,11 +106,11 @@ public class GameServiceImpl implements GameService {
                 .submitDttm(saveGameLogRequestDto.getSubmitDttm())
                 .consulted(saveGameLogRequestDto.isConsulted())
                 .childGameStageEntity(childGameStageRepository.findById(saveGameLogRequestDto.getChildGameStageId())
-                        .orElseThrow(() -> new GameNotFoundException("Child game stage not found", HttpStatus.NOT_FOUND)))
+                        .orElseThrow(() -> new GameNotFoundException("Child game stage not found")))
                 .childUserEntity(childUserRepository.findById(saveGameLogRequestDto.getChildUserId())
                         .orElseThrow(UserNotFoundException::new))
                 .gameStageEntity(gameStageRepository.findById(saveGameLogRequestDto.getGameStageId())
-                        .orElseThrow(() -> new GameNotFoundException("Child game stage not found", HttpStatus.NOT_FOUND)))
+                        .orElseThrow(() -> new GameNotFoundException("Child game stage not found")))
                 .build());
 
         AiLogEntity aiLogEntity = aiLogRepository.save(AiLogEntity.builder()
@@ -138,7 +138,7 @@ public class GameServiceImpl implements GameService {
     private void updateAnalytics(ChildGameChapterEntity chapter) {
         List<ChildGameStageEntity> childStages = childGameStageRepository
                 .findAllByChildGameChapterEntity_Id(chapter.getId())
-                .orElseThrow(() -> new GameNotFoundException("Child game stage not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new GameNotFoundException("Child game stage not found"));
 
         // 자식 스테이지들을 게임 스테이지 ID 기준으로 그룹화(같은 게임 스테이지에 대해 중복 업데이트 방지)
         Map<Integer, List<ChildGameStageEntity>> stagesGroupedByGameStageId = childStages.stream()
@@ -160,7 +160,7 @@ public class GameServiceImpl implements GameService {
                                              LocalDateTime endDttm, int gameChapterId) {
 
         GameStageEntity gameStage = gameStageRepository.findById(gameStageId)
-                .orElseThrow(() -> new GameNotFoundException("Game stage not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new GameNotFoundException("Game stage not found"));
         int emotionId = gameStage.getEmotionEntity().getId();
 
         List<GameLogEntity> gameLogs = gameLogRepository
@@ -177,7 +177,7 @@ public class GameServiceImpl implements GameService {
 
         StatisticEntity statistic = statisticRepository
                 .findByEmotionEntity_IdAndChildUserEntity_Id(emotionId, childUserId)
-                .orElseThrow(() -> new StatisticNotFoundException("Statistic not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new StatisticNotFoundException("Statistic not found"));
 
         int logCount = gameLogs.size();
         statistic.setTrialCnt(statistic.getTrialCnt() + logCount);
