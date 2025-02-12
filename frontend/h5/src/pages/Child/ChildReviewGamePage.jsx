@@ -16,7 +16,7 @@ function ChildReviewGamePage() {
 
   // 저장소에서 데이터 가져오기
   const { getCurrentGameData, incrementStage, setCurrentChapter } = useGameStore();
-    
+
   const [currentData, setCurrentData] = useState(null);
   const [timer, setTimer] = useState(null); // 타이머 추가
 
@@ -27,7 +27,7 @@ function ChildReviewGamePage() {
 
       if (data) {
         setCurrentData(data);
-      } else {
+      } else{
         console.warn("데이터가 없습니다.");
       }
     }, 200); // 타이밍은 필요에 따라 조절
@@ -36,6 +36,11 @@ function ChildReviewGamePage() {
   console.log("현재 데이터 상태:", currentData); // 상태 출력
   console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
   console.log("Zustand 전체 상태:", useGameStore.getState());
+  console.log("1 : ", useGameStore.getState().getCurrentGameData())
+  console.log("2 : ", useGameStore.getState().chapterData)
+  console.log("3 : ", useGameStore.getState().currentChapter)
+  console.log("4 : ", useGameStore.getState().currentStageIndex)
+
 
   // 상태관리
   const navigate = useNavigate();
@@ -76,15 +81,17 @@ function ChildReviewGamePage() {
       setCurrentStep(0);
       startTimer();
     };
-
+    console.log("before ended",videoRef.current);
     videoRef.current.addEventListener("ended", videoEnd);
+    console.log("after ended",videoRef.current);
     return () => {
       videoRef.current?.removeEventListener("ended", videoEnd);
     };
-  }, []);
+  }, [videoRef.current]);
 
   // 3. 동영상이 끝나면 아동 표정학습 순서
   const createReviewContents = () => {
+    console.log("asdf")
     const baseContents = [
       {
         header: "영상 속 감정이가 느낀 감정을 따라해 볼까요?!",
@@ -137,14 +144,18 @@ function ChildReviewGamePage() {
     return baseContents;
   };
 
+
   const reviewContents = createReviewContents();
 
   // 10초 후 자동으로 다음으로 넘어감
   const startTimer = () => {
+
     if (timer) clearTimeout(timer);
+
 
     const newTimer = setTimeout(() => {
       // 타이머 만료 시 실패 처리
+      console.log("qqqqqq")
       setFeedback(reviewContents[currentStep]?.feedbacks?.failure);
       moveToNextStep();
     }, 2000);
@@ -152,21 +163,38 @@ function ChildReviewGamePage() {
     setTimer(newTimer);
   };
 
+
+
   // 다음 콘텐츠 내용으로 이동
   const moveToNextStep = () => {
+    console.log("currentStep", currentStep);
     if (currentStep < reviewContents.length - 1) {
-      setCurrentStep((prev) => prev + 1);
-      startTimer();
+      setCurrentStep((prev) => {
+        const newStep = prev + 1;
+        console.log("prev ", prev, " newStep ", newStep);
+        // 여기서 newStep 값을 활용할 수 있다면, 필요한 로직을 추가하세요.
+        // 예를 들어, newStep을 기반으로 startTimer를 호출한다면:
+        startTimer();
+        return newStep;
+      });
     } else {
       console.log("마지막 단계 도달. handleStageComplete() 실행");
       handleStageComplete();
     }
   };
 
+  useEffect(() => {
+    console.log("currentStep (업데이트 후):", currentStep);
+  }, [currentStep]);
+
+
+
   // 임시: 버튼 클릭 처리 (나중에 AI 분석으로 대체)
   const handleOptionClick = (index) => {
     console.log(`선택한 옵션: ${index}, 정답: ${currentData.answer}`);
+
     const isCorrect = index === currentData.answer;
+    console.log("iscor: " ,isCorrect)
 
     if (timer) clearTimeout(timer);
 
