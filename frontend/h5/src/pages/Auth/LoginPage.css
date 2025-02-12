@@ -44,7 +44,7 @@
 
 .subtitle {
   color: #666;
-  font-size: 1rem;
+  font-size: 1.3rem;
   margin-bottom: 2rem;
   margin-top: 0;
 }
@@ -130,6 +130,7 @@
   color: #666;
   font-size: 0.9rem;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .register-link a {

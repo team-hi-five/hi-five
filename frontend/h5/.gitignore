@@ -62,3 +62,9 @@ packages/react-devtools-fusebox/dist
 packages/react-devtools-inline/dist
 packages/react-devtools-shell/dist
 packages/react-devtools-timeline/dist
+
+# ai - 환경 변수 파일 (서비스 계정 등 민감 정보)
+google-credentials-HSW.json
+
+# ai - 결과 파일들 (예: 녹음된 WAV 파일)
+logs/

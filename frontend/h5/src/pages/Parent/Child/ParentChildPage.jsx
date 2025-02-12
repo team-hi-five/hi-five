@@ -28,7 +28,121 @@ function ParentChildPage() {
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
+  const [analysisResult, setAnalysisResult] = useState("");
+  const [analysisError, setAnalysisError] = useState("");
 
+  const AI_KEY = import.meta.env.VITE_APP_OPENAI_API_KEY;
+
+  const analyzeEmotionData = useCallback(async (data) => {
+    if (!data) return;
+
+    // Create the data structure for analysis
+    const analysisData = {
+      emotions: {
+        joy: data["1"].rating,
+        sadness: data["2"].rating,
+        anger: data["3"].rating,
+        fear: data["4"].rating,
+        surprise: data["5"].rating
+      },
+      stages: {
+        stage1: {
+          joy: data["1"].stageCrtCnt1,
+          sadness: data["2"].stageCrtCnt1,
+          anger: data["3"].stageCrtCnt1,
+          fear: data["4"].stageCrtCnt1,
+          surprise: data["5"].stageCrtCnt1
+        },
+        // Add other stages as needed
+      }
+    };
+
+    const prompt = `
+      아래 JSON 데이터는 아이의 각 감정 관련 학습 진행도를 나타냅니다.
+      수치가 낮을수록 해당 감정 관련 단어 학습이 덜 된 상태입니다.
+      출력 형식을 제외하고는 어떤 말도 입력하지 마세요.
+
+      JSON 데이터:
+      ${JSON.stringify(analysisData, null, 2)}
+
+      출력 형식 (예시):
+      <p>
+        현재 아이는 <strong>놀라움</strong>이나 <strong>두려움</strong> 관련 단어들을 조금 어려워하는 경향이 있습니다.
+      </p>
+      <p>
+        <strong>주 감정:</strong> 기쁨 <br />
+        <strong>보완 감정:</strong> 분노
+      </p>
+    `;
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${AI_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          temperature: 0.7
+        })
+      });
+
+      const apiData = await response.json();
+
+      if (apiData.error) {
+        setAnalysisError(apiData.error.message);
+      } else {
+        setAnalysisResult(apiData.choices[0].message.content.trim());
+      }
+    } catch (err) {
+      console.error("Analysis error:", err);
+      setAnalysisError("감정 분석 중 오류가 발생했습니다: " + err.message);
+    }
+  }, [AI_KEY]); // AI_KEY가 변경될 때만 함수 재생성
+
+  useEffect(() => {
+    if (selectedChild) {
+      const timeoutId = setTimeout(() => {
+        const fetchEmotionData = async () => {
+          try {
+            console.log("selectedChild : ", selectedChild.childUserId);
+            const data = await getChildEmotionData(selectedChild.childUserId);
+            setEmotionData(data);
+            console.log("감정 데이터 : ", data);
+            await analyzeEmotionData(data);
+          } catch (error) {
+            console.error("❌ 감정 데이터 불러오기 실패:", error);
+            setAnalysisError("감정 데이터를 불러오는데 실패했습니다.");
+          }
+        };
+        fetchEmotionData();
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [selectedChild, analyzeEmotionData]);
+
+  const renderEmotionCard = () => (
+    <div className="pa-card-right">
+      <h3>감정 설명</h3>
+      {analysisError ? (
+        <p className="error-message">{analysisError}</p>
+      ) : !analysisResult ? (
+        <p>감정 분석 중...</p>
+      ) : (
+        <div dangerouslySetInnerHTML={{ __html: analysisResult }} />
+      )}
+    </div>
+  );
+  
+  
   // 🔹 달력이 렌더링된 후, 예약된 날짜에 스타일을 추가하는 함수
   const highlightScheduledDatesInDOM = useCallback((calendarSide) => {
     setTimeout(() => {
@@ -72,11 +186,6 @@ function ParentChildPage() {
     }, 100);
   }, [videoDates1, videoDates2, chatBotDates, dateVideo1, dateVideo2, dateChatBot]);
   
-  
-  
-  
-  
-
 
   // ✅ 달력의 월이 변경될 때 API 호출 (onViewDateChange 이벤트 활용)
   const handleMonthChange = (e, calendarType) => {
@@ -524,17 +633,8 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
                 />
               </div>
             </div>
-            <div className="pa-card-right">
-              <h3>감정 설명</h3>
-              <p>
-                현재 아이는 <b>‘놀라움’</b>이나 <b>‘두려움’</b> 관련 단어를
-                어려워하는 경향이 있습니다.
-              </p>
-              <p>
-                <b>주 감정:</b> 기쁨 <br />
-                <b>보완 감정:</b> 분노
-              </p>
-            </div>
+            {renderEmotionCard()}
+
           </div>
         </div>
       </div>
