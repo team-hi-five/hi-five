@@ -15,7 +15,6 @@ import com.h5.statistic.dto.response.GetGameVideoLengthResponseDto;
 import com.h5.statistic.entity.StatisticEntity;
 import com.h5.statistic.repository.StatisticRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
