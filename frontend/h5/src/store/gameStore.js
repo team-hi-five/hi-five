@@ -1,3 +1,4 @@
+// useGameStore.js
 import { create } from "zustand";
 import { reviewGame } from "../api/childGameContent";
 
@@ -6,20 +7,20 @@ const useGameStore = create((set, get) => ({
   currentChapter: null,
   currentStageIndex: 0,
 
+  // 지정된 챕터의 모든 스테이지 데이터를 가져옴
   fetchChapterData: async (chapterId) => {
     try {
-      // 초기 상태
-      // 한번에 모든 스테이지 데이터 가져오기
+      // 5개의 스테이지 데이터를 한 번에 가져옴
       const stagePromises = Array.from({ length: 5 }, (_, i) =>
-        reviewGame(chapterId, i + 1)
+          reviewGame(chapterId, i + 1)
       );
 
       const stageResults = await Promise.all(stagePromises);
       const chapterData = stageResults
-        .map((res, index) => (res ? { ...res, gameStageId: index + 1 } : null))
-        .filter(Boolean);
+          .map((res, index) => (res ? { ...res, gameStageId: index + 1 } : null))
+          .filter(Boolean);
 
-      // zustand에서 상태를 업데이트할때 사용(상태 저장)
+      // 기존 데이터를 병합하여 상태 업데이트
       set({
         chapterData: { ...get().chapterData, [chapterId]: chapterData },
         currentChapter: chapterId,
@@ -33,28 +34,28 @@ const useGameStore = create((set, get) => ({
     }
   },
 
-  // 선택된 챕터의 스테이지 정보 가져오기
+  // 현재 챕터와 스테이지 인덱스를 기반으로 데이터 반환
   getCurrentGameData: () => {
     const { chapterData, currentChapter, currentStageIndex } = get();
     return chapterData[currentChapter]?.[currentStageIndex] || null;
   },
 
-  // 다음 스테이지로 이동
-  // 한번에 모든 데이터를 가져오지만 다음 스테이지로 이동할때 사용
+  // 스테이지를 증가시키는 함수
   incrementStage: () =>
-    set((state) => ({
-      currentStageIndex:
-        state.currentStageIndex ===
-        state.chapterData[state.currentChapter].length - 1
-          ? state.currentStageIndex
-          : state.currentStageIndex + 1,
-    })),
+      set((state) => {
+        const nextStageIndex = state.currentStageIndex + 1;
+        console.log("새로운 스테이지 인덱스:", nextStageIndex);
+        return { currentStageIndex: nextStageIndex };
+      }),
 
-  // 챕터 설정(초기화)
+
+
+
+  // 챕터 변경 시 현재 챕터와 스테이지 인덱스를 초기화
   setCurrentChapter: (chapterId) =>
-    set({ currentChapter: chapterId, currentStageIndex: 0 }),
+      set({ currentChapter: chapterId, currentStageIndex: 0 }),
 
-  // 챕터 선택
+  // 챕터 선택 시 데이터를 불러옴
   selectChapter: (chapterId) => {
     set({ currentChapter: chapterId, currentStageIndex: 0 });
     get().fetchChapterData(chapterId);

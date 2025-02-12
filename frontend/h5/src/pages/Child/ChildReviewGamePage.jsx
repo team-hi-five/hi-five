@@ -31,7 +31,7 @@ function ChildReviewGamePage() {
         console.warn("데이터가 없습니다.");
       }
     }, 200); // 타이밍은 필요에 따라 조절
-  }, [getCurrentGameData, setCurrentChapter, currentData]);
+  }, [getCurrentGameData, setCurrentChapter]);
 
   console.log("현재 데이터 상태:", currentData); // 상태 출력
   console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
@@ -63,7 +63,7 @@ function ChildReviewGamePage() {
         videoRef.current.play();
       }
     });
-  }, []);
+  }, [currentData]);
 
   // 2-1.비디오 종료 감지
   useEffect(() => {
@@ -81,7 +81,7 @@ function ChildReviewGamePage() {
     return () => {
       videoRef.current?.removeEventListener("ended", videoEnd);
     };
-  }, [videoRef.current]);
+  }, []);
 
   // 3. 동영상이 끝나면 아동 표정학습 순서
   const createReviewContents = () => {
@@ -147,7 +147,7 @@ function ChildReviewGamePage() {
       // 타이머 만료 시 실패 처리
       setFeedback(reviewContents[currentStep]?.feedbacks?.failure);
       moveToNextStep();
-    }, 5000);
+    }, 2000);
 
     setTimer(newTimer);
   };
@@ -236,6 +236,7 @@ function ChildReviewGamePage() {
           } else {
             // 5단원이 아니라면 다음 챕터로 이동
             incrementStage();
+            console.log()
             const nextData = getCurrentGameData();
             console.log(nextData);
             if (nextData) {
