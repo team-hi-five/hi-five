@@ -2,6 +2,7 @@ package com.h5.global.config;
 
 import com.h5.auth.service.ConsultantCustomUserDetailService;
 import com.h5.auth.service.ParentCustomUserDetailService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +27,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
+    @Autowired
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
@@ -54,6 +56,7 @@ public class SecurityConfig {
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // 인증 정보가 없어도 가능
+                        .requestMatchers("/api/swagger-config/**", "/api/v3/api-docs/**", "/api/webjars/**").permitAll()
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/user/consultant/find-id", "/api/user/consultant/temp-pwd").permitAll()
                         .requestMatchers("/api/user/parent/find-id", "/api/user/parent/temp-pwd").permitAll()
