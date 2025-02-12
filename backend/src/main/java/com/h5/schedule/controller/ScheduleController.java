@@ -90,6 +90,4 @@ public class ScheduleController {
         return ResponseEntity.ok(dates);
     }
 
-
-
 }
