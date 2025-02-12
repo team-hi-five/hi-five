@@ -131,8 +131,15 @@ function ChildMainPage() {
             className="ch-chatbot"
             onClick={() => navigate(`/child/${childId}/chatbot`)}
           >
-            <h1>마음이 챗봇</h1>
-            <p>마음이랑 이야기해요~!</p>
+            <div className="ch-chatbot-wrapper">
+              <div className="ch-chatbot-page-img">
+                <img src="/child/main/chat-img.png" alt="" />
+              </div>
+              <div className="ch-chatbot-page-content">
+                <h1>마음이 챗봇</h1>
+                <p>마음이랑 이야기해요~!</p>
+              </div>
+            </div>
           </Card>
           <button onClick={() => navigate(`/child/test`)}>웹캠테스트</button>
         </div>

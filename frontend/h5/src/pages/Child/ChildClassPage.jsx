@@ -60,6 +60,13 @@ function ChildReviewGamePage() {
   const [currentStep, setCurrentStep] = useState(0); // 현재 내용 스텝 인덱스
   const [attempts, setAttempts] = useState(0);
 
+  // 동양상 동작 기능
+  // 녹화, 일시정지
+  const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const webcamRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+
   // 1. 처음 들어갔을 때 화면
   useEffect(() => {
     if (!currentData) return;
@@ -256,9 +263,25 @@ function ChildReviewGamePage() {
     });
   };
 
-  if (!currentData) {
-    return <div>로딩중...</div>;
-  }
+  // 버튼 컨트롤 함수
+  // 녹화 시작 정지
+  // const VideoControl = ()
+
+  // if (!currentData) {
+  //   return <div>로딩중...</div>;
+  // }
+
+  // // 스테이지 이동 함수
+  // const stageControll = ()=>{
+
+  //   // 현재 스테이지
+  //   // 단원 이동? 챕터이동도 해야하는데?
+  //   const currentIndex = currentData.gameStageId - 1;
+  //   if (direction ==='next' && currentIndex< 4){
+
+  //   }
+  //   else if (direction ==='prev' && currentIndex > 0)
+  // }
 
   return (
     <div className="ch-review-game-container">
@@ -338,6 +361,12 @@ function ChildReviewGamePage() {
               </div>
             </div>
           </div>
+        </div>
+        <div className="ch-button-container">
+          {/* 단원 이동 버튼 */}
+          {/* 녹화버튼 */}
+          {/* 정지버튼 */}
+          {/* 종료버튼 */}
         </div>
       </div>
     </div>

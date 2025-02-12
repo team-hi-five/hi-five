@@ -167,7 +167,42 @@
   line-height: 1.5;
 }
 
-/*  */
+/* 챗봇 */
+.ch-chatbot-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 10%;
+  width: 80%;
+  gap: 5px;
+}
+
+.ch-chatbot-page-img {
+  display: left;
+  width: 35%;
+  align-items: center;
+}
+
+.ch-chatbot-page-img img {
+  width: 140%;
+  margin-top: 5%;
+  height: 80%;
+}
+
+.ch-chatbot-page-content {
+  display: right;
+  width: 60%;
+}
+
+.ch-chatbot-page-content {
+  font-size: clamp(14px, 2vw, 18px); /* 반응형 폰트 크기 */
+  color: #333;
+  margin: 0;
+  text-align: center; /* 가운데 정렬 */
+  width: 100%;
+  line-height: 1.5;
+}
 
 /* 카드 스타일  */
 .ch-class,
@@ -210,16 +245,6 @@
   text-align: center; /* 가운데 정렬 */
   width: 100%;
   font-weight: 600;
-}
-
-/* 부제목 */
-.ch-chatbot p {
-  font-size: clamp(14px, 2vw, 18px); /* 반응형 폰트 크기 */
-  color: #333;
-  margin: 0;
-  text-align: center; /* 가운데 정렬 */
-  width: 100%;
-  line-height: 1.5;
 }
 
 /* 반응형 미디어 쿼리 */
