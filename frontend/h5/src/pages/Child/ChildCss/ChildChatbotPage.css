@@ -20,6 +20,7 @@
   border-radius: 5%;
   overflow-y: auto;
   scroll-behavior: smooth;
+  padding-bottom: 30px;
 }
 
 /* 스크롤바 커스텀 */
