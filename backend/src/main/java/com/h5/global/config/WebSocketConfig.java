@@ -1,5 +1,6 @@
 package com.h5.global.config;
 
+import com.h5.global.interceptor.CustomHandshakeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -19,7 +20,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("*")
+                .setAllowedOrigins("https://hi-five.site")
+                .addInterceptors(new CustomHandshakeInterceptor())
                 .withSockJS();
     }
 }
