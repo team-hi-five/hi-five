@@ -607,68 +607,66 @@ useEffect(() => {
                     />
                 )}
             </div>
-
-            <div className="co-detail-file">
-              {isEditing ? (
-                <div className="co-detail-file-upload">
-                  <label htmlFor="fileInput" className="co-detail-file-label">
-                    파일 추가
-                  </label>
-                  <input
-                    type="file"
-                    id="fileInput"
-                    multiple
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files);
-                      const oversizedFiles = files.filter(file => file.size > 1000000);
-                      
-                      if (oversizedFiles.length > 0) {
-                        toast.current.show({
-                          severity: 'warn',
-                          summary: '알림',
-                          detail: '1MB 이상의 파일은 업로드할 수 없습니다.',
-                          life: 3000
-                        });
-                        return;
-                      }
-                      setSelectedFiles(prev => [...prev, ...files]);
-                    }}
-                    accept="image/*,.pdf,.doc,.docx"
-                    className="co-detail-file-input"
-                  />
-                  <div className="co-detail-selected-files">
-                    {/* 기존 파일 목록 */}
-                    {fileUrls.map((file, index) => (
-                      <div key={`existing-${index}`} className="co-detail-file-item">
-                        <span>{file.fileName}</span>
-                        <button
-                          onClick={() => handleFileDelete(file.fileId)}
-                          className="co-detail-file-remove"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                    {/* 새로 선택한 파일 목록 */}
-                    {selectedFiles.map((file, index) => (
-                      <div key={`new-${index}`} className="co-detail-file-item">
-                        <span>{file.name}</span>
-                        <button
-                          onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
-                          className="co-detail-file-remove"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+          
+            {(isEditing || (!fileError && fileUrls.length > 0)) && (
+              <div className="co-detail-file">
+                {isEditing ? (
+                  <div className="co-detail-file-upload">
+                    <label htmlFor="fileInput" className="co-detail-file-label">
+                      파일 추가
+                    </label>
+                    <input
+                      type="file"
+                      id="fileInput"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        const oversizedFiles = files.filter(file => file.size > 1000000);
+                        
+                        if (oversizedFiles.length > 0) {
+                          toast.current.show({
+                            severity: 'warn',
+                            summary: '알림',
+                            detail: '1MB 이상의 파일은 업로드할 수 없습니다.',
+                            life: 3000
+                          });
+                          return;
+                        }
+                        setSelectedFiles(prev => [...prev, ...files]);
+                      }}
+                      accept="image/*,.pdf,.doc,.docx"
+                      className="co-detail-file-input"
+                    />
+                    <div className="co-detail-selected-files">
+                      {/* 기존 파일 목록 */}
+                      {fileUrls.map((file, index) => (
+                        <div key={`existing-${index}`} className="co-detail-file-item">
+                          <span>{file.fileName}</span>
+                          <button
+                            onClick={() => handleFileDelete(file.fileId)}
+                            className="co-detail-file-remove"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      {/* 새로 선택한 파일 목록 */}
+                      {selectedFiles.map((file, index) => (
+                        <div key={`new-${index}`} className="co-detail-file-item">
+                          <span>{file.name}</span>
+                          <button
+                            onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                            className="co-detail-file-remove"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="co-detail-file-list">
-                  <h4>첨부파일</h4>
-                  {fileError ? (
-                    <p className="co-detail-file-error">{fileError}</p>
-                  ) : fileUrls.length > 0 ? (
+                ) : (
+                  <div className="co-detail-file-list">
+                    <h4>첨부파일</h4>
                     <div className="co-detail-file-buttons">
                       {fileUrls.map((file, index) => (
                         <button 
@@ -680,12 +678,10 @@ useEffect(() => {
                         </button>
                       ))}
                     </div>
-                  ) : (
-                    <p>첨부파일이 없습니다.</p>
-                  )}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import './DoubleButtonAlert.css';
 
 const DoubleButtonAlert = (message) => {
@@ -9,7 +10,6 @@ const DoubleButtonAlert = (message) => {
     confirmButtonText: '네',
     cancelButtonText: '아니오',
     customClass: {
-      container: 'my-swal-container', // container 클래스 추가
       popup: 'my-swal-popup',
       title: 'my-swal-title',
       confirmButton: 'my-swal-confirm-button',

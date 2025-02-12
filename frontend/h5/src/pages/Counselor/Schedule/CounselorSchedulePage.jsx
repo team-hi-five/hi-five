@@ -337,127 +337,130 @@ const handleDelete = async (scheduleToDelete) => {
                     <div className="co-calendar-section">
                         <h2 className="co-select-date">날짜를 선택해주세요.</h2>
                         <div className="co-calendar-wrapper">
-                        <Calendar
-                            value={date}
-                            onChange={handleDateSelect}
-                            onViewDateChange={handleViewDateChange}
-                            inline
-                            dateFormat="yy년 mm월"
-                            locale="ko"
-                            view="date"
-                            monthNavigator
-                            yearNavigator
-                            yearRange="2000:2040"
-                            dayClassName={highlightScheduledDates} // ✅ 특정 날짜 색칠
-                        />
-
-
+                            <Calendar
+                                value={date}
+                                onChange={handleDateSelect}
+                                onViewDateChange={handleViewDateChange}
+                                inline
+                                dateFormat="yy년 mm월"
+                                locale="ko"
+                                view="date"
+                                monthNavigator
+                                yearNavigator
+                                yearRange="2000:2040"
+                                dayClassName={highlightScheduledDates}
+                            />
                         </div>
                     </div>
                     <div className="co-notcalendar">
                         <div className="co-schedule-section">
-                            <div className="co-schedule-header">
-                                <h2 className="co-schedule-title">
-                                    상담 일정
-                                </h2>
-                                <div className="co-search-container">
-                                    <span className="p-input-icon-right">
+                            <div className="co-schedule-content">
+                                <div className="co-schedule-header">
+                                    <h2 className="co-schedule-title">
+                                        상담 일정
+                                    </h2>
                                     <div className="co-search-container">
-                                        <input
-                                            type="text"
-                                            placeholder="아동 이름으로 검색"
-                                            value={searchTerm}
-                                            onChange={handleSearchChange}
-                                            onKeyDown={handleSearchKeyDown}
-                                            className="co-search-input"
-                                        />
-                                        {suggestions.length > 0 && (
-                                            <ul className="co-search-dropdown">
-                                                {suggestions.map((child) => (
-                                                    <li
-                                                        key={child.id}
-                                                        className="co-search-item"
-                                                        onClick={() => handleChildSelect(child.id)}
-                                                    >
-                                                        <img
-                                                            src={child.img}
-                                                            alt={child.name}
-                                                            className="co-search-img"
-                                                            style={{ width: "20px", height: "20px", objectFit: "cover", borderRadius: "4px", marginRight: "8px" }}
-                                                        />
-                                                        {child.name} (ID: {child.id})
-                                                    </li>
-                                                ))}
-
-                                            </ul>
-                                        )}
-                                    </div>
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="co-schedule-list">
-                                {filteredSchedules.length > 0 ? (
-                                    filteredSchedules.map((schedule, index) => (
-                                        <div key={index} className="co-schedule-item">
-                                            <div className="co-schedule-info">
-                                                <div className="co-schedule-info-first">
-
-                                                    <p>상담 시간 : {schedule.time}</p>
-                                                    {searchTerm && (
-                                                        <div className="co-schedule-header-row">
-                                                            <div className="co-schedule-date">
-                                                                {formatDisplayDate(schedule.date)}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <p>상담유형 : {schedule.consultation_type}</p>
-                                                <p>상담대상(이름) : {schedule.consultation_target}</p>
-                                            </div>
-                                            <div className="co-button-group">
-                                                {!schedule.isCompleted ? (
-                                                    <>
-                                                        <button
-                                                            className="co-btn co-btn-join"
-                                                            onClick={() => handleJoin(index)}
-                                                        >
-                                                            참여
-                                                        </button>
-                                                        <button className="co-btn co-btn-modify" onClick={() => handleEditClick(schedule)}>수정</button>
-                                                        <button
-                                                            className="co-btn co-btn-delete"
-                                                            onClick={() => handleDelete(schedule)}
-                                                            disabled={schedule.isLoading}
-                                                        >
-                                                            {schedule.isLoading ? '삭제 중...' : '삭제'}
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <button className="co-btn co-btn-completed" disabled>
-                                                        참여완료
-                                                    </button>
+                                        <span className="p-input-icon-right">
+                                            <div className="co-search-container">
+                                                <input
+                                                    type="text"
+                                                    placeholder="아동 이름을 입력하세요"
+                                                    value={searchTerm}
+                                                    onChange={handleSearchChange}
+                                                    onKeyDown={handleSearchKeyDown}
+                                                    className="co-search-input"
+                                                />
+                                                {suggestions.length > 0 && (
+                                                    <ul className="co-search-dropdown">
+                                                        {suggestions.map((child) => (
+                                                            <li
+                                                                key={child.id}
+                                                                className="co-search-item"
+                                                                onClick={() => handleChildSelect(child.id)}
+                                                            >
+                                                                <img
+                                                                    src={child.img}
+                                                                    alt={child.name}
+                                                                    className="co-search-img"
+                                                                    style={{ width: "20px", height: "20px", objectFit: "cover", borderRadius: "4px", marginRight: "8px" }}
+                                                                />
+                                                                {child.name} (ID: {child.id})
+                                                            </li>
+                                                        ))}
+                                                    </ul>
                                                 )}
                                             </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="co-no-schedules">
-                                        <p>
-                                            {searchTerm ? '해당 아동의 상담내역이 없습니다!' : '상담 일정이 없습니다!'}
-                                        </p>
+                                        </span>
                                     </div>
-                                )}
+                                </div>
+                                <div className="co-schedule-list">
+                                    {filteredSchedules.length > 0 ? (
+                                        filteredSchedules.map((schedule, index) => (
+                                            <div key={index} className="co-schedule-item">
+                                                <div className="co-schedule-info">
+                                                    <div className="co-schedule-info-first">
+                                                        <p>상담 시간 : {schedule.time}</p>
+                                                        {searchTerm && (
+                                                            <div className="co-schedule-header-row">
+                                                                <div className="co-schedule-date">
+                                                                    {formatDisplayDate(schedule.date)}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p>상담유형 : {schedule.consultation_type}</p>
+                                                    <p>상담대상(이름) : {schedule.consultation_target}</p>
+                                                </div>
+                                                <div className="co-button-group">
+                                                    {!schedule.isCompleted ? (
+                                                        <>
+                                                            <button
+                                                                className="co-btn co-btn-join"
+                                                                onClick={() => handleJoin(index)}
+                                                            >
+                                                                참여
+                                                            </button>
+                                                            <button 
+                                                                className="co-btn co-btn-modify" 
+                                                                onClick={() => handleEditClick(schedule)}
+                                                            >
+                                                                수정
+                                                            </button>
+                                                            <button
+                                                                className="co-btn co-btn-delete"
+                                                                onClick={() => handleDelete(schedule)}
+                                                                disabled={schedule.isLoading}
+                                                            >
+                                                                {schedule.isLoading ? '삭제 중...' : '삭제'}
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <button className="co-btn co-btn-completed" disabled>
+                                                            참여완료
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="co-no-schedules">
+                                            <p>
+                                                {searchTerm ? '해당 아동의 상담내역이 없습니다!' : '상담 일정이 없습니다!'}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+                            <button
+                                className="co-schedule-create-btn"
+                                onClick={() => {
+                                    setEditingSchedule(null);
+                                    setShowModal(true);
+                                }}
+                            >
+                                상담 생성
+                            </button>
                         </div>
-                        <button
-                            className="co-schedule-create-btn"
-                            onClick={() => {
-                                setEditingSchedule(null);  // 생성 시에는 editingSchedule을 null로
-                                setShowModal(true);
-                            }}
-                        >
-                            상담 생성
-                        </button>
                         {showModal && (
                             <MeetingCreateModal
                                 onClose={handleModalClose}

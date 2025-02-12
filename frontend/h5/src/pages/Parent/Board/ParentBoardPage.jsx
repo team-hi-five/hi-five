@@ -65,6 +65,7 @@ const handleSearch = async () => {
           setNoticeLoading(false);
       } else if (paActiveTab === "faq") {
           setFaqLoading(true);
+          // setIsSearching(true);
           const response = await searchFaqs(
               paSearchTerm,
               searchType,
@@ -73,7 +74,7 @@ const handleSearch = async () => {
           );
           
           const formattedData = response.faqs.map((item, index) => ({
-              no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+              no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
               id: item.id,
               type: item.type || "기타",
               title: item.title,
@@ -93,7 +94,7 @@ const handleSearch = async () => {
           );
 
           const formattedData = response.qnaList.map((item, index) => ({
-              no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+              no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
               id: item.id,
               title: item.title,
               writer: item.name || "익명",
@@ -203,16 +204,26 @@ const fetchQnaData = async () => {
   }
 };
 
-  // 페이지 변경 시 데이터 fetch
-  useEffect(() => {
-    if (paActiveTab === "notice" && !isSearching) {
+  // Notice useEffect
+useEffect(() => {
+  if (paActiveTab === "notice" && !isSearching) {
       fetchNoticeData();
-    } else if (paActiveTab === "qna" && !isSearching) { 
-      fetchQnaData();
-    } else if (paActiveTab === "faq" && !isSearching) {
+  }
+}, [paCurrentPage, paActiveTab, isSearching]);
+
+// FAQ useEffect
+useEffect(() => {
+  if (paActiveTab === "faq" && !isSearching) {
       fetchFaqData();
-    }
-  }, [paCurrentPage, paActiveTab, isSearching]);
+  }
+}, [paCurrentPage, paActiveTab, isSearching]);
+
+// QnA useEffect
+useEffect(() => {
+  if (paActiveTab === "qna" && !isSearching) {
+      fetchQnaData();
+  }
+}, [paCurrentPage, paActiveTab, isSearching]);
 
   // 검색어 입력 시 Enter 키 처리 추가
   const handleSearchKeyPress = (e) => {
@@ -237,13 +248,12 @@ const fetchQnaData = async () => {
   }
 
   // 페이지네이션 계산
-  const paFilteredData = (paActiveTab === "notice" || (paActiveTab === "faq" && isSearching))
-    ? paBoardData
-    : paBoardData.filter((item) =>
-        item[paSearchCategory]?.toLowerCase().includes(paSearchTerm.toLowerCase())
-    );
+  // paFilteredData 수정
+  // const paFilteredData = (paActiveTab === "notice" || paActiveTab === "faq" || paActiveTab === "qna")
+  // ? paBoardData
+  // : paBoardData;
   
-    const paPageData = paFilteredData;
+    const paPageData = paBoardData;
     const emptyRowsCount = paItemsPerPage - paPageData.length;
 
   // 이벤트 핸들러들
@@ -256,13 +266,15 @@ const fetchQnaData = async () => {
 };
 
 const handleSearchChange = (e) => {
-  const searchValue = e.target.value;
-  setPaSearchTerm(e.target.value);
-  setPaCurrentPage(1);
+      setPaSearchTerm(e.target.value);
+      setPaCurrentPage(1);
   
   // 검색어가 비어있으면 전체 목록을 보여줌
-  if (!searchValue.trim()) {
+  if (!e.target.value.trim()) {
       setIsSearching(false);
+      // setNoticeLoading(false);
+      // setFaqLoading(false);
+      // setQnaLoading(false);
       if (paActiveTab === "notice") {
           fetchNoticeData();
       } else if (paActiveTab === "faq") {
@@ -274,8 +286,6 @@ const handleSearchChange = (e) => {
   }
   
   // 검색 실행
-  if (searchValue.trim()) {
-
     const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
     setIsSearching(true);
   
@@ -310,6 +320,7 @@ const handleSearchChange = (e) => {
                   paCurrentPage - 1,
                   paItemsPerPage
               );
+              // console.log("paren + faq" , response);
   
                 const formattedData = response.faqs.map((item, index) => ({
                     no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
@@ -330,6 +341,7 @@ const handleSearchChange = (e) => {
                   paCurrentPage - 1,
                   paItemsPerPage
               );
+              // console.log("paren + qna" , response);
   
                 const formattedData = response.qnaList.map((item, index) => ({
                     no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
@@ -346,18 +358,22 @@ const handleSearchChange = (e) => {
             }
         } catch (error) {
             console.error("검색 에러:", error);
+            // setNoticeLoading(false);
+            // setFaqLoading(false);
+            // setQnaLoading(false);
         }
     }, 300);
   
     return () => clearTimeout(timer);
-  }
-};
+  };
+
 
   const handleCategoryClick = (category) => {
     setPaSearchCategory(category);
-    setPaSearchTerm("");
-    setPaCurrentPage(1);
-    setIsSearching(false);
+    // 현재 검색어가 있을 경우 해당 검색어로 다시 검색 실행
+    if (paSearchTerm.trim()) {
+      handleSearch();
+  }
 };
 
   const handlePageChange = (pageNumber) => {
@@ -465,27 +481,27 @@ const handleSearchChange = (e) => {
                   {/* 탭별로 컬럼 구성 분기 */}
                   {paActiveTab === "faq" ? (
                     <>
-                      <th>번호</th>
-                      <th>유형</th>
-                      <th>제목</th>
-                      <th>작성자</th>
+                      <th style={{ width: "10%" }}>번호</th>
+                      <th style={{ width: "30%" }}>유형</th>
+                      <th style={{ width: "40%" }}>제목</th>
+                      <th style={{ width: "20%" }}>작성자</th>
                     </>
                   ) : paActiveTab === "qna" ? (
                     <>
-                      <th>번호</th>
-                      <th>제목</th>
-                      <th>작성자</th>
-                      <th>답변상태</th>
-                      <th>작성일</th>
+                      <th style={{ width: "10%" }}>번호</th>
+                      <th style={{ width: "40%" }}>제목</th>
+                      <th style={{ width: "20%" }}>작성자</th>
+                      <th style={{ width: "10%" }}>답변상태</th>
+                      <th style={{ width: "20%" }}>작성일</th>
                     </>
                   ) : (
                     // 공지사항
                     <>
-                      <th>번호</th>
-                      <th>제목</th>
-                      <th>작성자</th>
-                      <th>조회수</th>
-                      <th>작성일</th>
+                      <th style={{ width: "10%" }}>번호</th>
+                      <th style={{ width: "40%" }}>제목</th>
+                      <th style={{ width: "20%" }}>작성자</th>
+                      <th style={{ width: "10%" }}>조회수</th>
+                      <th style={{ width: "20%" }}>작성일</th>
                     </>
                   )}
                 </tr>

@@ -40,7 +40,6 @@ function CounselorBoardPage() {
             
             if (paActiveTab === "notice") {
                 setIsLoading(true);
-                setIsSearching(true);
     
                 const response = await searchNotices(
                     paSearchTerm,
