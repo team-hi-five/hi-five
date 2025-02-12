@@ -141,6 +141,17 @@ public class AssetServiceImpl implements AssetService {
                 .toList();
     }
 
+    @Override
+    public GetStageResponseDto getStage(int childId) {
+        ChildUserEntity childUserEntity = childUserRepository.findById(childId).orElseThrow(UserNotFoundException::new);
+        int gameStage = childUserEntity.getClearChapter();
+
+        return GetStageResponseDto.builder()
+                .chapter(gameStage/5 + 1)
+                .stage(gameStage%5)
+                .build();
+    }
+
     private LoadAssetResponseDto convertToDto(GameAssetEntity entity) {
         int gameStageId = entity.getId();
         int stageAnswer = gameStageRepository.findById(gameStageId)
