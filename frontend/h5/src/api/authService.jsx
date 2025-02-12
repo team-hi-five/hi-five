@@ -34,7 +34,7 @@ export const logout = async () => {
         console.error("❌ 로그아웃 실패:", error.response ? error.response.data : error.message);
     } finally {
         sessionStorage.removeItem("access_token");
-        window.location.href = "/login";
+        window.location.href = "/";
     }
 };
 
