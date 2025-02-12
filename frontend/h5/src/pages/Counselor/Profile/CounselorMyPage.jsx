@@ -9,6 +9,12 @@ function CounselorMyPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [counselorData, setCounselorData] = useState(null);
 
+    // 전화번호 형식 변환 함수 추가
+    const formatPhoneNumber = (phone) => {
+        if (!phone) return '';
+        return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+    };
+
     useEffect(() => {
         async function fetchData() {
             try {
@@ -57,7 +63,7 @@ function CounselorMyPage() {
                                     <label>핸드폰 번호</label>
                                     <input 
                                         type="text" 
-                                        value={counselorData?.phone || ""} 
+                                        value={formatPhoneNumber(counselorData?.phone) || ""}
                                         readOnly 
                                         className="co-info-input"
                                     />

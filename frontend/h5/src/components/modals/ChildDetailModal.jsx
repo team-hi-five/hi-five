@@ -6,6 +6,7 @@ import SingleButtonAlert from '../common/SingleButtonAlert';
 import ProfileImageModal from './ProfileImageModal';
 import { approveDeleteRequest, rejectDeleteRequest, modifyConsultantChild } from "/src/api/userCounselor"; // ✅ API 호출 추가
 import { uploadFile, getFileUrl, TBL_TYPES } from '../../api/file';
+import defaultImg from '/child/character/angrymi.png';  // 기본 이미지 import
 
 
 const ChildDetailModal = ({ isOpen, onClose, initialChildData, onDelete, onUpdate, onCancelRequest, isDeleteRequest  }) => {
@@ -139,25 +140,22 @@ const handleRejectDelete = async () => {
         if (selectedImageFile) {
           try {
             // 파일 업로드
-            const uploadResponse = await uploadFile(
+            await uploadFile(
               selectedImageFile, 
               TBL_TYPES.PROFILE, 
               String(childData.id)
             );
-            console.log('파일 업로드 응답:', uploadResponse); // 디버깅용
     
-            // 잠시 대기 후 새 URL 조회 (파일 처리 시간 고려)
+            // 이미지 업로드 후 잠시 대기 (서버 처리 시간 고려)
             await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // 업데이트된 전체 데이터를 부모 컴포넌트에 전달
+            onUpdate(childData.id, {
+              ...childData,
+              interests: editedData.interests,
+              notes: editedData.notes
+            });
     
-            // 새로운 이미지 URL 가져오기
-            const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, childData.id);
-            console.log('조회된 이미지 URLs:', imageUrls); // 디버깅용
-    
-            if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0) {
-              // 가장 최근에 업로드된 이미지 URL 사용 (배열의 마지막 항목)
-              newImageUrl = imageUrls[imageUrls.length - 1].url;
-              console.log('선택된 새 이미지 URL:', newImageUrl);
-            }
           } catch (error) {
             console.error("이미지 업로드 실패:", error);
             await SingleButtonAlert("이미지 업로드 중 오류가 발생했습니다.");
@@ -165,21 +163,8 @@ const handleRejectDelete = async () => {
           }
         }
     
-        // 나머지 로직...
+        // 나머지 데이터 업데이트...
         await modifyConsultantChild(childData.id, editedData.interests, editedData.notes);
-    
-        const updatedChildData = { 
-          ...childData, 
-          interests: editedData.interests, 
-          notes: editedData.notes,
-          imageUrl: newImageUrl,
-          profileImageUrl: newImageUrl // 둘 다 업데이트
-        };
-    
-        onUpdate(childData.childUserId, updatedChildData);
-        setChildData(updatedChildData); // state 업데이트
-        setEditedData(updatedChildData);
-        setProfileImage(newImageUrl);
     
         setIsEditing(false);
         setEditingField(null);
@@ -191,6 +176,16 @@ const handleRejectDelete = async () => {
         await SingleButtonAlert("회원 정보 수정 중 오류가 발생했습니다.");
       }
     };
+    
+    const handleImageError = (e) => {
+      e.target.src = defaultImg;
+    };
+    // JSX에서:
+    <img 
+      src={profileImage || defaultImg} 
+      alt="프로필 사진" 
+      onError={handleImageError}
+    />
 
     const handleClose = () => {
       setIsEditing(false);
