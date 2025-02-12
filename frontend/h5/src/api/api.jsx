@@ -15,7 +15,6 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// 토큰 재발급 요청 상태 관리 (무한 루프 방지)
 let refreshingToken = false;
 let failedRequestsQueue = [];
 
@@ -23,11 +22,26 @@ let failedRequestsQueue = [];
 export const refreshToken = async () => {
   try {
     console.log("📢 토큰 재발급 요청");
+    
+    // refresh token을 헤더에 포함하여 요청
+    const refreshToken = sessionStorage.getItem("refresh_token");
+    if (!refreshToken) {
+      throw new Error("Refresh token not found");
+    }
 
-    const response = await api.post("/auth/refresh");
+    const response = await api.post("/auth/refresh", null, {
+      headers: {
+        'Authorization': `Bearer ${refreshToken}`  // refresh token을 Authorization 헤더에 포함
+      }
+    });
 
     console.log("✅ 토큰 재발급 성공:", response.data);
+    
+    // 새로운 토큰들 저장
     sessionStorage.setItem("access_token", response.data.accessToken);
+    if (response.data.refreshToken) {  // 새로운 refresh token이 있다면 저장
+      sessionStorage.setItem("refresh_token", response.data.refreshToken);
+    }
 
     // 저장된 요청들 다시 실행
     failedRequestsQueue.forEach((callback) => callback(response.data.accessToken));
@@ -36,82 +50,85 @@ export const refreshToken = async () => {
     return response.data.accessToken;
   } catch (error) {
     console.error("❌ 토큰 재발급 실패:", error.response ? error.response.data : error.message);
-
-    // 모든 대기 중인 요청을 실패 처리
+    
+    // 토큰 관련 데이터 모두 삭제
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("refresh_token");
+    
+    // 실패한 요청들 처리
     failedRequestsQueue.forEach((callback) => callback(null));
     failedRequestsQueue = [];
-
+    
+    // 로그인 페이지로 리다이렉트
+    window.location.href = "/";
+    
     throw error;
   } finally {
-    refreshingToken = false; // 상태 초기화
+    refreshingToken = false;
   }
 };
 
-// 요청 인터셉터 (Access Token 자동 포함 및 로그인 체크)
+// 요청 인터셉터
 api.interceptors.request.use((config) => {
-  const accessToken = sessionStorage.getItem("access_token");
-
-  // 예외 처리: 인증 없이 접근 가능한 엔드포인트라면 체크하지 않음
-  if (noAuthEndpoints.some(endpoint => config.url.includes(endpoint))) {
-    console.warn(`🔹 예외 처리된 요청 (${config.url}) - 토큰 확인 건너뜀`);
+  // 예외 처리: 인증 없이 접근 가능한 엔드포인트
+  if (noAuthEndpoints.some((endpoint) => config.url.includes(endpoint))) {
     return config;
   }
 
-  // 토큰이 없으면 로그인 페이지로 이동
+  const accessToken = sessionStorage.getItem("access_token");
   if (!accessToken) {
-    console.warn("🔹 인증되지 않은 접근 감지. 로그인 페이지로 이동합니다.");
     window.location.href = "/";
     return Promise.reject(new Error("로그인이 필요합니다."));
   }
 
-  // 정상적인 요청은 토큰을 포함하여 보냄
   config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
 
-
-
-// 응답 인터셉터 (Access Token 만료 시 자동 갱신)
+// 응답 인터셉터
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // 예외 처리: 특정 API는 refreshToken 호출 X
-    if (noAuthEndpoints.some(endpoint => originalRequest.url.includes(endpoint))) {
-      console.warn(`🔹 예외 처리된 요청 (${originalRequest.url})`);
+    // 디버깅 로그
+    console.error("응답 인터셉터 에러:", error);
+    if (error.response) {
+      console.warn(`에러 상태: ${error.response.status} / 요청 URL: ${originalRequest.url}`);
+    }
+
+    // 예외 처리: 인증 제외 엔드포인트
+    if (noAuthEndpoints.some((endpoint) => originalRequest.url.includes(endpoint))) {
       return Promise.reject(error);
     }
 
-    // 403 오류 (Access Token 만료) && 무한 루프 방지
-    if (error.response?.status === 403) {
-      if (refreshingToken) {
-        console.log("🔄 기존 토큰 갱신 요청이 진행 중... 요청을 큐에 저장");
-        
+    // 401 상태 코드이고 재시도하지 않은 요청인 경우 => 현재 403인데 백엔드 수정되면 401로 변경
+    if (error.response?.status === 403 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      if (!refreshingToken) {
+        refreshingToken = true;
+        try {
+          const newAccessToken = await refreshToken();
+          // 새로운 토큰으로 원래 요청 재시도
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          console.error("토큰 재발급 실패:", refreshError);
+          return Promise.reject(refreshError);
+        }
+      } else {
+        // 이미 토큰 재발급 진행 중이면 대기열에 추가
         return new Promise((resolve, reject) => {
-          failedRequestsQueue.push((token) => {
-            if (token) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              resolve(axios(originalRequest));
+          failedRequestsQueue.push((newToken) => {
+            if (newToken) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              resolve(api(originalRequest));
             } else {
               reject(error);
             }
           });
         });
-      }
-
-      refreshingToken = true; // 토큰 갱신 요청 플래그 설정
-
-      try {
-        const newAccessToken = await refreshToken();
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return axios(originalRequest); // 원래 요청 재시도
-      } catch (err) {
-        console.error("❌ 토큰 갱신 실패. 재로그인 필요");
-        sessionStorage.removeItem("access_token");
-        sessionStorage.removeItem("refresh_token"); // 혹시 사용하고 있다면 삭제
-        window.location.href = "/login"; // 로그인 페이지로 이동
-        return Promise.reject(err);
       }
     }
 

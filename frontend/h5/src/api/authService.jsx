@@ -21,6 +21,10 @@ export const login = async (email, password, role) => {
 export const logout = async () => {
     try {
         const accessToken = sessionStorage.getItem("access_token");
+        if (!accessToken) {
+            console.warn("🔹 토큰이 없는 상태에서 로그아웃 요청. 단순히 로그아웃 처리");
+            return;
+        }
         const response = await api.post("/auth/logout", null, { 
             params:{token: accessToken}
          });
@@ -28,7 +32,9 @@ export const logout = async () => {
         return response.data;
     } catch (error) {
         console.error("❌ 로그아웃 실패:", error.response ? error.response.data : error.message);
-        throw error;
+    } finally {
+        sessionStorage.removeItem("access_token");
+        window.location.href = "/";
     }
 };
 

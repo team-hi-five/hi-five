@@ -97,12 +97,26 @@ async function fetchChildren() {
     setIsModalOpen(false);
   };
 
-  const handleUpdateChild = (childId, updatedData) => {
-    setChildrenData((prevChildren) =>
+  const handleUpdateChild = async (childId, updatedData) => {
+    try {
+      // 이미지 URL을 포함한 전체 데이터를 다시 가져오기
+      const updatedChildDetails = await getConsultantChild(childId);
+      const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, childId);
+      
+      let finalData = { ...updatedChildDetails };
+      
+      if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0) {
+        finalData.profileImageUrl = imageUrls[imageUrls.length - 1].url;
+      }
+  
+      setChildrenData((prevChildren) =>
         prevChildren.map((child) =>
-            child.childUserId === childId ? { ...child, ...updatedData } : child
+          child.childUserId === childId ? finalData : child
         )
-    );
+      );
+    } catch (error) {
+      console.error("Failed to update child:", error);
+    }
   };
 
 
