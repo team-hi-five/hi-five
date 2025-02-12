@@ -2,6 +2,7 @@ package com.h5.global.config;
 
 import com.h5.auth.service.ConsultantCustomUserDetailService;
 import com.h5.auth.service.ParentCustomUserDetailService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +27,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
 
+    @Autowired
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
     }
