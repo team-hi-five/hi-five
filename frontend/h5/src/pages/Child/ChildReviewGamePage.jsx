@@ -15,23 +15,23 @@ function ChildReviewGamePage() {
   // console.log("넘어온 아이템:", location.state?.chapterId);
 
   // 저장소에서 데이터 가져오기
-  const { getCurrentGameData, incrementStage, setCurrentChapter } =
-    useGameStore();
+  const { getCurrentGameData, incrementStage, setCurrentChapter } = useGameStore();
+    
   const [currentData, setCurrentData] = useState(null);
   const [timer, setTimer] = useState(null); // 타이머 추가
 
   useEffect(() => {
-    // 초기값 설정
-    setCurrentChapter(1);
-    const data = getCurrentGameData();
-    // console.log("Zustand에서 가져온 데이터:", data);
+    setTimeout(() => {
+      setCurrentChapter(1);
+      const data = getCurrentGameData();
 
-    if (data) {
-      setCurrentData(data);
-    } else {
-      console.warn("데이터가 없습니다.");
-    }
-  }, [getCurrentGameData, setCurrentChapter]);
+      if (data) {
+        setCurrentData(data);
+      } else {
+        console.warn("데이터가 없습니다.");
+      }
+    }, 200); // 타이밍은 필요에 따라 조절
+  }, [getCurrentGameData, setCurrentChapter, currentData]);
 
   console.log("현재 데이터 상태:", currentData); // 상태 출력
   console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
