@@ -84,7 +84,7 @@ async function main() {
         const result = data.results[0];
         const alternative = result.alternatives[0];
         const transcript = alternative.transcript;
-        if (result.isFinal) {
+        if (result.isFinal) {kl
           console.log(`\n최종 인식된 음성: ${transcript}`);
           finalResultReceived = true;
           // 정답 처리 로직...
