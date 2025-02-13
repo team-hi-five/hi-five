@@ -80,7 +80,7 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
             "AND DATE(c.schdlDttm) = :today " +
             "AND c.deleteDttm IS NULL")
     Optional<ConsultMeetingScheduleEntity> findTodaySchedulesByChildId(
-            @Param("childId") Integer childUserId,
+            @Param("childUserId") Integer childUserId,
             @Param("today") LocalDate today);
 
 }
