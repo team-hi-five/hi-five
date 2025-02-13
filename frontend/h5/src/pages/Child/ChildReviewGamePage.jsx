@@ -36,10 +36,6 @@ function ChildReviewGamePage() {
   console.log("현재 데이터 상태:", currentData); // 상태 출력
   console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
   console.log("Zustand 전체 상태:", useGameStore.getState());
-  console.log("1 : ", useGameStore.getState().getCurrentGameData())
-  console.log("2 : ", useGameStore.getState().chapterData)
-  console.log("3 : ", useGameStore.getState().currentChapter)
-  console.log("4 : ", useGameStore.getState().currentStageIndex)
 
 
   // 상태관리
@@ -300,11 +296,11 @@ function ChildReviewGamePage() {
             <div className="ch-game-button">
               {currentData.options.map((option, index) => (
                 <div key={index}>
-                  <h4 className="ch-options-number">
+                  <h4 className="ch-option-number">
                     {["①", "②", "③"][index]}
                   </h4>
                   <button
-                    className={`ch-option ${
+                    className={`ch-option${
                       showAnswer && index === currentData.answer
                         ? "correct-answer"
                         : ""
@@ -316,7 +312,7 @@ function ChildReviewGamePage() {
                       alt={`option ${index + 1}`}
                     />
                   </button>
-                  <h4 className="ch-options-selection">{option}</h4>
+                  <h4 className="ch-option-selection">{option}</h4>
                 </div>
               ))}
             </div>

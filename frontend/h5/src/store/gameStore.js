@@ -49,10 +49,10 @@ const useGameStore = create((set, get) => ({
     }),
 
   // 해당 스테이지와 챕터에 대한 정보
-  setChapterAndStage: (chapterId, stageId) =>
+  setChapterAndStage: (chapterId, gameStageId) =>
     set({
       currentChapter: chapterId,
-      currentStageIndex: stageId - 1,
+      currentStageIndex: gameStageId - 1,
     }),
 
   // 챕터 변경 시 현재 챕터와 스테이지 인덱스를 초기화
