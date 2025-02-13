@@ -21,5 +21,5 @@ public interface GameAssetRepository extends JpaRepository<GameAssetEntity, Inte
     Optional<GameAssetEntity> findGameAssetByChapterAndStage(@Param("chapter") int chapter,
                                                             @Param("stage") int stage);
 
-    List<GameAssetEntity> findByIdBetween(Integer idAfter, Integer idBefore);
+    List<GameAssetEntity> findByIdBetween(Integer idBefore, Integer IdAfter);
 }
