@@ -8,6 +8,7 @@ import ParentBoardWritePage from "/src/pages/Parent/Board/ParentBoardWritePage"
 import ParentVideoSinglePage from "/src/pages/Parent/Child/ParentViedoSinglePage"
 import ParentVideoMultiplePage from "/src/pages/Parent/Child/ParentVideoMultiplePage"
 import ParentVideoCallPage from "/src/pages/Parent/Schedule/ParentVideoCallPage"
+import ParentBoardEditPage from "../pages/Parent/Board/ParentBoardEditPage.jsx";
 
 
 function AppParent(){
@@ -28,6 +29,7 @@ function AppParent(){
 
             {/* BoardPage에서 이동가능한 페이지지 */}
             <Route path="/board/:type/:no" element={<ParentBoardDetailPage />} />
+            <Route path="/board/:type/edit/:no" element={<ParentBoardEditPage />} />
             <Route path="/board/write" element={<ParentBoardWritePage />} />
         </Routes>
     
