@@ -10,14 +10,14 @@ function ChildReviewGamePage() {
   const location = useLocation();
   console.log("location.state 확인:", location.state);
 
-  const { stageId, chapterId } = location.state;
+  const { gameStageId, chapterId } = location.state;
   console.log("!!chapterId:", chapterId); // 여기서 제대로 값이 나오는지 확인
-  console.log("!!stageId:", stageId);
+  console.log("!!stageId:", gameStageId);
 
   const res = location.state;
   console.log("넘어온 아이템:", res);
   console.log(res.chapterId);
-  console.log(res.stageId);
+  console.log(res.gameStageId);
 
   // 저장소에서 데이터 가져오기
   const { getCurrentGameData, incrementStage, setChapterAndStage } =
@@ -35,7 +35,7 @@ function ChildReviewGamePage() {
     );
 
     setTimeout(() => {
-      setChapterAndStage(chapterId, stageId);
+      setChapterAndStage(chapterId, gameStageId);
       const data = getCurrentGameData();
       if (data) {
         setCurrentData(data);
@@ -44,7 +44,7 @@ function ChildReviewGamePage() {
         console.warn("!!학습 페이지 데이터가 없습니다.");
       }
     }, 100);
-  }, [chapterId, stageId, setChapterAndStage, getCurrentGameData]);
+  }, [chapterId, gameStageId, setChapterAndStage, getCurrentGameData]);
 
   console.log("현재 데이터 상태:", currentData); // 상태 출력
   console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
@@ -66,6 +66,7 @@ function ChildReviewGamePage() {
   const [isPaused, setIsPaused] = useState(false);
   const webcamRef = useRef(null);
   const mediaRecorderRef = useRef(null);
+  
 
   // 1. 처음 들어갔을 때 화면
   useEffect(() => {
@@ -271,16 +272,19 @@ function ChildReviewGamePage() {
   //   return <div>로딩중...</div>;
   // }
 
-  // // 스테이지 이동 함수
+  // 스테이지 이동 함수
   // const stageControll = ()=>{
 
   //   // 현재 스테이지
   //   // 단원 이동? 챕터이동도 해야하는데?
   //   const currentIndex = currentData.gameStageId - 1;
+  //   const currentChapterId = currentDate.game
   //   if (direction ==='next' && currentIndex< 4){
-
+  //     setChapterAndStage(chapterId, gameStageId + 1)
+  //   } 
+  //   else if (direction ==='prev' && currentIndex > 0){
+  //     setChapterAndStage(chapterId, gameStageId - 1)
   //   }
-  //   else if (direction ==='prev' && currentIndex > 0)
   // }
 
   return (
