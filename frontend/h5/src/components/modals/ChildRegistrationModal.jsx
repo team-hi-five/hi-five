@@ -57,7 +57,7 @@ const RegistrationModal = ({ onClose }) => {
         try {
           await uploadFile(
             selectedFile,
-            TBL_TYPES.PROFILE,  // 프로필 이미지이므로 'P' 타입 사용
+            TBL_TYPES.PROFILE_CHILD,  // 프로필 이미지이므로 'P' 타입 사용
             response.childUserId // tblId로 생성된 childUserId 사용
           );
         } catch (error) {

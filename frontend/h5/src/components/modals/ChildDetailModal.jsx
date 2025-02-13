@@ -163,7 +163,7 @@ const handleRejectDelete = async () => {
             // 파일 업로드
             await uploadFile(
               selectedImageFile, 
-              TBL_TYPES.PROFILE, 
+              TBL_TYPES.PROFILE_CHILD,
               String(childData.id)
             );
     

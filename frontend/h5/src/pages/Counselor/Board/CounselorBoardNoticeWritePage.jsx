@@ -74,7 +74,7 @@ function CounselorBoardNoticeWritePage() {
         
         for (const file of selectedFiles) {
           try {
-            const response = await uploadFile(file, TBL_TYPES.NOTICE, noticeId);
+            const response = await uploadFile(file, TBL_TYPES.NOTICE_FILE, noticeId);
             
             if (Array.isArray(response)) {
               uploadedFiles = [...uploadedFiles, ...response];
