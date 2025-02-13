@@ -1,38 +1,110 @@
 import "/src/pages/Parent/ParentCss/ParentVideoCallPage.css";
+import api from "../../../api/api";
+import { OpenVidu } from "openvidu-browser";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FaVideo, FaMicrophone, FaPhoneSlash, FaDesktop } from "react-icons/fa";
 
-function ParentVideoCallPage() {
+function CounselorParentVideoCallPage() {
+    const [searchParams] = useSearchParams();
+    const childId = searchParams.get("childId");
+    const type = searchParams.get("type") || "consult";
+
+    const [session, setSession] = useState(null);
+    const [publisher, setPublisher] = useState(null);
+    const [subscribers, setSubscribers] = useState([]);
+    const [screenPublisher, setScreenPublisher] = useState(null);
+    const [isScreenSharing, setIsScreenSharing] = useState(false);
+
+    const OVRef = useRef(null);
+
+    const getToken = useCallback(async () => {
+        try {
+            const res = await api.post("/session/join", {
+                childId: Number(childId),
+                type: type,
+            });
+            return res.data;
+        } catch (error) {
+            console.error("Token error:", error);
+            throw error;
+        }
+    }, [childId, type]);
+
+    const joinSession = useCallback(async () => {
+        try {
+            OVRef.current = new OpenVidu();
+            const newSession = OVRef.current.initSession();
+
+            newSession.on("streamCreated", (event) => {
+                const subscriber = newSession.subscribe(event.stream, undefined);
+                setSubscribers((prev) => [...prev, subscriber]);
+            });
+
+            newSession.on("streamDestroyed", (event) => {
+                setSubscribers((prev) => prev.filter((sub) => sub !== event.stream.streamManager));
+            });
+
+            setSession(newSession);
+
+            const token = await getToken();
+            await newSession.connect(token, { clientData: String(childId) });
+            await connectWebCam(newSession);
+        } catch (error) {
+            console.error("Join session error:", error);
+        }
+    }, [childId, getToken]);
+
+    const connectWebCam = useCallback(async (currentSession) => {
+        try {
+            const publisher = await OVRef.current.initPublisherAsync(undefined, {
+                audioSource: undefined,
+                videoSource: undefined,
+                publishAudio: true,
+                publishVideo: true,
+                resolution: "640x480",
+                frameRate: 30,
+                mirror: false,
+            });
+            await currentSession.publish(publisher);
+            setPublisher(publisher);
+        } catch (error) {
+            console.error("Webcam error:", error);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!session) joinSession();
+    }, [session, joinSession]);
+
     return (
         <div className="pa-video-call-container">
-            {/* 좌측 상단 로고 */}
-            <img src="/logo.png" alt="로고" className="pa-logoo" />
-
+            <img src="/logo.png" alt="Logo" className="pa-logoo" />
             <div className="pa-video-layout">
-                {/* 메인 비디오 */}
                 <div className="pa-main-video">
-                    {/*화면 공유*/}
+                    {publisher && <video autoPlay playsInline ref={(el) => el && publisher.addVideoElement(el)} className="local-video" />}
                 </div>
-
-                {/* 참여자 비디오 */}
                 <div className="pa-participant-videos">
-                    <div className="pa-participant">
-                        {/*  학부모 캠 */}
-                    </div>
-                    <div className="pa-participant">
-                        {/* 상담사 캠 */}
-                    </div>
+                    {subscribers.map((subscriber, index) => (
+                        <video key={index} autoPlay playsInline ref={(el) => el && subscriber.addVideoElement(el)} className="remote-video" />
+                    ))}
                 </div>
             </div>
-
-            {/* 하단 컨트롤 버튼 */}
             <div className="pa-video-controls">
+                {/*화면 공유 버튼*/}
                 <button className="pa-control-btn"><FaDesktop /></button>
+
+                {/*녹화 버튼*/}
                 <button className="pa-control-btn"><FaVideo /></button>
+
+                {/*음소거 버튼*/}
                 <button className="pa-control-btn"><FaMicrophone /></button>
+
+                {/*통화 종료 버튼*/}
                 <button className="pa-control-btn end-call"><FaPhoneSlash /></button>
             </div>
         </div>
     );
 }
 
-export default ParentVideoCallPage;
+export default CounselorParentVideoCallPage;
