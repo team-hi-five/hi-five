@@ -2,6 +2,16 @@ import "/src/pages/Parent/ParentCss/ParentVideoCallPage.css";
 import { FaVideo, FaMicrophone, FaPhoneSlash, FaDesktop } from "react-icons/fa";
 
 function ParentVideoCallPage() {
+  // const [searchParams] = useSearchParams();
+  // const childId = searchParams.get("childId");
+  // const type = searchParams.get("type") || "consult";
+  
+
+
+
+
+  
+
   return (
     <div className="pa-video-call-container">
       {/* 좌측 상단 로고 */}

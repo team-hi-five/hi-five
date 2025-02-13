@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom"
 import CounselorChildrenPage from "../pages/Counselor/Children/CounselorChildrenPage"
 import CounselorChildrenDataPage from "../pages/Counselor/Children/CounselorChildrenDataPage"
-import CounselorSchedulePage from "../pages/Counselor/Schedule/CounselorSchedulePage.jsx"
+import CounselorSchedulePage from "../pages/Counselor/Schedule/CounselorSchedulePage"
 import CounselorMyPage from "../pages/Counselor/Profile/CounselorMyPage"
 import CounselorBoardPage from "../pages/Counselor/Board/CounselorBoardPage"
 import CounselorBoardDetailPage from "../pages/Counselor/Board/CounselorBoardDetailPage"
