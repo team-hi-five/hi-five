@@ -321,15 +321,18 @@ const handleStageComplete = () => {
       <div className="ch-review-container">
         <div className="ch-review-game-left">
           <Card className="ch-game-screen-container">
-            <h2>
-              {gameIdData.chapter}단계 {gameIdData.stage}단원
-            </h2>
-            <h3>{currentGameData?.situation}</h3>
-            <video  
-               ref={videoRef} 
-              src={currentGameData?.gameVideo} 
-              controls 
-            />
+            <div className="ch-game-screen-container-up">
+              <h2>
+                {gameIdData.chapter}단계 {gameIdData.stage}단원
+              </h2>
+              <h3>{currentGameData?.situation}</h3>
+              <video  
+                ref={videoRef} 
+                src={currentGameData?.gameVideo} 
+                controls 
+                className="ch-game-class-screen"
+              />
+            </div>
              <div>progressbar</div>
              <div className="ch-game-button">
               {currentGameData.options.map((option, index) => (
