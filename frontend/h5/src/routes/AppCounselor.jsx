@@ -7,8 +7,9 @@ import CounselorBoardPage from "../pages/Counselor/Board/CounselorBoardPage"
 import CounselorBoardDetailPage from "../pages/Counselor/Board/CounselorBoardDetailPage"
 import CounselorBoardNoticeWritePage from "../pages/Counselor/Board/CounselorBoardNoticeWritePage"
 import CounselorBoardFaqWritePage from "../pages/Counselor/Board/CounselorBoardFaqWritePage"
-import CounselorParentVideoCall from "../pages/Counselor/Schedule/CounselorParentVideoCall"
+// import CounselorParentVideoCall from "../pages/Counselor/Schedule/CounselorParentVideoCall"
 import CounselorChildVideoCall from "../pages/Counselor/Schedule/CounselorChildVideoCall"
+import CounselorParentVideoCallPage from "../pages/Counselor/Schedule/CounselorParentVideoCall";
 
 
 function AppCounselor(){
@@ -17,7 +18,7 @@ function AppCounselor(){
             <Route path="/children" element={<CounselorChildrenPage />} />
             <Route path="/children/data" element={<CounselorChildrenDataPage />} />
             <Route path="/schedule" element={<CounselorSchedulePage />} />
-            <Route path="/schedule/parent-video-call" element={<CounselorParentVideoCall />} />
+            <Route path="/schedule/parent-video-call" element={<CounselorParentVideoCallPage />} />
             <Route path="/schedule/child-video-call" element={<CounselorChildVideoCall />} />
             <Route path="/mypage" element={<CounselorMyPage />} />
             <Route path="/board" element={<CounselorBoardPage />} />
