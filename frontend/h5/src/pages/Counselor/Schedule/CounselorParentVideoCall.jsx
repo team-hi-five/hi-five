@@ -122,8 +122,8 @@ function CounselorParentVideoCallPage() {
     const type = searchParams.get('type');
     const childId = searchParams.get('childId');
 
-    console.log(type);
-    console.log(childId);
+    console.log("type: ",type);
+    console.log("childId: ",childId);
 
     const [session, setSession] = useState(null);
     const [consultantPublisher, setConsultantPublisher] = useState(null);
@@ -136,7 +136,9 @@ function CounselorParentVideoCallPage() {
             type: type || 'consultation',
             childId: childId || 'unknown'
         });
-        return response.data.token;
+        const token = response.data;
+        console.log("token", token);
+        return token;
     }
 
     useEffect(() => {
@@ -160,6 +162,9 @@ function CounselorParentVideoCallPage() {
             await newSession.connect(token);
         }
         initializeSession();
+        console.log(OV.initPublisher(undefined, { videoSource: false }))
+        console.log(parentPublisher)
+        console.log(screenPublisher)
     }, [type, childId]);
 
     function sendSignalCommand(command) {
