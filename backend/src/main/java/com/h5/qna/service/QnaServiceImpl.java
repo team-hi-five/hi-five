@@ -183,7 +183,7 @@ public class QnaServiceImpl implements QnaService {
 
         List<QnaAnswerResponseDto> qnaAnswerResponseList = qnaAnswerEntityList.stream()
                 .map(answer -> {
-                    List<GetFileUrlResponseDto> profileImages = fileService.getFileUrl(FileEntity.TblType.P, answer.getConsultantUser().getId());
+                    List<GetFileUrlResponseDto> profileImages = fileService.getFileUrl(FileEntity.TblType.PCT, answer.getConsultantUser().getId());
 
                     String profileImageUrl = profileImages.isEmpty() ? null : profileImages.get(0).getUrl();
 
