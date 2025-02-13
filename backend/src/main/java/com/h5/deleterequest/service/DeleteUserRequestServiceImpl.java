@@ -171,6 +171,6 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
     }
 
     private String getFileUrl(int tblId) {
-        return !fileService.getFileUrl(FileEntity.TblType.P, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl() : "Default Image";
+        return !fileService.getFileUrl(FileEntity.TblType.PCD, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.PCD, tblId).get(0).getUrl() : "Default Image";
     }
 }
