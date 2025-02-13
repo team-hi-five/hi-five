@@ -159,7 +159,7 @@ public class AssetServiceImpl implements AssetService {
                 .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
 
         return LoadAssetResponseDto.builder()
-                .gameStageId(gameStageId/5 +1)
+                .gameStageId(entity.getGameStageEntity().getId())
                 .chapterId(entity.getGameStageEntity().getGameChapterEntity().getId())
                 .gameVideo(entity.getGameSceneVideo())
                 .options(new String[]{entity.getOpt1(), entity.getOpt2(), entity.getOpt3()})
