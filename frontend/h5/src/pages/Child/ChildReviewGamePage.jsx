@@ -36,7 +36,6 @@ function ChildReviewGamePage() {
   console.log("현재 데이터 상태:", currentData); // 상태 출력
   console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
   console.log("Zustand 전체 상태:", useGameStore.getState());
-  console.log(currentData.img)
 
 
   // 상태관리
