@@ -406,8 +406,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .schdlDttm(consult.getSchdlDttm())
                         .type("consult")
                         .consultantName(consult.getHost().getName())
+                        .childUserId(consult.getChildUserEntity().getId())
                         .childName(consult.getChildUserEntity().getName())
                         .parentName(consult.getParentUserEntity().getName())
+                        .parentEmail(consult.getParentUserEntity().getEmail())
                         .status(consult.getStatus())
                         .build()
         ));
@@ -418,8 +420,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .schdlDttm(game.getSchdlDttm())
                         .type("game")
                         .consultantName(game.getHost().getName())
+                        .childUserId(game.getChildUserEntity().getId())
                         .childName(game.getChildUserEntity().getName())
-                        .parentName(null)
+                        .parentName(game.getChildUserEntity().getParentUserEntity().getName())
+                        .parentEmail(game.getChildUserEntity().getParentUserEntity().getEmail())
                         .status(game.getStatus())
                         .build()
         ));
