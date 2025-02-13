@@ -1,119 +1,8 @@
-// import "/src/pages/Parent/ParentCss/ParentVideoCallPage.css";
-// import api from "../../../api/api";
-// import { OpenVidu } from "openvidu-browser";
-// import { useEffect, useRef, useState, useCallback } from "react";
-// import { useSearchParams } from "react-router-dom";
-// import { FaVideo, FaMicrophone, FaPhoneSlash, FaDesktop } from "react-icons/fa";
-//
-// function CounselorParentVideoCallPage() {
-//     const [searchParams] = useSearchParams();
-//     const childId = searchParams.get("childId");
-//     const type = searchParams.get("type") || "consult";
-//
-//     const [session, setSession] = useState(null);
-//     const [publisher, setPublisher] = useState(null);
-//     const [subscribers, setSubscribers] = useState([]);
-//     const [screenPublisher, setScreenPublisher] = useState(null);
-//     const [isScreenSharing, setIsScreenSharing] = useState(false);
-//
-//     const OVRef = useRef(null);
-//
-//     const getToken = useCallback(async () => {
-//         try {
-//             const res = await api.post("/session/join", {
-//                 childId: Number(childId),
-//                 type: type,
-//             });
-//             return res.data;
-//         } catch (error) {
-//             console.error("Token error:", error);
-//             throw error;
-//         }
-//     }, [childId, type]);
-//
-//     const joinSession = useCallback(async () => {
-//         try {
-//             OVRef.current = new OpenVidu();
-//             const newSession = OVRef.current.initSession();
-//
-//             newSession.on("streamCreated", (event) => {
-//                 const subscriber = newSession.subscribe(event.stream, undefined);
-//                 setSubscribers((prev) => [...prev, subscriber]);
-//             });
-//
-//             newSession.on("streamDestroyed", (event) => {
-//                 setSubscribers((prev) => prev.filter((sub) => sub !== event.stream.streamManager));
-//             });
-//
-//             setSession(newSession);
-//
-//             const token = await getToken();
-//             await newSession.connect(token, { clientData: String(childId) });
-//             await connectWebCam(newSession);
-//         } catch (error) {
-//             console.error("Join session error:", error);
-//         }
-//     }, [childId, getToken]);
-//
-//     const connectWebCam = useCallback(async (currentSession) => {
-//         try {
-//             const publisher = await OVRef.current.initPublisherAsync(undefined, {
-//                 audioSource: undefined,
-//                 videoSource: undefined,
-//                 publishAudio: true,
-//                 publishVideo: true,
-//                 resolution: "640x480",
-//                 frameRate: 30,
-//                 mirror: false,
-//             });
-//             await currentSession.publish(publisher);
-//             setPublisher(publisher);
-//         } catch (error) {
-//             console.error("Webcam error:", error);
-//         }
-//     }, []);
-//
-//     useEffect(() => {
-//         if (!session) joinSession();
-//     }, [session, joinSession]);
-//
-//     return (
-//         <div className="pa-video-call-container">
-//             <img src="/logo.png" alt="Logo" className="pa-logoo" />
-//             <div className="pa-video-layout">
-//                 <div className="pa-main-video">
-//                     {publisher && <video autoPlay playsInline ref={(el) => el && publisher.addVideoElement(el)} className="local-video" />}
-//                 </div>
-//                 <div className="pa-participant-videos">
-//                     {subscribers.map((subscriber, index) => (
-//                         <video key={index} autoPlay playsInline ref={(el) => el && subscriber.addVideoElement(el)} className="remote-video" />
-//                     ))}
-//                 </div>
-//             </div>
-//             <div className="pa-video-controls">
-//                 {/*화면 공유 버튼*/}
-//                 <button className="pa-control-btn"><FaDesktop /></button>
-//
-//                 {/*녹화 버튼*/}
-//                 <button className="pa-control-btn"><FaVideo /></button>
-//
-//                 {/*음소거 버튼*/}
-//                 <button className="pa-control-btn"><FaMicrophone /></button>
-//
-//                 {/*통화 종료 버튼*/}
-//                 <button className="pa-control-btn end-call"><FaPhoneSlash /></button>
-//             </div>
-//         </div>
-//     );
-// }
-//
-// export default CounselorParentVideoCallPage;
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { OpenVidu } from 'openvidu-browser';
 import ConsultantCam from '../../../components/Counselor/CounselorCam.jsx';
-// import ParentCam from '../../../components/Parent/';
 import ScreenShareCam from '../../../components/Counselor/CounselorShareScreen.jsx';
+import ParentVideoScreen from "../../../components/OpenviduSession/ParentVideoScreen.jsx";
 import api from '../../../api/api.jsx';
 import { useSearchParams } from 'react-router-dom';
 
@@ -122,62 +11,76 @@ function CounselorParentVideoCallPage() {
     const type = searchParams.get('type');
     const childId = searchParams.get('childId');
 
-    console.log("type: ",type);
-    console.log("childId: ",childId);
-
     const [session, setSession] = useState(null);
     const [consultantPublisher, setConsultantPublisher] = useState(null);
-    const [parentPublisher, setParentPublisher] = useState(null);
     const [screenPublisher, setScreenPublisher] = useState(null);
-    const OV = new OpenVidu();
+    const OV = useRef(new OpenVidu());
 
     async function getToken() {
-        const response = await api.post('/session/join', {
-            type: type || 'consultation',
-            childId: childId || 'unknown'
-        });
-        const token = response.data;
-        console.log("token", token);
-        return token;
+        try {
+            const response = await api.post('/session/join', { type, childId });
+            return response.data;
+        } catch (error) {
+            console.error('❌ 토큰 요청 실패:', error);
+            throw error;
+        }
     }
 
     useEffect(() => {
         async function initializeSession() {
-            const newSession = OV.initSession();
-            setSession(newSession);
+            try {
+                // 🟢 1️⃣ 하나의 세션만 사용
+                const sessionInstance = OV.current.initSession();
+                await sessionInstance.connect(await getToken());
 
-            // 기본값으로 빈 Publisher 설정 (PropTypes 경고 방지)
-            setConsultantPublisher(OV.initPublisher(undefined, { videoSource: false }));
-            setParentPublisher(OV.initPublisher(undefined, { videoSource: false }));
-            setScreenPublisher(OV.initPublisher(undefined, { videoSource: false }));
+                // 💻 웹캠 퍼블리셔
+                const camPublisher = OV.current.initPublisher(undefined, {
+                    videoSource: undefined, // 기본 카메라
+                    audioSource: true,
+                    mirror: true,
+                });
+                sessionInstance.publish(camPublisher);
+                setConsultantPublisher(camPublisher);
+                console.log('📸 웹캠 퍼블리싱 완료');
 
-            newSession.on('signal:CONTROL', (event) => {
-                const message = JSON.parse(event.data);
-                if (message.action === 'STOP_PARENT_CAM' && parentPublisher) {
-                    parentPublisher.stream.dispose();
-                }
-            });
+                // 🕒 웹캠 퍼블리싱 후 약간의 딜레이
+                await new Promise((resolve) => setTimeout(resolve, 500));
 
-            const token = await getToken();
-            await newSession.connect(token);
+                // 🖥️ 화면 공유 퍼블리셔 (같은 세션에 추가)
+                const screenPub = OV.current.initPublisher(undefined, {
+                    videoSource: 'screen',
+                    audioSource: false,
+                    mirror: false,
+                });
+
+                screenPub.on('accessDenied', () => {
+                    console.error('🛑 화면 공유 권한 거부됨');
+                });
+
+                sessionInstance.publish(screenPub);
+                setScreenPublisher(screenPub);
+                console.log('🖥️ 화면 공유 퍼블리싱 완료');
+
+                // 세션 상태 저장
+                setSession(sessionInstance);
+            } catch (error) {
+                console.error('❌ 세션 초기화 실패:', error);
+            }
         }
-        initializeSession();
-        console.log(OV.initPublisher(undefined, { videoSource: false }))
-        console.log(parentPublisher)
-        console.log(screenPublisher)
-    }, [type, childId]);
 
-    function sendSignalCommand(command) {
-        session?.signal({ type: 'CONTROL', data: JSON.stringify(command) });
-    }
+        initializeSession();
+    }, [type, childId]);
 
     return (
         <div className="consultation-page">
-            <button onClick={() => sendSignalCommand({ action: 'STOP_PARENT_CAM' })}>학부모 캠 종료</button>
-            <ConsultantCam publisher={consultantPublisher ?? { stream: { getMediaStream: () => null } }} />
-            {/*<ParentCam publisher={parentPublisher ?? { stream: { getMediaStream: () => null } }} />*/}
-            <ScreenShareCam screenPublisher={screenPublisher ?? { stream: { getMediaStream: () => null } }} />
+            <h2>상담사 웹캠</h2>
+            <ConsultantCam session={session} publisher={consultantPublisher} />
+            <h2>학부모 웹캠</h2>
+            {/*여기*/}
+            <h2>상담사 화면 공유</h2>
+            <ScreenShareCam session={session} publisher={screenPublisher} />
         </div>
     );
 }
+
 export default CounselorParentVideoCallPage;

@@ -1,32 +1,15 @@
-import PropTypes from 'prop-types';
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-function ConsultantCam({ publisher }) {
+function ConsultantCam({ session, publisher }) {
     const videoRef = useRef(null);
 
     useEffect(() => {
-        if (publisher?.stream && videoRef.current) {
-            const mediaStream = publisher.stream.getMediaStream();
-            if (mediaStream) {
-                videoRef.current.srcObject = mediaStream;
-            }
+        if (publisher && videoRef.current) {
+            publisher.addVideoElement(videoRef.current);
         }
     }, [publisher]);
 
-    return (
-        <div className="consultant-cam">
-            <h2>상담사 웹캠</h2>
-            <video ref={videoRef} autoPlay playsInline className="local-video" />
-        </div>
-    );
+    return <video ref={videoRef} autoPlay={true} />;
 }
-
-ConsultantCam.propTypes = {
-    publisher: PropTypes.shape({
-        stream: PropTypes.shape({
-            getMediaStream: PropTypes.func.isRequired,
-        }).isRequired,
-    }).isRequired,
-};
 
 export default ConsultantCam;
