@@ -1,11 +1,15 @@
 import api from "./api";
 
 export const TBL_TYPES = {
-    PROFILE: 'P',
-    NOTICE: 'N', 
-    QNA: 'Q',    
-    GALLERY: 'G',
-    FA: 'FA'     
+    PROFILE_CHILD: 'PCD',
+    PROFILE_CONSULTANT: 'PCT',
+    NOTICE_EDITOR: 'NE',
+    NOTICE_FILE: 'NF',
+    QNA_EDITOR: 'QE',
+    QNA_FILE: 'QF',
+    GAME: 'G',
+    FAQ_EDITOR: 'FE',
+    FAQ_FILE: 'FF'
 };
 
 export const uploadFile = async (file, tblType, tblId) => {

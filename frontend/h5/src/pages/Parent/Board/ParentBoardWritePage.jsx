@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { Toast } from 'primereact/toast';
 import { Editor } from "primereact/editor";
 import { FileUpload } from 'primereact/fileupload';
 import { useNavigate } from 'react-router-dom';
@@ -48,7 +47,7 @@ function ParentBoardWritePage() {
     const oversizedFiles = files.filter(file => file.size > 1000000);
     
     if (oversizedFiles.length > 0) {
-      showToast('warn', '알림', '1MB 이상의 파일은 업로드할 수 없습니다.');
+      showToast('warn', '알림', '100MB 이상의 파일은 업로드할 수 없습니다.');
       return;
     }
     
@@ -73,7 +72,7 @@ function ParentBoardWritePage() {
         
         for (const file of selectedFiles) {
           try {
-            const response = await uploadFile(file, TBL_TYPES.QNA, qnaId);
+            const response = await uploadFile(file, TBL_TYPES.QNA_FILE, qnaId);
             
             // API 응답이 배열인지 확인
             if (Array.isArray(response)) {
@@ -146,7 +145,7 @@ function ParentBoardWritePage() {
         <Editor
           value={content}
           onTextChange={(e) => setContent(e.htmlValue)}
-          style={{ height: "180px" }}
+          style={{ height: "500px" }}
         />
 
         {/* Editor와 FileUpload 사이에 10px 공간 추가 */}

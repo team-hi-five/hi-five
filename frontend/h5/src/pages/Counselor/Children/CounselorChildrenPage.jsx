@@ -42,7 +42,7 @@ async function fetchChildren() {
       
       try {
         // 2. 프로필 이미지 URL 가져오기
-        const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, child.childUserID);
+        const imageUrls = await getFileUrl(TBL_TYPES.PROFILE_CHILD, child.childUserID);
         console.log(`✅ 아동 ${child.childUserID}의 이미지 URL:`, imageUrls);
 
         // 3. imageUrls의 구조 확인 및 최신 이미지 URL 사용
@@ -101,7 +101,7 @@ async function fetchChildren() {
     try {
       // 이미지 URL을 포함한 전체 데이터를 다시 가져오기
       const updatedChildDetails = await getConsultantChild(childId);
-      const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, childId);
+      const imageUrls = await getFileUrl(TBL_TYPES.PROFILE_CHILD, childId);
       
       let finalData = { ...updatedChildDetails };
       

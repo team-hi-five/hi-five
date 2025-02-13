@@ -34,7 +34,7 @@ const handleChildClick = async (childUserId, deleteUserRequestId) => {
     const data = await getConsultantChild(childUserId);
     
     // 이미지 URL 가져오기 (CounselorChildrenPage와 동일한 방식으로)
-    const imageUrls = await getFileUrl(TBL_TYPES.PROFILE, childUserId);
+    const imageUrls = await getFileUrl(TBL_TYPES.PROFILE_CHILD, childUserId);
     let profileImageUrl = data.profileImgUrl; // 기본값
     
     if (imageUrls && Array.isArray(imageUrls) && imageUrls.length > 0) {
