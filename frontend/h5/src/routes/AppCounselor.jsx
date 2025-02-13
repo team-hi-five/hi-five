@@ -10,6 +10,7 @@ import CounselorBoardFaqWritePage from "../pages/Counselor/Board/CounselorBoardF
 // import CounselorParentVideoCall from "../pages/Counselor/Schedule/CounselorParentVideoCall"
 import CounselorChildVideoCall from "../pages/Counselor/Schedule/CounselorChildVideoCall"
 import CounselorParentVideoCallPage from "../pages/Counselor/Schedule/CounselorParentVideoCall";
+import CounselorBoardEditPage from "../pages/Counselor/Board/CounselorBoardEditPage.jsx";
 
 
 function AppCounselor(){
@@ -25,6 +26,7 @@ function AppCounselor(){
             <Route path="/board/:type/:no" element={<CounselorBoardDetailPage />} />
             <Route path="/board/notice/write" element={<CounselorBoardNoticeWritePage />} />
             <Route path="/board/faq/write" element={<CounselorBoardFaqWritePage />} />
+            <Route path="/board/:type/edit/:no" element={<CounselorBoardEditPage />}/>
             {/* <Route path="/video" element={<CounselorVideoPage />} />
             <Route path="/meeting" element={<CounselorMeetingPage />} />
              */}

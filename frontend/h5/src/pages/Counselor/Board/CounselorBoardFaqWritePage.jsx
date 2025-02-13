@@ -4,13 +4,14 @@ import { Editor } from "primereact/editor";
 import { FileUpload } from 'primereact/fileupload';
 import { Dropdown } from 'primereact/dropdown';
 import { useNavigate } from 'react-router-dom';
-import { useBoardStore } from '../../../store/boardStore';
+import {base64ToFile, extractAndReplaceEditorImages, useBoardStore} from '../../../store/boardStore';
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import { createFaq } from "../../../api/boardFaq";
 import { uploadFile, TBL_TYPES } from "../../../api/file";
 import '../Css/CounselorBoardFaqWritePage.css';
+import {updateNotice} from "../../../api/boardNotice.jsx";
 
 function CounselorBoardFaqWritePage() {
   const [title, setTitle] = useState("");
@@ -74,36 +75,42 @@ function CounselorBoardFaqWritePage() {
       if (isSubmitting) return;
       setIsSubmitting(true);
 
+      const { modifiedContent, imageDataList } = extractAndReplaceEditorImages(faqAnswer);
+
       // 1. FAQ 생성
-      const faqResponse = await createFaq(title, selectedType, faqAnswer);
+      const faqResponse = await createFaq(title, selectedType, modifiedContent);
       const faqId = faqResponse.faqId || faqResponse.data?.faqId;
 
-      // 2. 파일 업로드
-      if (faqId && selectedFiles.length > 0) {
-        let uploadedFiles = [];
-        let failedUploads = 0;
-        
-        for (const file of selectedFiles) {
-          try {
-            const response = await uploadFile(file, TBL_TYPES.FAQ_FILE, faqId);
-            
-            if (Array.isArray(response)) {
-              uploadedFiles = [...uploadedFiles, ...response];
-            } else if (response) {
-              uploadedFiles.push(response);
-            }
-          } catch (uploadError) {
-            console.error("파일 업로드 실패:", uploadError);
-            failedUploads++;
+      let finalContent = modifiedContent;
+
+      if (imageDataList.length > 0) {
+        // imageDataList의 각 항목을 File 객체로 변환
+        const editorFiles = imageDataList.map(item =>
+            base64ToFile(item.base64, item.originalFileName)
+        );
+        console.log(editorFiles);
+        // 모든 파일의 tblType은 TBL_TYPES.EDITOR, tblId는 noticeId로 설정
+        const editorTblTypes = editorFiles.map(() => TBL_TYPES.FAQ_EDITOR);
+        console.log(editorTblTypes)
+        const editorTblIds = editorFiles.map(() => faqId);
+
+        const editorUploadResponse = await uploadFile(editorFiles, editorTblTypes, editorTblIds);
+
+        // 반환된 업로드 결과(배열 순서가 imageDataList와 동일하다고 가정)로 placeholder 대체
+        imageDataList.forEach((item, idx) => {
+          const uploadedUrl = editorUploadResponse[idx]?.url;
+          if (uploadedUrl) {
+            finalContent = finalContent.replace(item.placeholder, uploadedUrl);
           }
-        }
-        
-        // 업로드 결과 확인
-        if (failedUploads > 0) {
-          await SingleButtonAlert(
-            `${uploadedFiles.length}개 파일 업로드 완료, ${failedUploads}개 파일 업로드 실패`
-          );
-        }
+        });
+        // 에디터 이미지 URL이 반영된 최종 콘텐츠로 공지사항 업데이트
+        await updateNotice(faqId, title, finalContent);
+      }
+
+      if (faqId && selectedFiles.length > 0) {
+        const attachmentTblTypes = selectedFiles.map(() => TBL_TYPES.FAQ_FILE);
+        const attachmentTblIds = selectedFiles.map(() => faqId);
+        await uploadFile(selectedFiles, attachmentTblTypes, attachmentTblIds);
       }
 
       await SingleButtonAlert('FAQ가 등록되었습니다.');
@@ -163,7 +170,7 @@ function CounselorBoardFaqWritePage() {
         <Editor
           value={faqAnswer}
           onTextChange={(e) => setFaqAnswer(e.htmlValue)}
-          style={{ height: "180px" }}
+          style={{ height: "500px" }}
         />
 
         {/* Editor와 FileUpload 사이에 10px 공간 추가 */}

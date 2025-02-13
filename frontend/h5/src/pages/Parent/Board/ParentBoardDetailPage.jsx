@@ -1,515 +1,314 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
+import SingleButtonAlert from "../../../components/common/SingleButtonAlert";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
-import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
-import { getNoticeDetail } from '../../../api/boardNotice';
-import { getFaqDetail } from '../../../api/boardFaq';
-import { getQnaDetail, updateQna, deleteQna } from '../../../api/boardQna';
-import { getFileUrl, downloadFile, uploadFile, deleteFile } from '../../../api/file';
-import '../../Counselor/Css/CounselorBoardDetailPage.css'
+import { getNoticeDetail, deleteNotice } from "../../../api/boardNotice";
+import { getFaqDetail, deleteFaq } from "../../../api/boardFaq";
+import { getQnaDetail, deleteQna } from "../../../api/boardQna";
+import { getFileUrl, downloadFile, deleteFile } from "../../../api/file";
+import "../../Counselor/Css/CounselorBoardDetailPage.css";
+import { replaceEditorPlaceholders } from "../../../store/boardStore";
 
-function CounselorBoardDetailPage() {
+function ParentBoardDetailPage() {
   const navigate = useNavigate();
   const { type, no } = useParams();
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState("");
-  const [editedTitle, setEditedTitle] = useState("");
-
-  const [noticeData, setNoticeData] = useState(null);
-  const [faqData, setFaqData] = useState(null);
-  const [qnaData, setQnaData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [postData, setPostData] = useState(null);
   const [answers, setAnswers] = useState([]);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [deletedFileIds, setDeletedFileIds] = useState([]);
-
-  const [fileUrls, setFileUrls] = useState([]);
-  const [fileError, setFileError] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [attachmentFileUrls, setAttachmentFileUrls] = useState([]);
+  const [editorFileUrls, setEditorFileUrls] = useState([]);
+  const [deletedFileIds] = useState([]);
+  const [setFileError] = useState(null);
 
   const viewCountUpdated = useRef(false);
 
-  // HTML 태그를 제거하는 함수 추가
-  const stripHtml = (html) => {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || "";
-  };
-
-  // getTimeAgo 함수 추가
+  // 상대적 시간 계산 함수
   const getTimeAgo = (dateString) => {
-    const now = new Date();
-    const past = new Date(dateString);
-    const diffInMilliseconds = now - past;
-    const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
-    const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
-
-    if (diffInMinutes < 1) {
-      return '방금 전';
-    } else if (diffInMinutes < 60) {
-      return `${diffInMinutes}분 전`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours}시간 전`;
-    } else if (diffInDays < 7) {
-      return `${diffInDays}일 전`;
-    } else {
+    if (!dateString) return "방금 전";
+    try {
+      const now = new Date();
+      const past = new Date(dateString);
+      const diff = now - past;
+      const minutes = Math.floor(diff / (1000 * 60));
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      if (minutes < 1) return "방금 전";
+      if (minutes < 60) return `${minutes}분 전`;
+      if (hours < 24) return `${hours}시간 전`;
+      if (days < 7) return `${days}일 전`;
       return past.toLocaleDateString();
+    } catch (error) {
+      console.error("날짜 변환 오류:", error);
+      return "방금 전";
     }
   };
 
-  // 파일 URL을 가져오는 함수 추가
-  const fetchFileUrls = async (type, id) => {
+  // 파일 URL 조회 (공통 함수)
+  const fetchFileUrls = async (fileType, id, setUrls) => {
     try {
-      const response = await getFileUrl(type, id);
+      const response = await getFileUrl(fileType, id);
       if (response) {
-        setFileUrls(Array.isArray(response) ? response : [response]);
+        const filtered = Array.isArray(response)
+            ? response.filter(file => !deletedFileIds.includes(file.fileId))
+            : [response];
+        setUrls(filtered);
       }
     } catch (error) {
       console.error("파일 URL 조회 실패:", error);
       setFileError("파일을 불러오는데 실패했습니다.");
     }
   };
-  
-  const handleEdit = () => {
-    setIsEditing(true);
-    setEditedTitle(postData.title);
-    setEditedContent(stripHtml(postData.content));
-  };
 
-  const handleEditComplete = async () => {
-    try {
-      if (!editedContent) {
-        await SingleButtonAlert('수정할 내용을 입력해주세요.');
-        return;
-      }
-  
-      if (!editedTitle) {
-        await SingleButtonAlert('제목을 입력해주세요.');
-        return;
-      }
-  
-      if (type === "qna") {
-        // 1. QNA 내용 수정
-        const updatedQna = await updateQna(no, editedTitle, editedContent);
-        
-        // 2. 삭제된 파일들 처리
-        const deletePromises = deletedFileIds.map(fileId => deleteFile(fileId));
-        await Promise.all(deletePromises);
-  
-        // 3. 새로운 파일 업로드
-        if (selectedFiles.length > 0) {
-          const uploadPromises = selectedFiles.map(file => 
-            uploadFile(file, 'Q', no)
-          );
-          
-          try {
-            await Promise.all(uploadPromises);
-          } catch (error) {
-            console.error("파일 업로드 실패:", error);
-            await SingleButtonAlert('파일 업로드에 실패했습니다.');
+  // 초기 데이터 불러오기: 타입별 분기 (Notice, FAQ, QnA)
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        let response, formattedData;
+        if (type === "notice") {
+          response = await getNoticeDetail(no);
+          formattedData = {
+            no: response.id,
+            title: response.title,
+            content: response.content, // 에디터 이미지 placeholder 포함
+            writer: response.name || "운영자",
+            views: response.viewCnt || 0,
+            date: new Date(response.createDttm).toISOString().split("T")[0],
+          };
+          setPostData(formattedData);
+          await fetchFileUrls("NE", response.id, setEditorFileUrls);
+          await fetchFileUrls("NF", response.id, setAttachmentFileUrls);
+        } else if (type === "faq") {
+          response = await getFaqDetail(no);
+          formattedData = {
+            no: response.id,
+            title: response.title,
+            content: response.faqAnswer,
+            writer: response.name || "운영자",
+          };
+          setPostData(formattedData);
+          await fetchFileUrls("FE", response.id, setEditorFileUrls);
+          await fetchFileUrls("FF", response.id, setAttachmentFileUrls);
+        } else if (type === "qna") {
+          response = await getQnaDetail(no);
+          formattedData = {
+            no: response.id,
+            title: response.title,
+            content: response.content,
+            writer: response.name || "익명",
+            status: response.qnaAnswerResponseList?.length > 0 ? "답변완료" : "미답변",
+            date: new Date(response.createDttm).toISOString().split("T")[0],
+          };
+
+          setPostData(formattedData);
+
+          if (response.qnaAnswerResponseList.length > 0) {
+            const formattedAnswers = response.qnaAnswerResponseList.map(answers => ({
+              id: answers.id,
+              writer: answers.writer,
+              content: answers.content,
+              time: getTimeAgo(answers.createDttm),
+              profileImageUrl: answers.profileImageUrl || "/no.png"
+            }));
+            setAnswers(formattedAnswers);
+          } else {
+            setAnswers([]);
           }
+          await fetchFileUrls("QE", response.id, setEditorFileUrls);
+          await fetchFileUrls("QF", response.id, setAttachmentFileUrls);
         }
-  
-        const formattedData = {
-          ...qnaData,
-          title: updatedQna.title || editedTitle,
-          content: updatedQna.content || editedContent,
-          writer: updatedQna.name || qnaData.writer,
-          status: updatedQna.answerYn ? "답변완료" : "미답변",
-          date: updatedQna.createDttm ? new Date(updatedQna.createDttm).toISOString().split('T')[0] : qnaData.date
-        };
-  
-        setQnaData(formattedData);
-        
-        // 상태 초기화
-        setIsEditing(false);
-        setEditedTitle("");
-        setEditedContent("");
-        setSelectedFiles([]);
-        setDeletedFileIds([]);
-  
-        // 파일 목록 새로고침
-        await fetchFileUrls('Q', no);
+      } catch (error) {
+        console.error("데이터 조회 실패:", error);
+        await SingleButtonAlert(error.response?.data?.message || "데이터를 불러오는데 실패했습니다.");
+        navigate(-1);
+      } finally {
+        setIsLoading(false);
+        viewCountUpdated.current = true;
       }
-    } catch (error) {
-      console.error('수정 처리 중 오류 발생:', error);
-      await SingleButtonAlert(
-        error.response?.data?.message || 'QnA 수정에 실패했습니다.'
-      );
     }
-  };
-
-  const handleFileDelete = async (fileId) => {
-    console.log("삭제 시도하는 fileId:", fileId);
-    
-    try {
-      await deleteFile(fileId);
-      console.log("✅ 파일 삭제 API 호출 성공");
-  
-      setFileUrls(files => files.filter(file => file.fileId !== fileId));
-      setDeletedFileIds(prev => [...prev, fileId]);
-  
-    } catch (error) {
-      console.error('파일 삭제 중 오류:', error);
-      await SingleButtonAlert("파일 삭제에 실패했습니다.");
+    if (no && !viewCountUpdated.current) {
+      fetchData();
     }
-  };
+  }, [no, type, navigate]);
 
+  // 에디터 이미지 치환: 게시글 내용에 placeholder가 있으면 실제 URL로 치환
+  useEffect(() => {
+    if (postData && editorFileUrls.length > 0 && postData.content.includes("__EDITOR_IMAGE_PLACEHOLDER_")) {
+      setPostData(prev => ({
+        ...prev,
+        content: replaceEditorPlaceholders(prev.content, editorFileUrls)
+      }));
+    }
+  }, [editorFileUrls, postData]);
+
+  // 게시글 삭제: 게시글 삭제 시 관련 파일도 함께 삭제
   const handleDelete = async () => {
     try {
       const result = await DoubleButtonAlert("정말 삭제 하시겠습니까?");
       if (result.isConfirmed) {
-        if (type === "qna") {
+        // 모든 파일 삭제: 첨부파일 + 에디터 이미지
+        const allFiles = [...(attachmentFileUrls || []), ...(editorFileUrls || [])];
+        await Promise.all(allFiles.map(file => deleteFile(file.fileId)));
+        // 게시글 삭제 (타입별 분기)
+        if (type === "notice") {
+          await deleteNotice(no);
+        } else if (type === "faq") {
+          await deleteFaq(no);
+        } else if (type === "qna") {
           await deleteQna(no);
-          await SingleButtonAlert("성공적으로 삭제되었습니다.");
-          navigate('/parent/board');
         }
+        await SingleButtonAlert("성공적으로 삭제되었습니다.");
+        navigate("/parent/board");
       }
     } catch (error) {
-      console.error('삭제 처리 중 오류 발생:', error);
-      await SingleButtonAlert(
-        error.response?.data?.message || 'QnA 삭제에 실패했습니다.'
-      );
+      console.error("삭제 처리 중 오류 발생:", error);
+      await SingleButtonAlert(error.response?.data?.message || "삭제에 실패했습니다.");
     }
   };
-
-  // 상세 데이터 가져오기 (수정된 부분)
-  useEffect(() => {
-    if (no && !viewCountUpdated.current) {  
-      const fetchData = async () => {
-        try {
-          setIsLoading(true);
-          
-          if (type === "notice") {
-            const response = await getNoticeDetail(no);
-            
-            const formattedData = {
-              no: response.id,
-              title: response.title,
-              content: response.content,
-              writer: response.name || "운영자",
-              views: response.viewCnt || 0,
-              date: new Date(response.createDttm).toISOString().split('T')[0]
-            };
-            
-            setNoticeData(formattedData);
-            // 파일 URL 조회
-            await fetchFileUrls('N', response.id);
-
-          } else if (type === "faq") {
-            const response = await getFaqDetail(no);
-            
-            const formattedData = {
-              no: response.id,
-              title: response.title,
-              content: response.faqAnswer,
-              type: response.type === "usage"
-                ? "이용안내"
-                : response.type === "child"
-                ? "아동상담/문의"
-                : response.type === "center"
-                ? "센터이용/문의"
-                : "기타"
-            };
-            
-            setFaqData(formattedData);
-            // 파일 URL 조회
-            await fetchFileUrls('FA', response.id);
-
-          } else if (type === "qna") {
-            const response = await getQnaDetail(no);
-
-            const formattedData = {
-              no: response.id,
-              title: response.title,
-              content: response.content,
-              writer: response.name,
-              status: response.answerCnt > 0 ? "답변완료" : "미답변",
-              date: new Date(response.createDttm).toISOString().split('T')[0]
-            };
-
-            if (response.qnaAnswerResponseList && response.qnaAnswerResponseList.length > 0) {
-              const formattedAnswers = response.qnaAnswerResponseList.map(answer => ({
-                id: answer.id,
-                writer: answer.name || "상담사",
-                content: answer.content,
-                time: getTimeAgo(answer.createDttm),
-                profileImageUrl: answer.profileImageUrl || "/no.png"
-              }));
-              setAnswers(formattedAnswers);
-            } else {
-              setAnswers([]);
-            }
-        
-            setQnaData(formattedData);
-            // 파일 URL 조회
-            await fetchFileUrls('Q', response.id);
-          }
-        } catch (error) {
-          console.error("데이터 조회 실패:", error);
-          await SingleButtonAlert(
-            error.response?.data?.message || '데이터를 불러오는데 실패했습니다.'
-          );
-          navigate(-1);
-        } finally {
-          setIsLoading(false);
-        }
-        viewCountUpdated.current = true;
-      };
-      fetchData();
-    }
-  }, [type, no]);
 
   const handleBack = () => {
     navigate(-1);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
-  // 게시판 데이터 선택
-  let postData;
-  if (type === "notice") {
-    postData = noticeData;
-  } else if (type === "faq") {
-    postData = faqData;
-  } else if (type === "qna") {
-    postData = qnaData;
-  }
-
-  // 로딩 중 표시
   if (isLoading) {
     return (
-      <div className="co-detail-page">
-        <CounselorHeader />
-        <div className="co-detail-container">
-          <div className="co-detail-loading">
-            <div className="co-detail-loading-spinner"></div>
-            <p>데이터를 불러오는 중입니다...</p>
+        <div className="co-detail-page">
+          <CounselorHeader />
+          <div className="co-detail-container">
+            <div className="co-detail-loading">
+              <div className="co-detail-loading-spinner"></div>
+              <p>데이터를 불러오는 중입니다...</p>
+            </div>
           </div>
         </div>
-      </div>
     );
   }
 
-  // 데이터가 없을 경우 처리
   if (!postData) {
     return (
-      <div className="co-detail-page">
-        <CounselorHeader />
-        <div className="co-detail-container">
-          <div className="co-detail-topbar">
-            <button className="co-detail-back-btn" onClick={handleBack}>
-              ←
-            </button>
-            <span className="co-detail-top-title">게시글 상세보기</span>
-          </div>
-          <div className="co-detail-card">
-            <h2 className="co-detail-post-title">게시글을 찾을 수 없습니다.</h2>
+        <div className="co-detail-page">
+          <CounselorHeader />
+          <div className="co-detail-container">
+            <div className="co-detail-topbar">
+              <button className="co-detail-back-btn" onClick={handleBack}>←</button>
+              <span className="co-detail-top-title">게시글 상세보기</span>
+            </div>
+            <div className="co-detail-card">
+              <h2 className="co-detail-post-title">게시글을 찾을 수 없습니다.</h2>
+            </div>
           </div>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="co-detail-page">
-      <CounselorHeader />
-      <div className="co-detail-container">
-        {/* 질문 영역 */}
-        <div className="question-section">
-          {!isEditing ? (
+      <div className="co-detail-page">
+        <CounselorHeader />
+        <div className="co-detail-container">
+          <div className="question-section">
             <div className="co-detail-topbar">
-              <button className="co-detail-back-btn" onClick={handleBack}>
-                ←
-              </button>
+              <button className="co-detail-back-btn" onClick={handleBack}>←</button>
               <span className="co-detail-top-title">
-                {type === "notice" ? "공지사항" : type === "faq" ? "FAQ" : "질문"}
-              </span>
-            </div> 
-          ) : (
-            <div className="co-detail-topbar2">
+              {type === "notice" ? "공지사항" : type === "faq" ? "FAQ" : "질문"}
+            </span>
             </div>
-          )}
-
-          <div className="co-detail-card">
-            <div className="co-detail-title-section">
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  className="co-detail-post-title-input"
-                />
-              ) : (
+            <div className="co-detail-card">
+              <div className="co-detail-title-section">
                 <h2 className="co-detail-post-title">{postData.title}</h2>
-              )}
-              <div className="co-detail-buttons">
-                {type === "qna" && !isEditing && (
-                  <button onClick={handleEdit} className="co-detail-edit-btn">
-                    수정
-                  </button>
-                )}
-                {type === "qna" && (
-                  isEditing ? (
-                    <button onClick={handleEditComplete} className="co-detail-edit-btn">
-                      수정완료
-                    </button>
-                  ) : (
-                    <button onClick={handleDelete} className="co-detail-delete-btn">
-                      삭제
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-            
-            {(type === "notice" || type === "qna") && (
-              <div className="co-detail-info-text">
-                <span><strong>작성자:</strong> {postData.writer}</span>
-                {type === "qna" && <span> | <strong>답변 상태:</strong> {postData.status}</span>}
-                <span> | <strong>작성일:</strong> {postData.date}</span>
-                {type === "notice" && <span> | <strong>조회수:</strong> {postData.views}회</span>}
-              </div>
-            )}
-
-            <div className="co-detail-content">
-              {isEditing ? (
-                <div
-                  contentEditable={true}
-                  suppressContentEditableWarning={true}
-                  onInput={(e) => setEditedContent(e.currentTarget.textContent || "")}
-                  className="co-detail-content-editable"
-                >
-                  {stripHtml(postData.content)}
+                <div className="co-detail-buttons">
+                  {type === "qna" && (
+                      <button
+                          onClick={() => navigate(`/parent/board/${type}/edit/${no}`, { state: { postData } })}
+                          className="co-detail-edit-btn"
+                      >
+                        수정
+                      </button>
+                  )}
+                  {type === 'qna' && (
+                      <button onClick={handleDelete} className="co-detail-delete-btn">
+                        삭제
+                      </button>
+                  )}
                 </div>
-              ) : (
-                <div 
-                  className="co-detail-content-text"
-                  dangerouslySetInnerHTML={{ __html: postData.content }}
+              </div>
+              {(type === "notice" || type === "qna") && (
+                  <div className="co-detail-info-text">
+                    <span><strong>작성자:</strong> {postData.writer}</span>
+                    {type === "qna" && <span> | <strong>답변 상태:</strong> {postData.status}</span>}
+                    <span> | <strong>작성일:</strong> {postData.date}</span>
+                    {type === "notice" && <span> | <strong>조회수:</strong> {postData.views}회</span>}
+                  </div>
+              )}
+              <div className="co-detail-content">
+                <div
+                    className="co-detail-content-view"
+                    dangerouslySetInnerHTML={{ __html: postData.content }}
                 />
+              </div>
+              {/* 첨부파일 영역 */}
+              <div className="co-detail-file">
+                <div className="co-detail-file-list">
+                  <h4>첨부파일</h4>
+                  <div className="co-detail-file-buttons">
+                    {attachmentFileUrls && attachmentFileUrls.length > 0 ? (
+                        attachmentFileUrls.map((file, index) => (
+                            <button
+                                key={index}
+                                onClick={async () => {
+                                  try {
+                                    await downloadFile(file.fileId, file.fileName);
+                                  } catch (error) {
+                                    console.error("파일 다운로드 실패:", error);
+                                    await SingleButtonAlert("파일 다운로드에 실패했습니다.");
+                                  }
+                                }}
+                                className="co-detail-file-download-btn"
+                            >
+                              <span className="p-file-name">{file.fileName}</span>
+                            </button>
+                        ))
+                    ) : (
+                        <p>첨부파일이 없습니다.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* QnA의 경우 답변 영역 (있다면) */}
+              {type === "qna" && (
+                  <div className="answer-section">
+                    <div className="co-detail-card">
+                      <div className="co-detail-answer">
+                        <div className="co-detail-answer-header">
+                          <h3 className="co-detail-answer-title">답변</h3>
+                        </div>
+                        {answers.length > 0 ? (
+                            answers.map((ans) => (
+                                <div key={ans.id} className="co-detail-answer-content">
+                                  <div className="co-detail-answer-info">
+                                    <img src={ans.profileImageUrl || "/no.png"} alt="프로필" className="co-detail-answer-info-img" />
+                                    <span className="co-detail-answer-writer">{ans.writer}</span>
+                                    <span className="co-detail-answer-time">{ans.time}</span>
+                                  </div>
+                                  <div className="co-detail-answer-info-content">
+                                    {ans.content}
+                                  </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="co-detail-answer-input-area">
+                              <p className="co-detail-no-answer">아직 답변이 없습니다.</p>
+                            </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
               )}
             </div>
-
-            {(isEditing || (!fileError && fileUrls.length > 0)) && (
-              <div className="co-detail-file">
-                {isEditing ? (
-                  <div className="co-detail-file-upload">
-                    <label htmlFor="fileInput" className="co-detail-file-label">
-                      파일 추가
-                    </label>
-                    <input
-                      type="file"
-                      id="fileInput"
-                      multiple
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files);
-                        const oversizedFiles = files.filter(file => file.size > 1000000);
-                        
-                        if (oversizedFiles.length > 0) {
-                          SingleButtonAlert('1MB 이상의 파일은 업로드할 수 없습니다.');
-                          return;
-                        }
-                        setSelectedFiles(prev => [...prev, ...files]);
-                      }}
-                      accept="image/*,.pdf,.doc,.docx"
-                      className="co-detail-file-input"
-                    />
-                    <div className="co-detail-selected-files">
-                      {/* 기존 파일 목록 */}
-                      {fileUrls.map((file, index) => (
-                        <div key={`existing-${index}`} className="co-detail-file-item">
-                          <span>{file.fileName}</span>
-                          <button
-                            onClick={() => handleFileDelete(file.fileId)}
-                            className="co-detail-file-remove"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      {/* 새로 선택한 파일 목록 */}
-                      {selectedFiles.map((file, index) => (
-                        <div key={`new-${index}`} className="co-detail-file-item">
-                          <span>{file.name}</span>
-                          <button
-                            onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
-                            className="co-detail-file-remove"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="co-detail-file-list">
-                    <h4>첨부파일</h4>
-                    <div className="co-detail-file-buttons">
-                      {fileUrls.map((file, index) => (
-                        <button 
-                          key={index}
-                          onClick={async () => {
-                            try {
-                              await downloadFile(file.fileId, file.fileName);
-                            } catch (error) {
-                              console.error("파일 다운로드 실패:", error);
-                              await SingleButtonAlert("파일 다운로드에 실패했습니다.");
-                            }
-                          }}
-                          className="co-detail-file-download-btn"
-                        >
-                          <span className="p-file-name">{file.fileName}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
-
-        {/* 답변 영역 */}
-        {type === "qna" && (
-          <div className="answer-section">
-            <div className="co-detail-card">
-              <div className="co-detail-answer">
-                <div className="co-detail-answer-header">
-                  <h3 className="co-detail-answer-title">답변</h3>
-                </div>
-                
-                {answers.length > 0 ? (
-                  answers.map((ans) => (
-                    <div key={ans.id} className="co-detail-answer-content">
-                      <div className="co-detail-answer-info">
-                        <img src="/no.png" alt="프로필" className="co-detail-answer-info-img" />
-                        <span className="co-detail-answer-writer">{ans.writer}</span>
-                        <span className="co-detail-answer-time">{ans.time}</span>
-                      </div>
-                      <div className="co-detail-answer-info-content">
-                        {ans.content}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="co-detail-answer-input-area">
-                    <p className="co-detail-no-answer">아직 답변이 없습니다.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
   );
 }
 
-export default CounselorBoardDetailPage;
+export default ParentBoardDetailPage;
