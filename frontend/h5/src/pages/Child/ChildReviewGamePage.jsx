@@ -1,355 +1,299 @@
 import "./ChildCss/ChildReviewGamePage.css";
-// import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import useGameStore from "../../store/gameStore";
 import { Card } from "primereact/card";
-import Swal from "sweetalert2";
 import { useState, useEffect, useRef } from "react";
+import * as faceapi from "face-api.js";
+import { reviewGame } from "/src/api/childGameContent";
 
 function ChildReviewGamePage() {
-  // 챕터 아이디 불러오기
-
-  // 데이터 넘어오는지 확인용
-  // const location = useLocation();
-  // const chapterId = location.state?.chapterId;
-  // console.log("넘어온 아이템:", location.state?.chapterId);
-
-  // 저장소에서 데이터 가져오기
-  const { getCurrentGameData, incrementStage, setCurrentChapter } = useGameStore();
-
-  const [currentData, setCurrentData] = useState(null);
-  const [timer, setTimer] = useState(null); // 타이머 추가
-
-  useEffect(() => {
-    setTimeout(() => {
-      setCurrentChapter(1);
-      const data = getCurrentGameData();
-
-      if (data) {
-        setCurrentData(data);
-      } else{
-        console.warn("데이터가 없습니다.");
-      }
-    }, 200); // 타이밍은 필요에 따라 조절
-  }, [getCurrentGameData, setCurrentChapter]);
-
-  console.log("현재 데이터 상태:", currentData); // 상태 출력
-  console.log("getCurrentGameData() 함수:", getCurrentGameData); // 함수가 정상적으로 존재하는지 확인
-  console.log("Zustand 전체 상태:", useGameStore.getState());
-
-
-  // 상태관리
-  const navigate = useNavigate();
-  const childId = sessionStorage.getItem("childId");
+  // 동영상 재생용 ref
   const videoRef = useRef(null);
-  const [showContent, setShowContent] = useState(false); // 비디오 끄고 모달 및 내용 보여주는 상태관리
-  const [feedback, setFeedback] = useState(null); // 임시(정답시 오답시 피드백)
-  const [selectedAnswer, setSelectedAnswer] = useState(null); // 임시
-  const [showAnswer, setShowAnswer] = useState(false); // 비디오 종료 시 정답 보여주는 상태 관리
-  const [currentStep, setCurrentStep] = useState(0); // 현재 내용 스텝 인덱스
+  // 웹캠 분석용 video ref
+  const webcamRef = useRef(null);
+  // 분석 인터벌 id 저장용 ref
+  const analysisIntervalRef = useRef(null);
+  // 분석 데이터를 동기적으로 저장하기 위한 ref
+  const analysisDataRef = useRef([]);
 
-  // 1. 처음 들어갔을 때 화면
+  // 동영상 데이터 (API 호출 결과)
+  const [gameInfo1, setGameInfo1] = useState(null);
+  const [gameInfo2, setGameInfo2] = useState(null);
+  const [gameInfo3, setGameInfo3] = useState(null);
+  const [gameInfo4, setGameInfo4] = useState(null);
+  const [gameInfo5, setGameInfo5] = useState(null);
+
+  // 추가 상태: 모드, 현재 동영상 인덱스, 분석 결과
+  const [mode, setMode] = useState("playing"); // "playing" | "analyzing" | "result"
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [analysisResult, setAnalysisResult] = useState(null);
+
+  // 여러 게임 정보를 배열에 담기 (모든 API 호출 완료 후에 사용)
+  const gameInfos = [gameInfo1, gameInfo2, gameInfo3, gameInfo4, gameInfo5];
+
+  // --- 1. face-api 모델 로드 ---
   useEffect(() => {
-    Swal.fire({
-      title: "감정아! 같이 공부해 볼까?",
-      imageUrl: "/child/character/againCh.png",
-      imageWidth: 200,
-      imageHeight: 200,
-      showConfirmButton: false,
-      timer: 2000,
-    }).then(() => {
-      // 2. 모달이 사라지고 동영상 시작
-      setShowContent(true);
-      if (videoRef.current) {
-        videoRef.current.play();
+    const loadModels = async () => {
+      const MODEL_URL = "/models";
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+      ]);
+      console.log("face-api 모델 로드 완료");
+    };
+    loadModels();
+  }, []);
+
+  // --- 2. API를 통해 동영상 데이터 로드 ---
+  useEffect(() => {
+    const chapter = 1;
+    async function loadGameData() {
+      try {
+        const data1 = await reviewGame(chapter, 1);
+        const data2 = await reviewGame(chapter, 2);
+        const data3 = await reviewGame(chapter, 3);
+        const data4 = await reviewGame(chapter, 4);
+        const data5 = await reviewGame(chapter, 5);
+
+        setGameInfo1(data1);
+        setGameInfo2(data2);
+        setGameInfo3(data3);
+        setGameInfo4(data4);
+        setGameInfo5(data5);
+
+        console.log("게임 데이터 불러오기 성공", { data1, data2, data3, data4, data5 });
+      } catch (error) {
+        console.error("게임 데이터 로드 실패", error);
       }
-    });
-  }, [currentData]);
+    }
+    loadGameData();
+  }, []);
 
-  // 2-1.비디오 종료 감지
+  // --- 3. 동영상 자동 재생 (mode가 playing일 때) ---
   useEffect(() => {
-    // 비디오 감지
-    if (!videoRef.current) return;
-
-    const videoEnd = () => {
-      console.log("비디오 종료");
-      setShowAnswer(true);
-      setCurrentStep(0);
-      startTimer();
-    };
-    console.log("before ended",videoRef.current);
-    videoRef.current.addEventListener("ended", videoEnd);
-    console.log("after ended",videoRef.current);
-    return () => {
-      videoRef.current?.removeEventListener("ended", videoEnd);
-    };
-  }, [videoRef.current]);
-
-  // 3. 동영상이 끝나면 아동 표정학습 순서
-  const createReviewContents = () => {
-    console.log("asdf")
-    const baseContents = [
-      {
-        header: "영상 속 감정이가 느낀 감정을 따라해 볼까요?!",
-        content: "이 상황에서는 어떤 표정을 지어야할까요?",
-        duration: 2000,
-      },
-    ];
-
-    const expressionMessage = [
-      "상황에 어울리는 표정을 지어볼까요?",
-      "한 번 더 표정을 지어볼까요?",
-    ];
-
-    // AI 실시간 표정 분석
-    const currentEmotion = "기쁨";
-
-    expressionMessage.forEach((message) => {
-      baseContents.push({
-        header: message,
-        content: `현재 아동의 표정: ${currentEmotion}`,
-        duration: 5000,
-        // ai 분석 필요
-        // 아동 표정 분석 필요 : true
-        isExpressionStep: true,
-        type: "expression",
-        feedbacks: {
-          success: "감정 표현을 이렇게 잘하다니, 정말 대단해요!",
-          failure: "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요!",
-        },
+    if (mode === "playing" && videoRef.current) {
+      videoRef.current.play().catch((error) => {
+        console.error("비디오 재생 오류:", error);
       });
-    });
+    }
+  }, [mode, currentVideoIndex]);
 
-    const speechMessages = [
-      "이제 상황에 어울리는 말을 표현해볼까요?",
-      "한 번 더 말로 표현해볼까요?",
-    ];
-
-    speechMessages.forEach((message) => {
-      baseContents.push({
-        header: message,
-        duration: 5000,
-        isExpressionStep: true,
-        type: "speech",
-        feedbacks: {
-          success: "감정 표현을 이렇게 잘하다니, 정말 대단해요!",
-          failure: "괜찮아요! 다음번에는 더 잘 할 수 있을 거에요!",
-        },
-      });
-    });
-    return baseContents;
-  };
-
-
-  const reviewContents = createReviewContents();
-
-  // 10초 후 자동으로 다음으로 넘어감
-  const startTimer = () => {
-
-    if (timer) clearTimeout(timer);
-
-
-    const newTimer = setTimeout(() => {
-      // 타이머 만료 시 실패 처리
-      console.log("qqqqqq")
-      setFeedback(reviewContents[currentStep]?.feedbacks?.failure);
-      moveToNextStep();
-    }, 2000);
-
-    setTimer(newTimer);
-  };
-
-
-
-  // 다음 콘텐츠 내용으로 이동
-  const moveToNextStep = () => {
-    console.log("currentStep", currentStep);
-    if (currentStep < reviewContents.length - 1) {
-      setCurrentStep((prev) => {
-        const newStep = prev + 1;
-        console.log("prev ", prev, " newStep ", newStep);
-        // 여기서 newStep 값을 활용할 수 있다면, 필요한 로직을 추가하세요.
-        // 예를 들어, newStep을 기반으로 startTimer를 호출한다면:
-        startTimer();
-        return newStep;
-      });
-    } else {
-      console.log("마지막 단계 도달. handleStageComplete() 실행");
-      handleStageComplete();
+  // --- 4. 동영상 재생 종료 시 분석 모드로 전환 ---
+  const handleVideoEnded = () => {
+    if (mode === "playing") {
+      setMode("analyzing");
     }
   };
 
-  useEffect(() => {
-    console.log("currentStep (업데이트 후):", currentStep);
-  }, [currentStep]);
-
-
-
-  // 임시: 버튼 클릭 처리 (나중에 AI 분석으로 대체)
-  const handleOptionClick = (index) => {
-    console.log(`선택한 옵션: ${index}, 정답: ${currentData.answer}`);
-
-    const isCorrect = index === currentData.answer;
-    console.log("iscor: " ,isCorrect)
-
-    if (timer) clearTimeout(timer);
-
-    // 정답인경우 피드백 메세지 지우고 다음콘텐츠로 넘어감
-    // 오답일 경우 로직 그대로 실행
-    if (isCorrect) {
-      setTimeout(() => {
-        setFeedback(reviewContents[currentStep]?.feedbacks?.success);
-        moveToNextStep();
-      }, 2000);
-    } else {
-      setFeedback(reviewContents[currentStep]?.feedbacks?.failure);
-      startTimer();
+  // 추가: 컴포넌트 마운트 시 웹캠 스트림 시작 (항상 켜짐)
+useEffect(() => {
+  const startWebcam = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+      if (webcamRef.current) {
+        webcamRef.current.srcObject = stream;
+        webcamRef.current.play();
+      }
+    } catch (err) {
+      console.error("웹캠 시작 실패:", err);
     }
   };
+  startWebcam();
+}, []);
 
-  // 종료 스왈
-  const handleStageComplete = () => {
-    // 먼저 카드 앞면 보여주기
-    Swal.fire({
-      html: `
-          <div class="flip-card">
-            <div class="flip-card-inner">
-              <div class="flip-card-front">
-                <img src="${currentData.cardFront}" alt="card front" style="width: 200px; height: 300px; object-fit: contain; />
-              </div>
-              <div class="flip-card-back">
-                <img src="${currentData.cardBack}" alt="card back" style="width: 200px; height: 300px; object-fit: contain; />
-              </div>
-            </div>
-          </div>
-        `,
-      showConfirmButton: false,
-      timer: 2000, // 앞면 보여주는 시간
-      didOpen: () => {
-        // 2초 후 카드 뒤집기 시작
-        setTimeout(() => {
-          const card = document.querySelector(".flip-card-inner");
-          card.style.transform = "rotateY(180deg)";
-        }, 1500);
-      },
-      didClose: () => {
-        // 카드 보여준 후 스테이지 완료 메시지
-        Swal.fire({
-          title: `${currentData.gameStageId}를 마쳤어요!`,
-          content: `이제 ${currentData.gameStageId + 1}단원으로 출발~!`,
-          imageUrl: "/child/character/againCh.png",
-          imageWidth: 200,
-          imageHeight: 200,
-          showConfirmButton: false,
-          timer: 2000,
-        }).then(() => {
-          // 마지막 5단원 끝났을때
-          if (currentData.gameStageId === 5) {
-            Swal.fire({
-              title: "오늘의 복습은 여기까지!",
-              text: "다음에 다시 만나요~!",
-              imageUrl: "/child/character/againCh.png",
-              imageWidth: 200,
-              imageHeight: 200,
-              showConfirmButton: false,
-              timer: 2000,
-            }).then(() => {
-              // 학습 종료 후 처리
-              navigate(`/child/${childId}/review`);
-            });
-          } else {
-            // 5단원이 아니라면 다음 챕터로 이동
-            incrementStage();
-            console.log()
-            const nextData = getCurrentGameData();
-            console.log(nextData);
-            if (nextData) {
-              setCurrentData(nextData);
-            }
-          }
+
+  // --- 5. 분석 모드 시작: 웹캠 스트림 요청 및 감정 분석 ---
+  useEffect(() => {
+    if (mode === "analyzing") {
+      startAnalysis();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  // 감정 데이터의 평균값을 계산하는 함수
+  const computeAverageEmotion = (data) => {
+    let sum = {
+      neutral: 0,
+      happy: 0,
+      sad: 0,
+      angry: 0,
+      fearful: 0,
+      disgusted: 0,
+      surprised: 0,
+    };
+    let count = 0;
+    data.forEach((item) => {
+      // item.emotions는 배열 형태입니다.
+      item.emotions.forEach((emotionObj) => {
+        Object.keys(sum).forEach((key) => {
+          sum[key] += emotionObj[key] || 0;
         });
-      },
+        count++;
+      });
     });
+    if (count === 0) return null;
+    let avg = {};
+    Object.keys(sum).forEach((key) => {
+      avg[key] = sum[key] / count;
+    });
+    return avg;
   };
 
-  if (!currentData) {
-    return <div>로딩중...</div>;
-  }
+  // 분석 시작 함수
+  const startAnalysis = async () => {
+    // 분석 데이터 초기화 (ref와 state 모두 초기화)
+    analysisDataRef.current = [];
+
+    // 100ms 간격으로 얼굴 및 감정 인식
+    const intervalId = setInterval(async () => {
+      if (webcamRef.current) {
+        const detections = await faceapi
+          .detectAllFaces(
+            webcamRef.current,
+            new faceapi.TinyFaceDetectorOptions()
+          )
+          .withFaceLandmarks()
+          .withFaceExpressions();
+
+        // 디버깅: detections 값을 출력
+        console.log("face-api detections:", detections);
+
+        if (detections.length > 0) {
+          const emotions = detections.map((det) => det.expressions);
+          // ref에 바로 데이터를 추가
+          analysisDataRef.current.push({
+            timestamp: new Date().toISOString(),
+            emotions,
+          });
+        }
+      }
+    }, 100);
+    analysisIntervalRef.current = intervalId;
+
+    // 4초 후 분석 중지
+    setTimeout(() => {
+      stopAnalysis();
+    }, 4000);
+  };
+
+  // 분석 중지 및 결과 처리 함수
+  const stopAnalysis = () => {
+    console.log("분석 중지");
+    // 인터벌 종료
+    if (analysisIntervalRef.current) {
+      clearInterval(analysisIntervalRef.current);
+      analysisIntervalRef.current = null;
+    }
+    // 수집된 데이터 평균 계산 (ref에서 읽음)
+    const avgEmotion = computeAverageEmotion(analysisDataRef.current);
+    if (!avgEmotion) {
+      console.error("수집된 감정 데이터가 없습니다.");
+      return;
+    }
+    // 다섯 감정 후보 중 평균값 높은 순으로 정렬 (happy, sad, angry, fearful, surprised)
+    const candidates = ["happy", "sad", "angry", "fearful", "surprised"];
+    const candidateAverages = candidates.map((emotion) => ({
+      emotion,
+      value: avgEmotion[emotion] || 0,
+    }));
+    candidateAverages.sort((a, b) => b.value - a.value);
+    const first_emotion = candidateAverages[0].emotion;
+    const second_emotion = candidateAverages[1].emotion;
+
+    // 분석 결과 업데이트 및 모드 전환
+    setAnalysisResult({ first_emotion, second_emotion, avgEmotion });
+    setMode("result");
+
+    // 결과 4초 후 다음 동영상으로 전환 (영상이 남아있다면)
+    setTimeout(() => {
+      if (currentVideoIndex < gameInfos.length - 1) {
+        setCurrentVideoIndex((prevIndex) => prevIndex + 1);
+        // 결과 초기화 후 동영상 재생 모드로 전환
+        setAnalysisResult(null);
+        setMode("playing");
+      } else {
+        console.log("모든 동영상 재생 완료");
+        // 모든 동영상 종료 후 추가 처리 가능
+      }
+    }, 4000);
+  };
 
   return (
     <div className="ch-review-game-container">
       <div className="ch-review-container">
+        {/* 왼쪽: 게임 동영상 영역 */}
         <div className="ch-review-game-left">
           <Card className="ch-game-screen-container">
-            <h2>
-              {currentData.chapterId}단계 {currentData.gameStageId}단원
-            </h2>
-            <h3>{currentData.situation}</h3>
+            <h2>1단계 2단원</h2>
+            <h3>히히 찬환이 치킨 먹으러 간당</h3>
             <video
               ref={videoRef}
-              src={currentData.gameVideo}
+              src={
+                gameInfos[currentVideoIndex]
+                  ? gameInfos[currentVideoIndex].gameVideo
+                  : ""
+              }
               className="ch-gameVideo"
+              autoPlay
+              onEnded={handleVideoEnded}
             />
             <div>progressbar</div>
-            {/* ①②③ ❶❷❸*/}
-            {/* showanswer(true)일때 보여줘야하는 답안! */}
-            <div className="ch-game-button">
-              {currentData.options.map((option, index) => (
-                <div key={index}>
-                  <h4 className="ch-option-number">
-                    {["①", "②", "③"][index]}
-                  </h4>
-                  <button
-                    className={`ch-option${
-                      showAnswer && index === currentData.answer
-                        ? "correct-answer"
-                        : ""
-                    }`}
-                    onClick={() => handleOptionClick(index)}
-                  >
-                    <img
-                      src={currentData.optionImages[index]}
-                      alt={`option ${index + 1}`}
-                    />
-                  </button>
-                  <h4 className="ch-option-selection">{option}</h4>
-                </div>
-              ))}
-            </div>
+            {/* 선택지 버튼 영역 */}
+            <div className="ch-game-button"></div>
           </Card>
         </div>
+
+        {/* 오른쪽: 웹캠 및 상담가 화면 영역 */}
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
-            <Card className="ch-game-Top-section">{/* <VideoScreen /> */}</Card>
+            <Card className="ch-game-Top-section">
+              <video
+                ref={webcamRef}
+                width="320"
+                height="240"
+                autoPlay
+                muted
+                style={{ backgroundColor: "#000" }}
+              />
+              {mode === "analyzing" && <p>분석 중...</p>}
+              {mode === "result" && analysisResult && (
+                <div>
+                  <h3>분석 결과</h3>
+                  <p>주요 감정: {analysisResult.first_emotion}</p>
+                  <p>보조 감정: {analysisResult.second_emotion}</p>
+                </div>
+              )}
+            </Card>
+
             <div className="ch-game-middle-section"></div>
 
-            {/* 컨트롤 섹션 */}
             <div className="ch-game-bottom-section">
-              {/* 십자가버튼 */}
               <div className="ch-game-button-left">
                 <img src="/child/button-left.png" alt="button-left" />
               </div>
-
-              {/* content message 표시 */}
               <Card className="ch-game-counselor-screen">
-                {showAnswer && reviewContents[currentStep] && (
-                  <div className="review-message">
-                    <h3>{reviewContents[currentStep].header}</h3>
-                    <p>{reviewContents[currentStep].content}</p>
-                    {reviewContents[currentStep].isExpressionStep && (
-                      <div className="feedback-message">
-                        {/* AI 분석 결과에 따른 피드백 메시지 */}
-                        {feedback ? (
-                          <p>{feedback}</p>
-                        ) : (
-                          <p>{reviewContents[currentStep].feedbacks.success}</p>
-                        )}
-                      </div>
+                <div className="review-message">
+                  {mode === "result" && analysisResult ? (
+                    <>
+                      <h3>분석 결과</h3>
+                      <p>주요 감정: {analysisResult.first_emotion}</p>
+                      <p>보조 감정: {analysisResult.second_emotion}</p>
+                    </>
+                  ) : (
+                    <>
+                      <h3>상황에 어울리는 표정을 지어볼까요?</h3>
+                      <p>상황에 어울리는 표정을 지어볼까요?</p>
+                    </>
+                  )}
+                  <div className="feedback-message">
+                    {mode === "result" ? (
+                      <p>분석 결과를 바탕으로 피드백 제공</p>
+                    ) : (
+                      <p>우와 너 정말 잘하는 구나!</p>
                     )}
                   </div>
-                )}
+                </div>
               </Card>
-              {/* 컬러버튼 */}
               <div className="ch-game-button-right">
                 <img src="/child/button-right.png" alt="button-right" />
               </div>
@@ -360,4 +304,5 @@ function ChildReviewGamePage() {
     </div>
   );
 }
+
 export default ChildReviewGamePage;
