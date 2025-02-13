@@ -6,8 +6,8 @@ export const chapter = async () => {
     console.log("📢 게임리스트 요청 시작");
 
     const childUserId = sessionStorage.getItem("childId");
-    const response = await api.get("/asset/load-chapter-asset",{
-      params : {childUserId}
+    const response = await api.get("/asset/load-chapter-asset", {
+      params: { childUserId },
     });
     console.log("✅ 게임 리스트 요청 성공:", response);
     return response.data;
@@ -20,16 +20,3 @@ export const chapter = async () => {
     return null;
   }
 };
-
-// 카드
-// export const GameCard = async () => {
-//   try {
-//   } catch (error) {
-//     console.error(
-//       "❌ 요청 실패:",
-//       error.response?.status,
-//       error.response?.data
-//     );
-//     return null;
-//   }
-// };
