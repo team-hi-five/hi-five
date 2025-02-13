@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Editor } from "primereact/editor";
 import { FileUpload } from 'primereact/fileupload';
 import { useNavigate } from 'react-router-dom';
-import { useBoardStore } from "../../../store/boardStore";
+import {base64ToFile, useBoardStore} from "../../../store/boardStore";
 import ParentHeader from "/src/components/Parent/ParentHeader";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
@@ -10,6 +10,7 @@ import { createQna } from "../../../api/boardQna";
 import { uploadFile, TBL_TYPES } from "../../../api/file";
 import "/src/pages/Parent/ParentCss/ParentBoardWritePage.css";
 import { extractAndReplaceEditorImages } from "../../../store/boardStore";
+import {updateNotice} from "../../../api/boardNotice.jsx";
 
 "/src/store/boardStore.js"
 
@@ -70,38 +71,35 @@ function ParentBoardWritePage() {
       const qnaResponse = await createQna(title, modifiedContent);
       const qnaId = qnaResponse.qnaId || qnaResponse.data?.qnaId;
 
-      // 2. 웹 에디터 이미지 업로드
+      let finalContent = modifiedContent;
 
+      // 2. 웹 에디터 이미지 업로드
+      if (imageDataList.length > 0) {
+        // imageDataList의 각 항목을 File 객체로 변환
+        const editorFiles = imageDataList.map(item =>
+            base64ToFile(item.base64, item.originalFileName)
+        );
+        console.log(editorFiles);
+        const editorTblTypes = editorFiles.map(() => TBL_TYPES.QNA_EDITOR);
+        console.log(editorTblTypes)
+        const editorTblIds = editorFiles.map(() => qnaId);
+
+        const editorUploadResponse = await uploadFile(editorFiles, editorTblTypes, editorTblIds);
+
+        imageDataList.forEach((item, idx) => {
+          const uploadedUrl = editorUploadResponse[idx]?.url;
+          if (uploadedUrl) {
+            finalContent = finalContent.replace(item.placeholder, uploadedUrl);
+          }
+        });
+        await updateNotice(qnaId, title, finalContent);
+      }
 
       // 3. 파일 업로드 (첨부파일)
       if (qnaId && selectedFiles.length > 0) {
-        let uploadedFiles = [];
-        let failedUploads = 0;
-        
-        for (const file of selectedFiles) {
-          try {
-            const response = await uploadFile(file, TBL_TYPES.QNA_FILE, qnaId);
-            
-            // API 응답이 배열인지 확인
-            if (Array.isArray(response)) {
-              uploadedFiles = [...uploadedFiles, ...response];
-            } else if (response) {
-              uploadedFiles.push(response);
-            }
-          } catch (uploadError) {
-            console.error("파일 업로드 실패:", uploadError);
-            failedUploads++;
-          }
-        }
-        
-        // 업로드 결과 확인
-        if (failedUploads > 0) {
-          await SingleButtonAlert(
-            `${uploadedFiles.length}개 파일 업로드 완료, ${failedUploads}개 파일 업로드 실패`
-          );
-        } else if (uploadedFiles.length > 0) {
-          console.log("업로드된 파일 정보:", uploadedFiles);
-        }
+        const attachmentTblTypes = selectedFiles.map(() => TBL_TYPES.QNA_FILE);
+        const attachmentTblIds = selectedFiles.map(() => qnaId);
+        await uploadFile(selectedFiles, attachmentTblTypes, attachmentTblIds);
       }
 
       await SingleButtonAlert('질문이 등록되었습니다.');
@@ -116,24 +114,24 @@ function ParentBoardWritePage() {
     }
   };
   
-    const handleCancel = async () => {
-      if (title.trim() || content.trim()) {
-        // DoubleButtonAlert로 확인
-        const result = await DoubleButtonAlert(
-          '작성 중인 내용이 있습니다. 정말 취소하시겠습니까?',
-          '예',
-          '아니오'
-        );
-        
-        if (result) {
-          setPaActiveTab("qna");
-          navigate('/parent/board');
-        }
-      } else {
+  const handleCancel = async () => {
+    if (title.trim() || content.trim()) {
+      // DoubleButtonAlert로 확인
+      const result = await DoubleButtonAlert(
+        '작성 중인 내용이 있습니다. 정말 취소하시겠습니까?',
+        '예',
+        '아니오'
+      );
+
+      if (result) {
         setPaActiveTab("qna");
         navigate('/parent/board');
       }
-    };
+    } else {
+      setPaActiveTab("qna");
+      navigate('/parent/board');
+    }
+  };
 
   return (
     <div className="pa-write-page">

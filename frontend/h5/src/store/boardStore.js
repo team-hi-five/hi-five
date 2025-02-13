@@ -5,34 +5,29 @@ export const useBoardStore = create((set) => ({
   setPaActiveTab: (tab) => set({ paActiveTab: tab }),
 }));
 
-export function extractAndReplaceEditorImages(htmlContent) {
+export function extractAndReplaceEditorImages(htmlContent, startIndex = 0) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, "text/html");
   const imgTags = doc.querySelectorAll("img");
-
   const imageDataList = [];
-  let index = 0;
-
+  let index = startIndex; // 시작 인덱스를 사용
   imgTags.forEach((img) => {
     const src = img.getAttribute("src");
     if (src && src.startsWith("data:image/")) {
       const originalFileName = img.getAttribute("data-filename") || `editor_image_${index}.png`;
       const placeholder = `__EDITOR_IMAGE_PLACEHOLDER_${index}__`;
-
       imageDataList.push({
         placeholder,
         base64: src,
         originalFileName,
       });
-
       img.setAttribute("src", placeholder);
       index++;
     }
   });
-
-  const modifiedContent = doc.body.innerHTML;
-  return { modifiedContent, imageDataList };
+  return { modifiedContent: doc.body.innerHTML, imageDataList };
 }
+
 
 export const base64ToFile = (base64, filename) => {
   // base64 데이터와 MIME 타입 분리
