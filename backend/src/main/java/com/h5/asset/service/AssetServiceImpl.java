@@ -48,7 +48,7 @@ public class AssetServiceImpl implements AssetService {
                 .orElseThrow(RuntimeException::new);
 
         return LoadAssetResponseDto.builder()
-                .gameStageId(gameAssetEntity.getId())
+                .gameStageId(stage)
                 .chapterId(gameAssetEntity.getGameStageEntity().getGameChapterEntity().getId())
                 .gameVideo(gameAssetEntity.getGameSceneVideo())
                 .options(new String[]{gameAssetEntity.getOpt1(), gameAssetEntity.getOpt2(), gameAssetEntity.getOpt3()})
@@ -76,7 +76,7 @@ public class AssetServiceImpl implements AssetService {
                 .orElseThrow(RuntimeException::new);
 
         return LoadAssetResponseDto.builder()
-                .gameStageId(gameAssetEntity.getId())
+                .gameStageId(stage)
                 .chapterId(gameAssetEntity.getGameStageEntity().getGameChapterEntity().getId())
                 .gameVideo(gameAssetEntity.getGameSceneVideo())
                 .options(new String[]{gameAssetEntity.getOpt1(), gameAssetEntity.getOpt2(), gameAssetEntity.getOpt3()})
