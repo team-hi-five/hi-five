@@ -96,7 +96,7 @@ public class ParentUserServiceImpl implements ParentUserService {
         for (ChildUserEntity child : childUserEntities) {
             int age = Period.between(child.getBirth(), LocalDate.now()).getYears();
 
-            String profileImgUrl = !fileService.getFileUrl(FileEntity.TblType.P, child.getId()).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, child.getId()).get(0).getUrl() : "Default Image";
+            String profileImgUrl = !fileService.getFileUrl(FileEntity.TblType.PCD, child.getId()).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.PCD, child.getId()).get(0).getUrl() : "Default Image";
 
             myChildInfos.add(MyChildInfo.builder()
                     .childId(child.getId())
