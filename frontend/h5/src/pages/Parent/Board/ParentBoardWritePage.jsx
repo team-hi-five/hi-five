@@ -9,6 +9,9 @@ import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import { createQna } from "../../../api/boardQna";
 import { uploadFile, TBL_TYPES } from "../../../api/file";
 import "/src/pages/Parent/ParentCss/ParentBoardWritePage.css";
+import { extractAndReplaceEditorImages } from "../../../store/boardStore";
+
+"/src/store/boardStore.js"
 
 function ParentBoardWritePage() {
   const [title, setTitle] = useState("");
@@ -61,11 +64,16 @@ function ParentBoardWritePage() {
       if (isSubmitting) return;
       setIsSubmitting(true);
 
+      const { modifiedContent, imageDataList } = extractAndReplaceEditorImages(content);
+
       // 1. 게시글 생성
-      const qnaResponse = await createQna(title, content);
+      const qnaResponse = await createQna(title, modifiedContent);
       const qnaId = qnaResponse.qnaId || qnaResponse.data?.qnaId;
 
-      // 2. 파일 업로드
+      // 2. 웹 에디터 이미지 업로드
+
+
+      // 3. 파일 업로드 (첨부파일)
       if (qnaId && selectedFiles.length > 0) {
         let uploadedFiles = [];
         let failedUploads = 0;

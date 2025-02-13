@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
-import { Toast } from 'primereact/toast';
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
@@ -9,6 +8,7 @@ import { getFaqDetail, updateFaq, deleteFaq } from '../../../api/boardFaq';
 import { getQnaDetail, deleteQna, createQnaAnswer, updateQnaComment, deleteQnaComment } from '../../../api/boardQna';
 import { getFileUrl, downloadFile, uploadFile, deleteFile} from '../../../api/file';
 import '../Css/CounselorBoardDetailPage.css';
+import {base64ToFile, extractAndReplaceEditorImages, replaceEditorPlaceholders} from "../../../store/boardStore.js";
 
 
 function CounselorBoardDetailPage() {
@@ -32,7 +32,8 @@ function CounselorBoardDetailPage() {
   const editableRef = useRef(null);
 
   const [deletedFileIds, setDeletedFileIds] = useState([]);
-  const [fileUrls, setFileUrls] = useState([]);
+  const [editorFileUrls, setEditorFileUrls] = useState([]);
+  const [attachmentFileUrls, setAttachmentFileUrls] = useState([]);
   const [fileError, setFileError] = useState(null);
   
   // 해당하는 게시판 데이터를 가져옴
@@ -87,14 +88,16 @@ function CounselorBoardDetailPage() {
       editableRef.current.innerHTML = editedContent || postData.content;
       setEditedContent(postData.content);
       setEditedTitle(postData.title);
-      if (fileUrls.length > 0) {
+      // 기존 fileUrls 대신 attachmentFileUrls를 사용합니다.
+      if (attachmentFileUrls.length > 0) {
         setSelectedFile({
-          name: fileUrls[0].fileName,
-          id: fileUrls[0].fileId
+          name: attachmentFileUrls[0].fileName,
+          id: attachmentFileUrls[0].fileId
         });
       }
     }
-  }, [isEditing, postData,  editedContent, fileUrls]);
+  }, [isEditing, postData, editedContent, attachmentFileUrls]);
+
 
   const handleBack = () => {
     navigate(-1);
@@ -106,14 +109,14 @@ function CounselorBoardDetailPage() {
     setEditedContent(postData.content);
   };
 
-  const fetchFileUrls = async (type, id) => {
+  const fetchFileUrls = async (type, id, setUrls) => {
     try {
       const response = await getFileUrl(type, id);
       if (response) {
-        const filteredFiles = Array.isArray(response) 
-          ? response.filter(file => !deletedFileIds.includes(file.fileId))
-          : [response];
-        setFileUrls(filteredFiles);
+        const filteredFiles = Array.isArray(response)
+            ? response.filter(file => !deletedFileIds.includes(file.fileId))
+            : [response];
+        setUrls(filteredFiles);
       }
     } catch (error) {
       console.error("파일 URL 조회 실패:", error);
@@ -126,6 +129,7 @@ function CounselorBoardDetailPage() {
     const oversizedFiles = files.filter(file => file.size > 1000000);
     
     if (oversizedFiles.length > 0) {
+      // eslint-disable-next-line no-undef
       toast.current.show({
         severity: 'warn',
         summary: '알림',
@@ -152,30 +156,61 @@ function CounselorBoardDetailPage() {
         return;
       }
 
+      const { modifiedContent, imageDataList } = extractAndReplaceEditorImages(editedContent);
+
       // 1. 게시글 수정
       if (type === "notice") {
-        await updateNotice(no, editedTitle, editedContent);
+        await updateNotice(no, editedTitle, modifiedContent);
       } else if (type === "faq") {
-        await updateFaq(no, editedTitle, "GENERAL", editedContent);
+        await updateFaq(no, editedTitle, "GENERAL", modifiedContent);
       }
 
-      // 2. 삭제된 파일들 처리
-      console.log("파일 삭제 직전의 deletedFileIds:", deletedFileIds); // 추가
+      // 2. 에디터 이미지 업로드 (placeholder에 해당하는 이미지를 일괄 업로드 후 실제 URL로 대체)
+      let finalContent = modifiedContent;
+      if (imageDataList.length > 0) {
+        // imageDataList를 기반으로 File 객체 배열 생성
+        const filesArray = imageDataList.map(item =>
+            base64ToFile(item.base64, item.originalFileName)
+        );
+        // 모든 파일의 tblType은 TBL_TYPES.EDITOR, tblId는 no (게시글 번호)로 설정
+        const tblTypesArray = filesArray.map(() => type === 'notice' ? "NE" : 'FE');
+        const tblIdsArray = filesArray.map(() => no);
+
+        // 여러 파일을 한 번에 업로드하는 API 호출
+        const uploadResult = await uploadFile(filesArray, tblTypesArray, tblIdsArray);
+        // uploadResult가 업로드된 파일 정보 배열(순서가 imageDataList와 일치한다고 가정)
+        imageDataList.forEach((item, idx) => {
+          const uploadedUrl = uploadResult[idx]?.url;
+          if (uploadedUrl) {
+            finalContent = finalContent.replace(item.placeholder, uploadedUrl);
+          }
+        });
+        // 수정된 내용을 다시 업데이트 (에디터 이미지 URL이 포함된 최종 콘텐츠로)
+        if (type === "notice") {
+          await updateNotice(no, editedTitle, finalContent);
+        } else if (type === "faq") {
+          await updateFaq(no, editedTitle, "GENERAL", finalContent);
+        }
+      }
+
+      // 3. 삭제된 파일 처리
+      console.log("파일 삭제 직전의 deletedFileIds:", deletedFileIds);
       const deletePromises = deletedFileIds.map(fileId => deleteFile(fileId));
       await Promise.all(deletePromises);
-      console.log("파일 삭제 완료 후 deletedFileIds:", deletedFileIds); // 추가
+      console.log("파일 삭제 완료 후 deletedFileIds:", deletedFileIds);
 
-      // 3. 새로운 파일 업로드
+      // 4. 새로운 첨부파일 업로드 (여러 파일을 한 번에 업로드)
       if (selectedFiles.length > 0) {
-        const uploadPromises = selectedFiles.map(file => 
-          uploadFile(file, type === "notice" ? 'N' : 'FA', no)
-        );
-        
+        const tblTypeForAttachment = type === "notice" ? 'NF' : 'FF';
+        const attachmentFiles = selectedFiles; // File 객체 배열 (첨부파일)
+        const tblTypesArray = attachmentFiles.map(() => tblTypeForAttachment);
+        const tblIdsArray = attachmentFiles.map(() => no);
+
         try {
-          await Promise.all(uploadPromises);
+          await uploadFile(attachmentFiles, tblTypesArray, tblIdsArray);
         } catch (error) {
-          console.error("일부 파일 업로드 실패:", error);
-          await SingleButtonAlert('일부 파일 업로드에 실패했습니다.');
+          console.error("일부 첨부파일 업로드 실패:", error);
+          await SingleButtonAlert('일부 첨부파일 업로드에 실패했습니다.');
         }
       }
 
@@ -393,7 +428,7 @@ const handleAnswerSubmit = async () => {
         views: response.viewCnt,
         date: new Date(response.createDttm).toISOString().split('T')[0]
       };
-      
+
       setNoticeData(formattedData);
     } catch (error) {
       console.error("공지사항 상세 조회 실패:", error);
@@ -406,30 +441,55 @@ const handleAnswerSubmit = async () => {
     }
   };
 
+  useEffect(() => {
+    if (noticeData && editorFileUrls.length > 0) {
+      // 콘텐츠에 placeholder 패턴이 포함되어 있는지 확인하고 치환
+      if (noticeData.content.includes("__EDITOR_IMAGE_PLACEHOLDER_")) {
+        setNoticeData(prev => ({
+          ...prev,
+          content: replaceEditorPlaceholders(prev.content, editorFileUrls)
+        }));
+      }
+    }
+  }, [editorFileUrls, noticeData]);
+
   // FAQ 상세 정보 조회 함수 
-const fetchFaqDetail = async (id) => {
-  try {
-    setIsLoading(true);
-    const response = await getFaqDetail(id);
-    
-    // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
-    const formattedData = {
-      no: response.id,
-      title: response.title,
-      content: response.faqAnswer
-    };
-  
-    setFaqData(formattedData);
-  } catch (error) {
-    console.error("FAQ 상세 조회 실패:", error);
-    await SingleButtonAlert(
-      error.response?.data?.message || 'FAQ를 불러오는데 실패했습니다.'
-    );
-    navigate('/counselor/board');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const fetchFaqDetail = async (id) => {
+    try {
+      setIsLoading(true);
+      const response = await getFaqDetail(id);
+
+      // API 응답 데이터를 컴포넌트에서 사용하는 형식으로 변환
+      const formattedData = {
+        no: response.id,
+        title: response.title,
+        content: response.faqAnswer
+      };
+
+      setFaqData(formattedData);
+    } catch (error) {
+      console.error("FAQ 상세 조회 실패:", error);
+      await SingleButtonAlert(
+        error.response?.data?.message || 'FAQ를 불러오는데 실패했습니다.'
+      );
+      navigate('/counselor/board');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (faqData && editorFileUrls.length > 0) {
+      // 콘텐츠에 placeholder 패턴이 포함되어 있는지 확인하고 치환
+      if (faqData.content.includes("__EDITOR_IMAGE_PLACEHOLDER_")) {
+        setFaqData(prev => ({
+          ...prev,
+          content: replaceEditorPlaceholders(prev.content, editorFileUrls)
+        }));
+      }
+    }
+  }, [editorFileUrls, faqData]);
+
   // Qna 상세 정보 조회 함수
   const fetchQnaDetail = async (id) => {
     try {
@@ -473,21 +533,36 @@ const fetchFaqDetail = async (id) => {
     }
   };
 
-useEffect(() => {
-  if (no && !viewCountUpdated.current) {
-    if (type === "notice") {
-      fetchNoticeDetail(no);
-      fetchFileUrls('N', no);
-    } else if (type === "faq") {
-      fetchFaqDetail(no);
-      fetchFileUrls('FA', no);
-    } else if (type === "qna") {
-      fetchQnaDetail(no);  // QnA 상세 조회 추가
-      fetchFileUrls('Q', no);
+  useEffect(() => {
+    if (qnaData && editorFileUrls.length > 0) {
+      // 콘텐츠에 placeholder 패턴이 포함되어 있는지 확인하고 치환
+      if (qnaData.content.includes("__EDITOR_IMAGE_PLACEHOLDER_")) {
+        setFaqData(prev => ({
+          ...prev,
+          content: replaceEditorPlaceholders(prev.content, editorFileUrls)
+        }));
+      }
     }
-    viewCountUpdated.current = true;
-  }
-}, [type, no]);
+  }, [editorFileUrls, qnaData]);
+
+  useEffect(() => {
+    if (no && !viewCountUpdated.current) {
+      if (type === "notice") {
+        fetchNoticeDetail(no);
+        fetchFileUrls('NE', no, setEditorFileUrls);
+        fetchFileUrls('NF', no, setAttachmentFileUrls);   // 첨부파일 URL 조회
+      } else if (type === "faq") {
+        fetchFaqDetail(no);
+        fetchFileUrls('FE', no, setEditorFileUrls);        // 에디터 이미지 URL 조회
+        fetchFileUrls('FF', no, setAttachmentFileUrls);     // 첨부파일 URL 조회
+      } else if (type === "qna") {
+        fetchQnaDetail(no);
+        fetchFileUrls('QE', no, setEditorFileUrls);         // 에디터 이미지 URL 조회
+        fetchFileUrls('QF', no, setAttachmentFileUrls);      // 첨부파일 URL 조회
+      }
+      viewCountUpdated.current = true;
+    }
+  }, [type, no]);
 
   // 데이터가 없을 경우 처리
   if (!postData) {
@@ -607,81 +682,82 @@ useEffect(() => {
                     />
                 )}
             </div>
-          
-            {(isEditing || (!fileError && fileUrls.length > 0)) && (
-              <div className="co-detail-file">
-                {isEditing ? (
-                  <div className="co-detail-file-upload">
-                    <label htmlFor="fileInput" className="co-detail-file-label">
-                      파일 추가
-                    </label>
-                    <input
-                      type="file"
-                      id="fileInput"
-                      multiple
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files);
-                        const oversizedFiles = files.filter(file => file.size > 1000000);
-                        
-                        if (oversizedFiles.length > 0) {
-                          toast.current.show({
-                            severity: 'warn',
-                            summary: '알림',
-                            detail: '1MB 이상의 파일은 업로드할 수 없습니다.',
-                            life: 3000
-                          });
-                          return;
-                        }
-                        setSelectedFiles(prev => [...prev, ...files]);
-                      }}
-                      accept="image/*,.pdf,.doc,.docx"
-                      className="co-detail-file-input"
-                    />
-                    <div className="co-detail-selected-files">
-                      {/* 기존 파일 목록 */}
-                      {fileUrls.map((file, index) => (
-                        <div key={`existing-${index}`} className="co-detail-file-item">
-                          <span>{file.fileName}</span>
-                          <button
-                            onClick={() => handleFileDelete(file.fileId)}
-                            className="co-detail-file-remove"
-                          >
-                            ×
-                          </button>
+
+            {(isEditing || (!fileError && attachmentFileUrls.length > 0)) && (
+                <div className="co-detail-file">
+                  {isEditing ? (
+                      <div className="co-detail-file-upload">
+                        <label htmlFor="fileInput" className="co-detail-file-label">
+                          파일 추가
+                        </label>
+                        <input
+                            type="file"
+                            id="fileInput"
+                            multiple
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files);
+                              const oversizedFiles = files.filter(file => file.size > 1000000);
+                              if (oversizedFiles.length > 0) {
+                                // eslint-disable-next-line no-undef
+                                toast.current.show({
+                                  severity: 'warn',
+                                  summary: '알림',
+                                  detail: '1MB 이상의 파일은 업로드할 수 없습니다.',
+                                  life: 3000
+                                });
+                                return;
+                              }
+                              setSelectedFiles(prev => [...prev, ...files]);
+                            }}
+                            accept="image/*,.pdf,.doc,.docx"
+                            className="co-detail-file-input"
+                        />
+                        <div className="co-detail-selected-files">
+                          {/* 기존 첨부파일 목록 */}
+                          {attachmentFileUrls.map((file, index) => (
+                              <div key={`existing-${index}`} className="co-detail-file-item">
+                                <span>{file.fileName}</span>
+                                <button
+                                    onClick={() => handleFileDelete(file.fileId)}
+                                    className="co-detail-file-remove"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                          ))}
+                          {/* 새로 선택한 파일 목록 */}
+                          {selectedFiles.map((file, index) => (
+                              <div key={`new-${index}`} className="co-detail-file-item">
+                                <span>{file.name}</span>
+                                <button
+                                    onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
+                                    className="co-detail-file-remove"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                          ))}
                         </div>
-                      ))}
-                      {/* 새로 선택한 파일 목록 */}
-                      {selectedFiles.map((file, index) => (
-                        <div key={`new-${index}`} className="co-detail-file-item">
-                          <span>{file.name}</span>
-                          <button
-                            onClick={() => setSelectedFiles(files => files.filter((_, i) => i !== index))}
-                            className="co-detail-file-remove"
-                          >
-                            ×
-                          </button>
+                      </div>
+                  ) : (
+                      <div className="co-detail-file-list">
+                        <h4>첨부파일</h4>
+                        <div className="co-detail-file-buttons">
+                          {attachmentFileUrls.map((file, index) => (
+                              <button
+                                  key={index}
+                                  onClick={() => downloadFile(file.fileId, file.fileName)}
+                                  className="co-detail-file-download-btn"
+                              >
+                                <span className="p-file-name">{file.fileName}</span>
+                              </button>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="co-detail-file-list">
-                    <h4>첨부파일</h4>
-                    <div className="co-detail-file-buttons">
-                      {fileUrls.map((file, index) => (
-                        <button 
-                          key={index}
-                          onClick={() => downloadFile(file.fileId, file.fileName)}
-                          className="co-detail-file-download-btn"
-                        >
-                          <span className="p-file-name">{file.fileName}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+                      </div>
+                  )}
+                </div>
             )}
+
           </div>
         </div>
 

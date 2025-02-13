@@ -439,6 +439,13 @@ border: none;
 color: #ff4444;
 cursor: pointer;
 font-size: 15px;
-
 }
+
+.co-detail-content-view img,
+.co-detail-content-editable img {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
 

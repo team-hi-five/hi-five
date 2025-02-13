@@ -162,9 +162,9 @@ const handleRejectDelete = async () => {
           try {
             // 파일 업로드
             await uploadFile(
-              selectedImageFile, 
-              TBL_TYPES.PROFILE_CHILD,
-              String(childData.id)
+              [selectedImageFile],
+              [TBL_TYPES.PROFILE_CHILD],
+              [String(childData.id)]
             );
     
             // 이미지 업로드 후 잠시 대기 (서버 처리 시간 고려)
