@@ -69,8 +69,8 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         return Period.between(birthLocalDate, LocalDate.now()).getYears();
     }
 
-    private String getFileUrl(int tblId) {
-        return !fileService.getFileUrl(FileEntity.TblType.P, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl() : "Default Image";
+    private String getFileUrl(FileEntity.TblType tblType, int tblId) {
+        return !fileService.getFileUrl(tblType, tblId).isEmpty() ? fileService.getFileUrl(tblType, tblId).get(0).getUrl() : "Default Image";
     }
 
     @Override
@@ -178,7 +178,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
             responseDtos.add(
                     GetMyChildrenResponseDto.builder()
                             .childUserID(child.getId())
-                            .profileImgUrl(getFileUrl(child.getId()))
+                            .profileImgUrl(getFileUrl(FileEntity.TblType.PCD, child.getId()))
                             .childName(child.getName())
                             .birth(String.valueOf(child.getBirth()))
                             .age(calculateAge(String.valueOf(child.getBirth())))
@@ -202,7 +202,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
 
         return GetChildResponseDto.builder()
                 .childUserId(childUser.getId())
-                .profileImgUrl(getFileUrl(childUser.getId()))
+                .profileImgUrl(getFileUrl(FileEntity.TblType.PCD, childUser.getId()))
                 .childName(childUser.getName())
                 .age(calculateAge(String.valueOf(childUser.getBirth())))
                 .gender(childUser.getGender().equals("M") ? "남" : "여")
@@ -224,7 +224,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .orElseThrow(UserNotFoundException::new);
 
         return MyProfileResponseDto.builder()
-                .profileImgUrl(getFileUrl(consultantUser.getId()))
+                .profileImgUrl(getFileUrl(FileEntity.TblType.PCT, consultantUser.getId()))
                 .name(consultantUser.getName())
                 .email(consultantUser.getEmail())
                 .phone(consultantUser.getPhone())
@@ -247,7 +247,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         return childUserEntities.stream()
                 .map(child -> SearchChildResponseDto.builder()
                         .childUserId(child.getId())
-                        .childProfileUrl(getFileUrl(child.getId()))
+                        .childProfileUrl(getFileUrl(FileEntity.TblType.PCD, child.getId()))
                         .childUserName(child.getName())
                         .parentUserName(child.getParentUserEntity().getName())
                         .parentUserEmail(child.getParentUserEntity().getEmail())
