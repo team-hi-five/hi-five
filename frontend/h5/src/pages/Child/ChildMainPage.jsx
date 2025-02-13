@@ -3,8 +3,8 @@ import "./ChildCss/ChildMainPage.css";
 import { Card } from "primereact/card";
 import ChildMainBackground from "../../components/Child/ChildMainBackground";
 import useChildIdstore from "../../store/childIdStore";
-import useGameStore from "../../store/gameStore";
-import { limitGamedata } from "../../api/childGameContent";
+// import useGameStore from "../../store/gameStore";
+// import { limitGamedata } from "../../api/childGameContent";
 
 //✅ api 호출과 변수 관리에 필요한 import ✅
 import { getParentChildren } from "/src/api/userParent";
@@ -54,26 +54,24 @@ function ChildMainPage() {
   const { childName } = useChildIdstore();
 
   // 스테이지, 챕터 limitGameData API 호출
-  const handleLimitClick = async () => {
-    try {
-      console.log("1. 학습 제한 데이터 불러오는 중...");
-      const data = await limitGamedata(childId);
-      if (data) {
-        console.log("2. 학습 제한 데이터:", data);
-        console.log(`3. ${data.chapter}단원 전체 데이터 불러오는 중...`);
-        await useGameStore.getState().fetchChapterData(data.chapter);
-        console.log("4. 중앙 저장소에 데이터 저장 완료");
-        navigate(`/child/${childId}/todayclass`, {
-          state: {
-            stageId: data.stage,
-            chapterId: data.chapter,
-          },
-        });
-      }
-    } catch (error) {
-      console.error("데이터 로드 실패:", error);
-    }
-  };
+  // const handleLimitClick = async () => {
+  //   try {
+  //     console.log("1. 학습 제한 데이터 불러오는 중...");
+  //     const data = await limitGamedata(childId);
+  //     if (data) {
+  //       console.log("2. 학습 제한 데이터:", data);
+  //       await useGameStore.getState().fetchChapterData(data.chapter);
+  //       navigate(`/child/${childId}/todayclass`, {
+  //         state: {
+  //           stageId: data.stage,
+  //           chapterId: data.chapter,
+  //         },
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("데이터 로드 실패:", error);
+  //   }
+  // };
 
   return (
     <div className="ch-main-container">
@@ -87,7 +85,8 @@ function ChildMainPage() {
         </Card>
 
         <div className="ch-menu-container">
-          <Card className="ch-class" onClick={handleLimitClick}>
+          {/* <Card className="ch-class" onClick={handleLimitClick}> */}
+          <Card className="ch-class" onClick={()=>navigate(`/child/${childId}/todayclass`)}>
             <div className="ch-class-wrapper">
               <div className="ch-today-class-img">
                 <img src="/child/main/today-class-img.png" alt="todayImg" />
