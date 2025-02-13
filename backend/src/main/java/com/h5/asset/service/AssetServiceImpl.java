@@ -157,10 +157,12 @@ public class AssetServiceImpl implements AssetService {
         int stageAnswer = gameStageRepository.findById(gameStageId)
                 .map(GameStageEntity::getCrtAns)
                 .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
+        int chapter = entity.getGameStageEntity().getGameChapterEntity().getId();
+        int stage = (chapter - 1) * 5 + 1;
 
         return LoadAssetResponseDto.builder()
-                .gameStageId(entity.getGameStageEntity().getId())
-                .chapterId(entity.getGameStageEntity().getGameChapterEntity().getId())
+                .gameStageId(stage)
+                .chapterId(chapter)
                 .gameVideo(entity.getGameSceneVideo())
                 .options(new String[]{entity.getOpt1(), entity.getOpt2(), entity.getOpt3()})
                 .optionImages(new String[]{entity.getOptPic1(), entity.getOptPic2(), entity.getOptPic3()})
