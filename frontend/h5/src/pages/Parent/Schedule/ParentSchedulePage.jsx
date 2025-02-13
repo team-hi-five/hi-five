@@ -7,6 +7,7 @@ import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import '../ParentCss/ParentSchedulePage.css';
 import { getScheduledDatesByParent, getParentScheduleList } from "/src/api/schedule";
+import {useUserStore} from "../../../store/userStore.js";
 
 addLocale('ko', {
     firstDayOfWeek: 0,
@@ -172,13 +173,24 @@ function ParentSchedulePage() {
         return `${date.getMonth() + 1}/${date.getDate()}`;
     };
 
-    const handleJoin = () => {
-      window.open(
-        '/parent/schedule/call?{}',
-        '_blank',
-        'left=0,top=0,width=' + screen.width + ',height=' + screen.height
-      );
-  };
+    const handleJoin = (schedule) => {
+        const childId = schedule.childUserId;
+        const type = schedule.type;
+        if(type === "consult"){
+            window.open(
+                `/parent/schedule/call?childId=${childId}&type=${type}`,
+                '_blank',
+                'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+            );
+        }else if(type === "game"){
+            window.open(
+                `/child/${childId}`,
+                'ChildMainPage',
+                'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+            );
+        }
+
+    };
 
     return (
         <>
@@ -231,7 +243,7 @@ function ParentSchedulePage() {
                                                 <p>담당 상담사 : {schedule.consultantName}</p>
                                             </div>
                                             <div className="pa-button-group">
-                                                <button className="pa-btn pa-btn-join" onClick={() => handleJoin(index)}>
+                                                <button className="pa-btn pa-btn-join" onClick={() => handleJoin(schedule)}>
                                                     참여
                                                 </button>
                                             </div>

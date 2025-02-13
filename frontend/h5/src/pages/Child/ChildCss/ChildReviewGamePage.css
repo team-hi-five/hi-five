@@ -75,11 +75,28 @@
 }
 
 .ch-option {
-  border: none;
-  background-color: rgb(251, 251, 251);
+  cursor: pointer;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: center;
+  appearance: none;
+  align-items: center;
+  background-color: transparent; /* 배경색 제거 */
+  border: none; 
+  position: relative;
+  background-color: aliceblue;
 }
 
-.ch-options-number {
+.ch-option img {
+
+}
+
+/* 정답 표시  */
+.ch-optioncorrect-answer{
+  border: none; 
+}
+
+.ch-option-number {
   font-size: 24px; /* 크기 조절 */
   width: 40px; /* 원형 크기 */
   height: 40px; /* 원형 크기 */
@@ -87,10 +104,18 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background-color: black;
-  color: white;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  margin-left: 40px;
+  background-color: rgb(255, 255, 255);
+  color: rgb(4, 4, 4);
 }
-.ch-options-selection {
+
+.ch-option img {
+  background-color: transparent; /* 이미지 배경을 투명하게 설정 */
+}
+
+.ch-option-selection {
   margin-top: 3px;
   text-align: center;
 }
@@ -176,10 +201,3 @@
   height: 50vh;
 }
 
-ch-option {
-  cursor: pointer;
-  padding: 10px 15px;
-  border: 1px solid #ccc;
-  background-color: white;
-  transition: background-color 0.3s ease;
-}
