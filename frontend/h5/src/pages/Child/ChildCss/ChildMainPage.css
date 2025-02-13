@@ -147,6 +147,10 @@
   align-items: center;
 }
 
+.p-card-content{
+  padding: 0;
+}
+
 .ch-cardmain-page-img img {
   width: 80%;
   margin-top: 5%;
@@ -156,6 +160,7 @@
 .ch-cardmain-page-content {
   display: right;
   width: 60%;
+  align-items: center;
 }
 
 .ch-cardmain-page-content p {
@@ -175,6 +180,7 @@
   align-items: center;
   justify-content: space-between;
   margin-left: 10%;
+  padding: 0;
   width: 80%;
   gap: 5px;
 }
@@ -205,11 +211,27 @@
   line-height: 1.5;
 }
 
+.ch-cardmain,
+.ch-chatbot
+{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 95%;
+  box-sizing: border-box;
+  background-color: #a6e7f9 !important;
+  border-radius: 15px !important;
+  padding: 2rem !important;
+  cursor: pointer;
+  transition: transform 0.2s;
+  pointer-events: auto;
+}
+
 /* 카드 스타일  */
 .ch-class,
-.ch-review,
-.ch-cardmain,
-.ch-chatbot {
+.ch-review {
   display: flex;
   flex-direction: column;
   justify-content: center;
