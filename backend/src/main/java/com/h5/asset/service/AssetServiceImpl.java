@@ -158,7 +158,7 @@ public class AssetServiceImpl implements AssetService {
                 .map(GameStageEntity::getCrtAns)
                 .orElseThrow(() -> new RuntimeException("정답을 찾을 수 없습니다: gameStageId=" + gameStageId));
         int chapter = entity.getGameStageEntity().getGameChapterEntity().getId();
-        int stage = (chapter - 1) * 5 + 1;
+        int stage = entity.getGameStageEntity().getId() - (chapter - 1) * 5;
 
         return LoadAssetResponseDto.builder()
                 .gameStageId(stage)
