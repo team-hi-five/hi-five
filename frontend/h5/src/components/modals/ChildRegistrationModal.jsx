@@ -56,9 +56,9 @@ const RegistrationModal = ({ onClose }) => {
       if (selectedFile && response.childUserId) {
         try {
           await uploadFile(
-            selectedFile,
-            TBL_TYPES.PROFILE,  // 프로필 이미지이므로 'P' 타입 사용
-            response.childUserId // tblId로 생성된 childUserId 사용
+            [selectedFile],
+            [TBL_TYPES.PROFILE_CHILD],  // 프로필 이미지이므로 'P' 타입 사용
+            [response.childUserId] // tblId로 생성된 childUserId 사용
           );
         } catch (error) {
           console.error("❌ 프로필 이미지 업로드 실패:", error);

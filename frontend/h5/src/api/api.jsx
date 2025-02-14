@@ -103,7 +103,7 @@ api.interceptors.response.use(
     }
 
     // 401 상태 코드이고 재시도하지 않은 요청인 경우 => 현재 403인데 백엔드 수정되면 401로 변경
-    if (error.response?.status === 403 && !originalRequest._retry) {
+    if (error.response?.status === 404 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       if (!refreshingToken) {

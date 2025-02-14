@@ -1,28 +1,49 @@
 import api from "./api";
 
 export const TBL_TYPES = {
-    PROFILE: 'P',
-    NOTICE: 'N', 
-    QNA: 'Q',    
-    GALLERY: 'G',
-    FA: 'FA'     
+    PROFILE_CHILD: 'PCD',
+    PROFILE_CONSULTANT: 'PCT',
+    NOTICE_EDITOR: 'NE',
+    NOTICE_FILE: 'NF',
+    QNA_EDITOR: 'QE',
+    QNA_FILE: 'QF',
+    GAME: 'G',
+    FAQ_EDITOR: 'FE',
+    FAQ_FILE: 'FF'
 };
 
-export const uploadFile = async (file, tblType, tblId) => {
+export const uploadFile = async (files, tblTypes, tblIds) => {
     try {
         // 파라미터 유효성 검사
-        if (!file) throw new Error('File is required');
-        if (!tblType) throw new Error('tblType is required');
-        if (!Object.values(TBL_TYPES).includes(tblType)) {
-            throw new Error(`Invalid tblType: ${tblType}. Valid types are: ${Object.values(TBL_TYPES).join(', ')}`);
+        if (!files || !Array.isArray(files) || files.length === 0) {
+            throw new Error('파일 배열이 필요합니다.');
         }
-        if (!tblId) throw new Error('tblId is required');
+        if (!tblTypes || !Array.isArray(tblTypes) || tblTypes.length !== files.length) {
+            throw new Error('tblTypes는 파일 배열과 동일한 길이의 배열이어야 합니다.');
+        }
+        if (!tblIds || !Array.isArray(tblIds) || tblIds.length !== files.length) {
+            throw new Error('tblIds는 파일 배열과 동일한 길이의 배열이어야 합니다.');
+        }
+        // 각 tblType 유효성 검사
+        tblTypes.forEach((tblType, index) => {
+            if (!Object.values(TBL_TYPES).includes(tblType)) {
+                throw new Error(
+                    `유효하지 않은 tblType[${index}]: ${tblType}. 유효한 타입: ${Object.values(TBL_TYPES).join(', ')}`
+                );
+            }
+        });
 
         const formData = new FormData();
-        formData.append('file', file);
-        
-        // metaData를 JSON 배열 형태로 변환하여 추가
-        const metaData = JSON.stringify({ tblType: [tblType], tblId: [tblId] });
+        // 파일 배열을 순회하며 FormData에 파일 추가 (키 이름은 백엔드에서 처리하는 대로 "files"로 지정)
+        files.forEach(file => {
+            formData.append('file', file);
+        });
+
+        console.log(formData);
+
+        // metaData는 tblType, tblId 배열을 JSON 문자열로 변환하여 전송
+        const metaData = JSON.stringify({ tblType: tblTypes, tblId: tblIds });
+        console.log([metaData])
         formData.append('metaData', new Blob([metaData], { type: 'application/json' }));
 
         const response = await api.post("/file/upload", formData, {
@@ -32,7 +53,6 @@ export const uploadFile = async (file, tblType, tblId) => {
         });
 
         return response.data;
-
     } catch (error) {
         console.error("❌ 파일 업로드 실패:", {
             status: error.response?.status,
@@ -45,6 +65,7 @@ export const uploadFile = async (file, tblType, tblId) => {
         throw error;
     }
 };
+
 
 
 // ✅ 파일 URL 조회 API 요청

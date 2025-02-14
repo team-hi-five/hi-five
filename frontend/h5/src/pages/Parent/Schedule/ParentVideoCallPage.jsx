@@ -1,7 +1,51 @@
 import "/src/pages/Parent/ParentCss/ParentVideoCallPage.css";
-import { FaVideo, FaMicrophone, FaPhoneSlash, FaDesktop } from "react-icons/fa";
+import ButtonControlsVideo from "../../../components/OpenviduSession/ButtonControlsVideo";
+import ParentvideoScreen from "../../../components/OpenviduSession/ParentVideoScreen";
+import { useState, useCallback } from "react";
 
 function ParentVideoCallPage() {
+  // 스트림
+  const [session, setSession] = useState(null);
+  const [subscribers, setSubscribers] = useState([]); // 상담사의 스트림
+  const [publisher, setPublisher] = useState(null);
+
+  // 상담사 스트림 구독
+  const subscribeToStreamCreated = useCallback((session) => {
+    session.on("streamCreated", (event) => {
+      const subscriber = session.subscribe(event.stream, undefined);
+      setSubscribers((prev) => [...prev, subscriber]);
+    });
+  }, []);
+
+  // 상담사 스트림 제거
+  const subscribeToStreamDestroyed = useCallback((session) => {
+    session.on("streamDestroyed", (event) => {
+      setSubscribers((prev) =>
+        prev.filter((sub) => sub !== event.stream.streamManager)
+      );
+    });
+  }, []);
+
+  // 제어 함수
+
+  const toggleVideo = useCallback(() => {
+    if (publisher) {
+      publisher.publishVideo(!publisher.stream.videoActive);
+    }
+  }, [publisher]);
+
+  const toggleAudio = useCallback(() => {
+    if (publisher) {
+      publisher.publishAudio(!publisher.stream.audioActive);
+    }
+  }, [publisher]);
+
+  const leaveSessionInternal = useCallback(() => {
+    if (session) {
+      session.disconnect();
+    }
+  }, [session]);
+
   return (
     <div className="pa-video-call-container">
       {/* 좌측 상단 로고 */}
@@ -10,26 +54,35 @@ function ParentVideoCallPage() {
       <div className="pa-video-layout">
         {/* 메인 비디오 */}
         <div className="pa-main-video">
-            {/*화면 공유*/}
+          {/*<ConsultantVideoScreen share subscribers={subscribers} />*/}
         </div>
 
         {/* 참여자 비디오 */}
         <div className="pa-participant-videos">
           <div className="pa-participant">
-          {/*  학부모 캠 */}
+            x
+            <ParentvideoScreen
+              session={session}
+              setSession={setSession}
+              setPublisher={setPublisher}
+              onStreamCreated={subscribeToStreamCreated}
+              onStreamDestroyed={subscribeToStreamDestroyed}
+            />
           </div>
           <div className="pa-participant">
-          {/* 상담사 캠 */}
+            {/* <ConsultantVideoScreen subscribers={subscribers} /> */}
           </div>
         </div>
       </div>
 
       {/* 하단 컨트롤 버튼 */}
       <div className="pa-video-controls">
-        <button className="pa-control-btn"><FaDesktop /></button>
-        <button className="pa-control-btn"><FaVideo /></button>
-        <button className="pa-control-btn"><FaMicrophone /></button>
-        <button className="pa-control-btn end-call"><FaPhoneSlash /></button>
+        <ButtonControlsVideo
+          userType="parent"
+          onVideoToggle={toggleVideo}
+          onAudioToggle={toggleAudio}
+          onEndCall={leaveSessionInternal}
+        />
       </div>
     </div>
   );
