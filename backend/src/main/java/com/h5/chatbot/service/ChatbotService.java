@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface ChatbotService {
-    String insertChatbot(List<InsertChatbotReqeustDto> insertChatbotReqeustDtos);
+    String insertChatbot(InsertChatbotReqeustDto insertChatbotReqeustDto);
 
     GetChatbotDatesResponseDto getChatbotDates(int childUserId, int year, int month);
 

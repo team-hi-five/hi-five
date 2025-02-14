@@ -26,15 +26,16 @@ public class ChatbotServiceImpl implements ChatbotService {
 
 
     @Override
-    public String insertChatbot(List<InsertChatbotReqeustDto> insertChatbotReqeustDtoList) {
+    public String insertChatbot(InsertChatbotReqeustDto insertChatbotReqeustDto) {
         chatbotRepository.saveAll(
-                insertChatbotReqeustDtoList.stream()
-                        .map(insertChatbotReqeustDto -> ChatBotDocument.builder()
-                                .childUserId(insertChatbotReqeustDto.getChildUserId())
+                insertChatbotReqeustDto
+                        .getChatbotDtos().stream()
+                        .map(chatbot -> ChatBotDocument.builder()
+                                .childUserId(chatbot.getChildUserId())
                                 .chatBotUseDttm(LocalDateTime.now())
-                                .sender(insertChatbotReqeustDto.getSender())
-                                .messageIndex(insertChatbotReqeustDto.getMessageIndex())
-                                .message(insertChatbotReqeustDto.getMessage())
+                                .sender(chatbot.getSender())
+                                .messageIndex(chatbot.getMessageIndex())
+                                .message(chatbot.getMessage())
                                 .build())
                         .toList()
         );
