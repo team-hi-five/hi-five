@@ -5,13 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class InsertChatbotReqeustDto {
-    private int childUserId;
-    private String sender;
-    private int messageIndex;
-    private String message;
+    List<ChatbotDto> chatbotDtos;
 }

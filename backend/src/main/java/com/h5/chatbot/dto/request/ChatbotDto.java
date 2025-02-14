@@ -7,8 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class ChatbotContinueRequestDto {
-    private String chatbotId;
+public class ChatbotDto {
     private int childUserId;
-    private String voiceData;
+    private String sender;
+    private int messageIndex;
+    private String message;
 }
