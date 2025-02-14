@@ -17,10 +17,10 @@ function ChildReviewGamePage() {
   // 표정 분석 데이터를 동기적으로 저장하기 위한 ref
   const analysisDataRef = useRef([]);
 
-  // 단계(phase) 상태
-  // "video": 영상 재생 중
-  // "analysisModal": 분석 전 모달 (표정, 음성 동시에 안내)
-  // "analysis": 표정 및 음성 분석 진행 중
+  // 단계(phase) 상태  
+  // "video": 영상 재생 중  
+  // "analysisModal": 분석 전 모달 (표정, 음성 동시에 안내)  
+  // "analysis": 표정 및 음성 분석 진행 중  
   // "analysisResult": 표정 및 음성 결과 표시
   const [phase, setPhase] = useState("video");
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
@@ -60,6 +60,7 @@ function ChildReviewGamePage() {
 
   // --- 2. API를 통해 동영상 데이터 로드 ---
   useEffect(() => {
+
     const chapter = 1;
     async function loadGameData() {
       try {
@@ -75,18 +76,12 @@ function ChildReviewGamePage() {
         setGameInfo4(data4);
         setGameInfo5(data5);
 
-        console.log("게임 데이터 불러오기 성공", {
-          data1,
-          data2,
-          data3,
-          data4,
-          data5,
-        });
+        console.log("게임 데이터 불러오기 성공", { data1, data2, data3, data4, data5 });
 
         // 하드코딩 sample 예시
         const sampleStageData = {
           options: ["사과", "바나나", "오렌지"],
-          answer: 2, // DB 값이 2라면 실제 정답 인덱스는 2 - 1 = 1 (즉, "바나나")
+          answer: 2 // DB 값이 2라면 실제 정답 인덱스는 2 - 1 = 1 (즉, "바나나")
         };
         setStageData(sampleStageData);
       } catch (error) {
@@ -280,10 +275,7 @@ function ChildReviewGamePage() {
     });
 
     try {
-      const [faceMsg, voiceMsg] = await Promise.all([
-        facePromise,
-        voicePromise,
-      ]);
+      const [faceMsg, voiceMsg] = await Promise.all([facePromise, voicePromise]);
       // 결과를 동시에 저장
       setFaceResult(faceMsg);
       setVoiceResult(voiceMsg);

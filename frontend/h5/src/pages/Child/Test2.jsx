@@ -3,10 +3,13 @@ import useGameStore from "../../store/gameStore";
 import { Card } from "primereact/card"; // Card import 다시 추가
 import { useEffect, useState, useRef } from "react"; // useRef 추가
 import { limitGamedata } from "../../api/childGameContent";
+import { OpenVidu } from 'openvidu-browser';
+import api from "../../api/api"
+import * as faceapi from "face-api.js";
+import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-// import { ChildVideoScreen } from "../../components/OpenviduSession/ChildVideoScreen";
-// import { CounselorVideoScreen } from "../../components/OpenviduSession/CounselorVideoScreen";
+import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen"
 
 function ChildClassPage() {
   // 상태관리 1
@@ -15,10 +18,56 @@ function ChildClassPage() {
   const [gameState, setGameState] = useState(null);
   const [gameIdData, setGameIdData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  // const [session, setSsession] = useState(null);
+  const [session, setSession] = useState(null);
   const [subscribers, setSubscribers] = useState([]);
+  const [publisher, setPublisher] = useState(null)
+  const OV = useRef(new OpenVidu());
   const videoRef = useRef(null);
   const navigate = useNavigate();
+
+
+  // 단계(phase) 상태  
+  // "video": 영상 재생 중
+  // "situationmodal" : 녹화 전 모달표시
+  // "record1" : 영상 녹화와 동시에 표정인식, 음성인식 
+  // "recordResult" : 표정 분석 1회 결과 표시 -> 정답시 face1modal로 이동동
+  // "record2" : 영상 녹화와 동시에 표정인식, 음성인식 
+  // "recordResult" : 표정 분석 2회 결과 표시 
+  // "답 표시" 
+  // "face1Modal": 표정 인식 전 모달 표시  
+  // "face1": 표정 분석 1회 진행 중 
+  // "voice1Modal": 음성 인식 전 모달 표시  
+  // "voice1": 음성 인식 1회 진행 중 
+
+
+  // 상태관리 2
+  // 웹캠 분석용 video ref
+  const webcamRef = useRef(null);
+  // 표정 분석 인터벌 id 저장용 ref
+  const analysisIntervalRef = useRef(null);
+  // 표정 분석 데이터를 동기적으로 저장하기 위한 ref
+  const analysisDataRef = useRef([]);
+  // 녹화
+  const [isRecording, setIsRecording] = useState(false);
+  // 분설결과 저장
+  const [combinedResult, setCombinedResult] = useState(null);
+  // 현재 단계
+  const [phase, setPhase] = useState("video");
+
+
+  // 토큰 받기 
+  async function getToken() {
+    try {
+      const response = await api.post('/session/join', { 
+        type: 'game', 
+        childId 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('토큰 요청 실패:', error);
+      throw error;
+    }
+  }
 
   // 페이지가 열렸을때 데이터 가져오기
   useEffect(() => {
@@ -33,6 +82,23 @@ function ChildClassPage() {
           const currentState = useGameStore.getState();
           setGameState(currentState);
         }
+
+        // 세션 초기화
+      const sessionInstance = OV.current.initSession();
+      const token = await getToken();
+      
+      await sessionInstance.connect(token);
+
+      const camPublisher = OV.current.initPublisher(undefined, {
+        videoSource: undefined,
+        audioSource: true,
+        mirror: true,
+      });
+
+      sessionInstance.publish(camPublisher);
+      setPublisher(camPublisher);
+      setSession(sessionInstance);
+
       } catch (error) {
         console.error("데이터 로드 실패:", error);
       } finally {
@@ -418,9 +484,11 @@ function ChildClassPage() {
         {/* right */}
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
-            <Card className="ch-game-Top-section">
-              {/* <ChildVideoScreen /> */}
-            </Card>
+            <div className="ch-game-Top-section">
+              <div className="ch-game-child-video-screen">
+              <ChildVideoScreen  session={session} publisher={publisher}/>
+              </div>
+            </div>
             <div className="ch-game-middle-section"></div>
 
             {/* 컨트롤 섹션 */}
