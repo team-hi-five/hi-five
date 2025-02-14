@@ -373,8 +373,15 @@ function ChildReviewGamePage() {
         {/* 왼쪽: 게임 동영상 영역 */}
         <div className="ch-review-game-left">
           <Card className="ch-game-screen-container">
-            <h2>{gameInfos[currentVideoIndex].chapterId}단계 {gameInfos[currentVideoIndex].gameStageId}단원</h2>
-            <h3>{gameInfos[currentVideoIndex].situation}</h3>
+            {gameInfos[currentVideoIndex] && (
+              <>
+                <h2>
+                  {gameInfos[currentVideoIndex].chapterId}단계{" "}
+                  {gameInfos[currentVideoIndex].gameStageId}단원
+                </h2>
+                <h3>{gameInfos[currentVideoIndex].situation}</h3>
+              </>
+            )}
             <video
               ref={videoRef}
               src={
