@@ -20,16 +20,11 @@ function ScreenShareCam({ publisher, mode }) {
 
     useEffect(() => {
         console.log('[ScreenShareCam] useEffect 시작, publisher:', publisher, 'mode:', mode);
-        // 처음 렌더링 시 스트림 설정
         setVideoStream();
-
-        // publisher에서 streamPlaying 이벤트 발생 시 업데이트
         if (publisher) {
             console.log('[ScreenShareCam] streamPlaying 이벤트 리스너 등록');
             publisher.on('streamPlaying', setVideoStream);
         }
-
-        // cleanup 시 이벤트 제거
         return () => {
             if (publisher) {
                 console.log('[ScreenShareCam] streamPlaying 이벤트 리스너 제거');

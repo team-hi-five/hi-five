@@ -11,8 +11,10 @@ function CounselorParentVideoCallPage() {
   const childId = searchParams.get('childId');
   const role = searchParams.get('role'); // "consultant" 또는 "parent"
 
+  // 메인 세션 (카메라용)
   const [session, setSession] = useState(null);
-  const [screenSession, setScreenSession] = useState(null); // 화면 공유용 별도 세션
+  // 화면 공유용 별도 세션 (scrSession)
+  const [screenSession, setScreenSession] = useState(null);
   const OV = useRef(new OpenVidu());
 
   // 내 퍼블리셔 (카메라)
@@ -37,41 +39,38 @@ function CounselorParentVideoCallPage() {
   useEffect(() => {
     async function initializeSession() {
       try {
-        // 기본 세션 생성 (카메라용)
+        // 메인 세션 생성 (카메라 스트림용)
         const sessionInstance = OV.current.initSession();
         setSession(sessionInstance);
 
-        // 스트림 생성/삭제 이벤트 등록
+        // 메인 세션: 스트림 생성 이벤트 등록 (카메라 스트림만 subscribe)
         sessionInstance.on('streamCreated', (event) => {
-          console.log("streamCreated 이벤트 발생:", event.stream.streamId, event.stream.videoType);
+          console.log("메인 세션 streamCreated 이벤트 발생:", event.stream.streamId, event.stream.videoType);
           try {
-            const sub = sessionInstance.subscribe(event.stream, undefined);
-            if (event.stream.videoType === 'screen') {
-              setRemoteScreen(sub);
-              console.log("Remote screen share subscribed:", event.stream.streamId);
-            } else {
+            // 화면 공유 스트림은 scrSession에서 다루므로 메인 세션에서는 카메라만 subscribe
+            if (event.stream.videoType !== 'screen') {
+              const sub = sessionInstance.subscribe(event.stream, undefined);
               setRemoteCam(sub);
-              console.log("Remote camera subscribed:", event.stream.streamId);
+              console.log("Remote camera subscribed (메인):", event.stream.streamId);
             }
           } catch (err) {
-            console.error("subscribe 에러:", err);
+            console.error("메인 세션 subscribe 에러:", err);
           }
         });
 
         sessionInstance.on('streamDestroyed', (event) => {
-          console.log("streamDestroyed 이벤트 발생:", event.stream.streamId);
-          if (event.stream.videoType === 'screen') {
-            setRemoteScreen(null);
-          } else {
+          console.log("메인 세션 streamDestroyed 이벤트 발생:", event.stream.streamId);
+          if (event.stream.videoType !== 'screen') {
             setRemoteCam(null);
           }
         });
 
+        // 메인 세션 연결
         const token = await getToken();
         await sessionInstance.connect(token);
 
         if (role === "consultant") {
-          // 상담사: 카메라 퍼블리셔 생성 및 publish
+          // 상담사: 메인 세션에서 카메라 퍼블리셔 생성 및 publish
           const camPublisher = OV.current.initPublisher(undefined, {
             videoSource: undefined,
             audioSource: true,
@@ -81,16 +80,17 @@ function CounselorParentVideoCallPage() {
           setOwnPublisher(camPublisher);
           console.log("Consultant camera published");
 
-          // 상담사: 화면 공유를 위한 별도 세션 생성
-          const scrOV = new OpenVidu(); // 별도의 인스턴스 사용
+          // 상담사: 별도의 scrSession 생성하여 화면 공유 퍼블리셔 publish
+          const scrOV = new OpenVidu(); // 별도 인스턴스 사용
           const scrSession = scrOV.initSession();
           setScreenSession(scrSession);
 
+          // scrSession: 상담사 쪽에서는 publish만 하므로 이벤트는 간단하게 로깅
           scrSession.on('streamCreated', (event) => {
-            console.log("스크린 세션 streamCreated 이벤트:", event.stream.streamId);
+            console.log("상담사 scrSession streamCreated 이벤트:", event.stream.streamId);
           });
           scrSession.on('streamDestroyed', (event) => {
-            console.log("스크린 세션 streamDestroyed 이벤트:", event.stream.streamId);
+            console.log("상담사 scrSession streamDestroyed 이벤트:", event.stream.streamId);
           });
 
           const scrToken = await getToken();
@@ -107,7 +107,7 @@ function CounselorParentVideoCallPage() {
           setOwnScreenPublisher(scrPublisher);
           console.log("Consultant screen share published");
         } else {
-          // 학부모: 자신의 카메라 퍼블리셔 생성 및 publish
+          // 학부모: 메인 세션에서 자신의 카메라 퍼블리셔 생성 및 publish
           const camPublisher = OV.current.initPublisher(undefined, {
             videoSource: undefined,
             audioSource: true,
@@ -116,6 +116,29 @@ function CounselorParentVideoCallPage() {
           await sessionInstance.publish(camPublisher);
           setOwnPublisher(camPublisher);
           console.log("Parent camera published");
+
+          // 학부모: 별도의 scrSession에 연결하여 상담사의 화면 공유 스트림 구독
+          const scrOV = new OpenVidu();
+          const scrSession = scrOV.initSession();
+          setScreenSession(scrSession);
+
+          scrSession.on('streamCreated', (event) => {
+            console.log("학부모 scrSession streamCreated 이벤트:", event.stream.streamId);
+            try {
+              const sub = scrSession.subscribe(event.stream, undefined);
+              setRemoteScreen(sub);
+              console.log("Remote screen share subscribed (학부모):", event.stream.streamId);
+            } catch (err) {
+              console.error("scrSession subscribe 에러 (학부모):", err);
+            }
+          });
+          scrSession.on('streamDestroyed', (event) => {
+            console.log("학부모 scrSession streamDestroyed 이벤트:", event.stream.streamId);
+            setRemoteScreen(null);
+          });
+
+          const scrToken = await getToken();
+          await scrSession.connect(scrToken);
         }
       } catch (error) {
         console.error("❌ 세션 초기화 실패:", error);
