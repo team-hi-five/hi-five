@@ -128,6 +128,7 @@ function CounselorSchedulePage() {
                     id: child.childUserId,
                     name: child.childUserName,
                     img: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png", // 🔹 기본 이미지 처리
+                    parentName: child.parentUserName
                 })));
             }
         }
@@ -148,7 +149,8 @@ function CounselorSchedulePage() {
             if (!date) return; // date 값이 없을 경우 요청 안 함
             const formattedDate = formatDateToString(date);
             const response = await getConsultantScheduleList(formattedDate);
-            console.log("응답이여 ~ : ", response);
+
+            const now = new Date();
 
             // API 응답 데이터를 화면에 맞게 변환
             const formattedSchedules = response.map(item => {
@@ -161,12 +163,13 @@ function CounselorSchedulePage() {
                     time: `${String(dateTime.getHours()).padStart(2, "0")}:00 ~ ${String(dateTime.getHours() + 1).padStart(2, "0")}:00`,
                     counselor: item.consultantName,
                     consultation_target: item.childName,
-                    consultation_type: item.type,
+                    consultation_type: item.type === 'game' ? '게임' : '학부모 상담',
+                    status: item.status,
                     parentName: item.parentName,
                     parentEmail: item.parentEmail,
                     date: formattedDate,
                     isLoading: false,
-                    isCompleted: item.status === 'C' // 완료된 상담 여부
+                    isCompleted: item.status === 'E' || new Date(dateTime.getTime() + 60 * 60 * 1000) < now
                 };
             });
 
@@ -384,7 +387,7 @@ const handleDelete = async (scheduleToDelete) => {
                                                                     className="co-search-img"
                                                                     style={{ width: "20px", height: "20px", objectFit: "cover", borderRadius: "4px", marginRight: "8px" }}
                                                                 />
-                                                                {child.name} (ID: {child.id})
+                                                                {child.name} ({child.parentName})
                                                             </li>
                                                         ))}
                                                     </ul>
