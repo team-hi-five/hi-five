@@ -353,7 +353,7 @@ function CounselorBoardDetailPage() {
             <div className="co-detail-topbar">
               <button className="co-detail-back-btn" onClick={handleBack}>←</button>
               <span className="co-detail-top-title">
-              {type === "notice" ? "공지사항" : type === "faq" ? "FAQ" : "질문"}
+              {type === "notice" ? "공지사항" : type === "faq" ? "FAQ" : "QNA"}
             </span>
             </div>
             <div className="co-detail-card">
