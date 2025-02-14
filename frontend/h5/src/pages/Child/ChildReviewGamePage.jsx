@@ -6,8 +6,11 @@ import * as faceapi from "face-api.js";
 import { reviewGame } from "/src/api/childGameContent";
 import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
+import { useLocation } from "react-router-dom";
 
 function ChildReviewGamePage() {
+  const location = useLocation();
+  console.log("데이터", location.state.chapterId);
   // 동영상 재생용 ref
   const videoRef = useRef(null);
   // 웹캠 분석용 video ref
@@ -17,17 +20,17 @@ function ChildReviewGamePage() {
   // 표정 분석 데이터를 동기적으로 저장하기 위한 ref
   const analysisDataRef = useRef([]);
 
-  // 단계(phase) 상태  
-  // "video": 영상 재생 중  
-  // "face1Modal": 표정 인식 전 모달 표시  
-  // "face1": 표정 분석 1회 진행 중  
-  // "face1Result": 표정 분석 1회 결과 표시  
-  // "face2": 표정 분석 2회 진행 중  
-  // "face2Result": 표정 분석 2회 결과 표시  
-  // "voice1Modal": 음성 인식 전 모달 표시  
-  // "voice1": 음성 인식 1회 진행 중  
-  // "voice1Result": 음성 인식 1회 결과 표시  
-  // "voice2": 음성 인식 2회 진행 중  
+  // 단계(phase) 상태
+  // "video": 영상 재생 중
+  // "face1Modal": 표정 인식 전 모달 표시
+  // "face1": 표정 분석 1회 진행 중
+  // "face1Result": 표정 분석 1회 결과 표시
+  // "face2": 표정 분석 2회 진행 중
+  // "face2Result": 표정 분석 2회 결과 표시
+  // "voice1Modal": 음성 인식 전 모달 표시
+  // "voice1": 음성 인식 1회 진행 중
+  // "voice1Result": 음성 인식 1회 결과 표시
+  // "voice2": 음성 인식 2회 진행 중
   // "voice2Result": 음성 인식 2회 결과 표시
   const [phase, setPhase] = useState("video");
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
@@ -67,7 +70,7 @@ function ChildReviewGamePage() {
 
   // --- 2. API를 통해 동영상 데이터 로드 ---
   useEffect(() => {
-    const chapter = 1;
+    const chapter = location.state.chapterId;
     async function loadGameData() {
       try {
         const data1 = await reviewGame(chapter, 1);
@@ -82,12 +85,18 @@ function ChildReviewGamePage() {
         setGameInfo4(data4);
         setGameInfo5(data5);
 
-        console.log("게임 데이터 불러오기 성공", { data1, data2, data3, data4, data5 });
+        console.log("게임 데이터 불러오기 성공", {
+          data1,
+          data2,
+          data3,
+          data4,
+          data5,
+        });
 
         // 하드코딩 sample 예시
         const sampleStageData = {
           options: ["사과", "바나나", "오렌지"],
-          answer: 2 // DB 값이 2라면 실제 정답 인덱스는 2 - 1 = 1 (즉, "바나나")
+          answer: 2, // DB 값이 2라면 실제 정답 인덱스는 2 - 1 = 1 (즉, "바나나")
         };
         setStageData(sampleStageData);
       } catch (error) {
@@ -289,11 +298,17 @@ function ChildReviewGamePage() {
   useEffect(() => {
     if (phase === "voice1" || phase === "voice2") {
       const timeoutId = setTimeout(() => {
-        if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
-          console.error("이 브라우저는 Speech Recognition을 지원하지 않습니다.");
+        if (
+          !("webkitSpeechRecognition" in window) &&
+          !("SpeechRecognition" in window)
+        ) {
+          console.error(
+            "이 브라우저는 Speech Recognition을 지원하지 않습니다."
+          );
           return;
         }
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = "ko-KR";
         recognition.interimResults = false;
@@ -394,7 +409,15 @@ function ChildReviewGamePage() {
               onEnded={handleVideoEnded}
             />
             {/* ProgressBar 추가 (진행 상황: 1~5 단계에 따라) */}
-            <ProgressBar value={(currentVideoIndex + 1) * 20} style={{ width: "80%", height: "15px", margin: "0 auto", marginTop: "20px" }} />
+            <ProgressBar
+              value={(currentVideoIndex + 1) * 20}
+              style={{
+                width: "80%",
+                height: "15px",
+                margin: "0 auto",
+                marginTop: "20px",
+              }}
+            />
 
             {/* 선택지 버튼 영역 - 이미지와 텍스트 함께 표시 */}
             <div className="ch-game-button">
@@ -435,6 +458,7 @@ function ChildReviewGamePage() {
                   width: "100%",
                   height: "300px",
                   marginTop: "4px",
+                  transform: "scaleX(-1)",
                 }}
               />
             </Card>
@@ -445,24 +469,23 @@ function ChildReviewGamePage() {
               </div>
               <Card className="ch-game-counselor-screen">
                 <div className="review-message">
-                  {phase === "video" ? null : 
-                    phase === "face1" ? (
-                      <h3>표정 분석 중입니다...</h3>
-                    ) : phase === "face1Result" ? (
-                      <h3>표정 분석 결과: {faceResult1}</h3>
-                    ) : phase === "face2" ? (
-                      <h3>표정 분석 중입니다...</h3>
-                    ) : phase === "face2Result" ? (
-                      <h3>표정 분석 결과: {faceResult2}</h3>
-                    ) : phase === "voice1" ? (
-                      <h3>음성 인식 중입니다...</h3>
-                    ) : phase === "voice1Result" ? (
-                      <h3>음성 인식 결과: {voiceResult1}</h3>
-                    ) : phase === "voice2" ? (
-                      <h3>음성 인식 중입니다...</h3>
-                    ) : phase === "voice2Result" ? (
-                      <h3>음성 인식 결과: {voiceResult2}</h3>
-                    ) : null}
+                  {phase === "video" ? null : phase === "face1" ? (
+                    <h3>표정 분석 중입니다...</h3>
+                  ) : phase === "face1Result" ? (
+                    <h3>표정 분석 결과: {faceResult1}</h3>
+                  ) : phase === "face2" ? (
+                    <h3>표정 분석 중입니다...</h3>
+                  ) : phase === "face2Result" ? (
+                    <h3>표정 분석 결과: {faceResult2}</h3>
+                  ) : phase === "voice1" ? (
+                    <h3>음성 인식 중입니다...</h3>
+                  ) : phase === "voice1Result" ? (
+                    <h3>음성 인식 결과: {voiceResult1}</h3>
+                  ) : phase === "voice2" ? (
+                    <h3>음성 인식 중입니다...</h3>
+                  ) : phase === "voice2Result" ? (
+                    <h3>음성 인식 결과: {voiceResult2}</h3>
+                  ) : null}
                 </div>
               </Card>
               <div className="ch-game-button-right">
