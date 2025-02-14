@@ -36,13 +36,13 @@ function CounselorParentVideoCallPage() {
   useEffect(() => {
     async function initializeSession() {
       try {
+        // 기본 세션: remote 구독 및 상담사의 카메라 송출용
         const sessionInstance = OV.current.initSession();
         setSession(sessionInstance);
 
         // remote 스트림 subscribe: 다른 사람의 송출을 무조건 가져옵니다.
         sessionInstance.on('streamCreated', (event) => {
           console.log("streamCreated 이벤트 발생:", event.stream.streamId, event.stream.videoType);
-          // subscribe 시 clone() 없이 원본 스트림을 그대로 할당합니다.
           const sub = sessionInstance.subscribe(event.stream, undefined);
           if (event.stream.videoType === 'screen') {
             setRemoteScreen(sub);
@@ -66,7 +66,7 @@ function CounselorParentVideoCallPage() {
         await sessionInstance.connect(token);
 
         if (role === "consultant") {
-          // 상담사: 자신의 카메라 퍼블리셔 생성 및 publish
+          // 상담사: 카메라 퍼블리셔 생성 및 publish (기본 세션 사용)
           const camPublisher = OV.current.initPublisher(undefined, {
             videoSource: undefined,
             audioSource: true,
@@ -76,8 +76,13 @@ function CounselorParentVideoCallPage() {
           setOwnPublisher(camPublisher);
           console.log("Consultant camera published");
 
-          // 상담사: 화면 공유 퍼블리셔 생성 및 publish (약간의 딜레이 후)
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          // 상담사: 화면 공유 퍼블리셔는 별도의 세션 연결 사용
+          // 1. 새로운 세션 인스턴스 생성
+          const scrSession = OV.current.initSession();
+          // 2. 별도 토큰을 받아 scrSession에 연결 (같은 방으로 연결됨)
+          const scrToken = await getToken();
+          await scrSession.connect(scrToken);
+          // 3. 화면 공유 퍼블리셔 생성 및 publish (scrSession 사용)
           const scrPublisher = OV.current.initPublisher(undefined, {
             videoSource: 'screen',
             audioSource: false,
@@ -86,11 +91,11 @@ function CounselorParentVideoCallPage() {
           scrPublisher.on('accessDenied', () => {
             console.error("Screen share access denied");
           });
-          await sessionInstance.publish(scrPublisher);
+          await scrSession.publish(scrPublisher);
           setOwnScreenPublisher(scrPublisher);
           console.log("Consultant screen share published");
         } else {
-          // 학부모: 자신의 카메라 퍼블리셔 생성 및 publish (화면 공유는 없음)
+          // 학부모: 자신의 카메라 퍼블리셔 생성 및 publish (화면 공유 없음)
           const camPublisher = OV.current.initPublisher(undefined, {
             videoSource: undefined,
             audioSource: true,
@@ -131,7 +136,7 @@ function CounselorParentVideoCallPage() {
           <div>
             <h2>내 화면 공유 송출화면 (상담사)</h2>
             {ownScreenPublisher ? (
-                <ScreenShareCam session={session} publisher={ownScreenPublisher} />
+                <ScreenShareCam publisher={ownScreenPublisher} mode="publish"/>
             ) : (
                 <div>화면 공유 중 아님</div>
             )}
@@ -161,7 +166,7 @@ function CounselorParentVideoCallPage() {
           <div>
             <h2>상대방 화면 공유 구독 화면 (학부모)</h2>
             {remoteScreen ? (
-                <ScreenShareCam session={session} publisher={remoteScreen} />
+                <ScreenShareCam publisher={remoteScreen} mode="subscribe" />
             ) : (
                 <div>상대방 화면 공유 없음</div>
             )}
