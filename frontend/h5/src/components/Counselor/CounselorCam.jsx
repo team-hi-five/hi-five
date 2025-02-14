@@ -2,26 +2,26 @@ import { useEffect, useRef } from 'react';
 
 function CounselorCam({ session, publisher, mode }) {
     const videoRef = useRef(null);
-    const publisherRef = useRef(null);
 
     useEffect(() => {
         if (publisher && videoRef.current) {
             if (mode === 'publish') {
-                // 송출 화면: publisher의 MediaStream을 그대로 video element에 할당
                 const mediaStream = publisher.stream?.getMediaStream();
                 if (mediaStream) {
                     videoRef.current.srcObject = mediaStream;
+                    videoRef.current.load(); // 새로 로드
                 }
             } else if (mode === 'subscribe') {
-                // 구독 화면: 전달받은 스트림을 clone()하여 video element에 할당
                 const mediaStream = publisher.stream?.getMediaStream();
                 if (mediaStream) {
                     const clonedStream = mediaStream.clone();
                     videoRef.current.srcObject = clonedStream;
+                    videoRef.current.load(); // 새로 로드
                 }
             }
         }
-    }, [videoRef.current, publisher, mode]);
+    }, [videoRef.current ,publisher, mode]);
+
 
     return (
         <div className="counselor-cam">

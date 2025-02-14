@@ -2,18 +2,17 @@ import { useEffect, useRef } from 'react';
 
 function ScreenShareCam({ session, publisher, mode }) {
     const videoRef = useRef(null);
+    const mediaStream = useRef(null);
 
     useEffect(() => {
         if (publisher && videoRef.current) {
             if (mode === 'publish') {
-                // 송출 화면: publisher의 MediaStream을 그대로 video element에 할당
                 const mediaStream = publisher.stream?.getMediaStream();
                 if (mediaStream) {
                     videoRef.current.srcObject = mediaStream;
 
                 }
             } else if (mode === 'subscribe') {
-                // 구독 화면: 전달받은 스트림을 clone()하여 video element에 할당
                 const mediaStream = publisher.stream?.getMediaStream();
                 if (mediaStream) {
                     const clonedStream = mediaStream.clone();
@@ -21,7 +20,7 @@ function ScreenShareCam({ session, publisher, mode }) {
                 }
             }
         }
-    }, [videoRef.current, publisher, mode]);
+    }, [mediaStream, publisher, mode, videoRef.current]);
 
     return (
         <div className="counselor-cam">
