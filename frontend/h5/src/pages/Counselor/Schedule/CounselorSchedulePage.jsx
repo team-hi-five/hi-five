@@ -278,7 +278,7 @@ const handleDelete = async (scheduleToDelete) => {
         // 상담 유형에 따라 다른 창 열기
         const path = targetSchedule.consultation_type === 'game'
             ? `schedule/child-video-call?type=${targetSchedule.consultation_type}&childId=${targetSchedule.childUserId}`
-            : `schedule/parent-video-call?type=${targetSchedule.consultation_type}&childId=${targetSchedule.childUserId}`;
+            : `schedule/parent-video-call?type=${targetSchedule.consultation_type}&childId=${targetSchedule.childUserId}&role=consultant`;
 
         window.open(
             path,

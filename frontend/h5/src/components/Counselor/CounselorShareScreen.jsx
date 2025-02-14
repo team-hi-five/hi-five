@@ -1,15 +1,23 @@
-// import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-// function ScreenShareCam({ session, publisher }) {
-//     const videoRef = useRef(null);
+function ScreenShareCam({ session, publisher }) {
+    const videoRef = useRef(null);
 
-//     useEffect(() => {
-//         if (publisher && videoRef.current) {
-//             publisher.addVideoElement(videoRef.current);
-//         }
-//     }, [publisher]);
+    useEffect(() => {
+        if (publisher && videoRef.current) {
+            const mediaStream = publisher.stream?.getMediaStream();
+            if (mediaStream) {
+                videoRef.current.srcObject = mediaStream;
+            }
+        }
+    }, [publisher]);
 
-//     return <video ref={videoRef} autoPlay={true} />;
-// }
+    return (
+        <div className="screen-share-cam">
+            <div className="video-label">화면 공유</div>
+            <video ref={videoRef} autoPlay={true} />
+        </div>
+    );
+}
 
-// export default ScreenShareCam;
+export default ScreenShareCam;
