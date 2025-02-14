@@ -100,21 +100,23 @@ function ParentBoardDetailPage() {
             status: response.qnaAnswerResponseList?.length > 0 ? "답변완료" : "미답변",
             date: new Date(response.createDttm).toISOString().split("T")[0],
           };
-
           setPostData(formattedData);
 
-          if (response.qnaAnswerResponseList.length > 0) {
-            const formattedAnswers = response.qnaAnswerResponseList.map(answers => ({
-              id: answers.id,
-              writer: answers.writer,
-              content: answers.content,
-              time: getTimeAgo(answers.createDttm),
-              profileImageUrl: answers.profileImageUrl || "/no.png"
-            }));
-            setAnswers(formattedAnswers);
+          // 답변이 있으면 첫 번째 답변만 사용
+          if (response.qnaAnswerResponseList && response.qnaAnswerResponseList.length > 0) {
+            const firstAnswer = response.qnaAnswerResponseList[0];
+            setAnswers([{
+              id: firstAnswer.id,
+              content: firstAnswer.content,
+              writer: firstAnswer.name || "상담사",
+              createDttm: firstAnswer.createDttm, // 원본 시간 저장
+              time: getTimeAgo(firstAnswer.createDttm), // 상대적 시간으로 변환
+              profileImageUrl: firstAnswer.profileImageUrl || "/no.png"
+            }]);
           } else {
             setAnswers([]);
           }
+          
           await fetchFileUrls("QE", response.id, setEditorFileUrls);
           await fetchFileUrls("QF", response.id, setAttachmentFileUrls);
         }
