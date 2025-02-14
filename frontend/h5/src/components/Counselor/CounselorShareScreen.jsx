@@ -1,15 +1,15 @@
-import { useEffect, useRef } from 'react';
+// import { useEffect, useRef } from 'react';
 
-function ScreenShareCam({ session, publisher }) {
-    const videoRef = useRef(null);
+// function ScreenShareCam({ session, publisher }) {
+//     const videoRef = useRef(null);
 
-    useEffect(() => {
-        if (publisher && videoRef.current) {
-            publisher.addVideoElement(videoRef.current);
-        }
-    }, [publisher]);
+//     useEffect(() => {
+//         if (publisher && videoRef.current) {
+//             publisher.addVideoElement(videoRef.current);
+//         }
+//     }, [publisher]);
 
-    return <video ref={videoRef} autoPlay={true} />;
-}
+//     return <video ref={videoRef} autoPlay={true} />;
+// }
 
-export default ScreenShareCam;
+// export default ScreenShareCam;

@@ -1,86 +1,104 @@
-import { useState, useEffect, useRef } from 'react';
-import { OpenVidu } from 'openvidu-browser';
-import ConsultantCam from '../../../components/Counselor/CounselorCam.jsx';
-import ScreenShareCam from '../../../components/Counselor/CounselorShareScreen.jsx';
-import ParentVideoScreen from "../../../components/OpenviduSession/ParentVideoScreen.jsx";
-import api from '../../../api/api.jsx';
-import { useSearchParams } from 'react-router-dom';
+import "/src/pages/Parent/ParentCss/ParentVideoCallPage.css";
+import ButtonControlsVideo from "../../../components/OpenviduSession/ButtonControlsVideo";
+import ParentvideoScreen from "../../../components/OpenviduSession/ParentVideoScreen";
+import ConsultCounselorVideoScreen from "../../../components/OpenviduSession/ConsultCounselorVideoScreen";
+import ScreenCounselorVideo from "../../../components/OpenviduSession/ShareCounselorVideo"
+import { useState, useCallback,useEffect } from "react";
 
-function CounselorParentVideoCallPage() {
-    const [searchParams] = useSearchParams();
-    const type = searchParams.get('type');
-    const childId = searchParams.get('childId');
+function ParentVideoCallPage() {
 
-    const [session, setSession] = useState(null);
-    const [consultantPublisher, setConsultantPublisher] = useState(null);
-    const [screenPublisher, setScreenPublisher] = useState(null);
-    const OV = useRef(new OpenVidu());
+useEffect(() => {
+    console.log('Current Publisher:', publisher);
+    console.log('Current Session:', session);
+    }, [publisher, session]);
+  // 스트림
+  const [session, setSession] = useState(null);
+  const [subscribers, setSubscribers] = useState([]); // 상담사의 스트림
+  const [publisher, setPublisher] = useState(null);
 
-    async function getToken() {
-        try {
-            const response = await api.post('/session/join', { type, childId });
-            return response.data;
-        } catch (error) {
-            console.error('❌ 토큰 요청 실패:', error);
-            throw error;
-        }
+  // 상담사 스트림 구독
+  const subscribeToStreamCreated = useCallback((session) => {
+    session.on("streamCreated", (event) => {
+      const subscriber = session.subscribe(event.stream, undefined);
+      setSubscribers((prev) => [...prev, subscriber]);
+    });
+  }, []);
+
+  // 상담사 스트림 제거
+  const subscribeToStreamDestroyed = useCallback((session) => {
+    session.on("streamDestroyed", (event) => {
+      setSubscribers((prev) =>
+        prev.filter((sub) => sub !== event.stream.streamManager)
+      );
+    });
+  }, []);
+
+  // 제어 함수
+
+  const toggleVideo = useCallback(() => {
+    console.log('Toggle Video Called');
+    if (publisher) {
+     console.log('Current Video State:', publisher.stream.videoActive);
+      publisher.publishVideo(!publisher.stream.videoActive);
     }
+  }, [publisher]);
 
-    useEffect(() => {
-        async function initializeSession() {
-            try {
-                // 🟢 1️⃣ 하나의 세션만 사용
-                const sessionInstance = OV.current.initSession();
-                await sessionInstance.connect(await getToken());
+  const toggleAudio = useCallback(() => {
+    console.log('Toggle Audio Called');
+    if (publisher) {
+        console.log('Current Audio State:', publisher.stream.audioActive);
+      publisher.publishAudio(!publisher.stream.audioActive);
+    }
+  }, [publisher]);
 
-                // 💻 웹캠 퍼블리셔
-                const camPublisher = OV.current.initPublisher(undefined, {
-                    videoSource: undefined, // 기본 카메라
-                    audioSource: true,
-                    mirror: true,
-                });
-                sessionInstance.publish(camPublisher);
-                setConsultantPublisher(camPublisher);
-                console.log('📸 웹캠 퍼블리싱 완료');
+  const leaveSessionInternal = useCallback(() => {
+    console.log('Leave Session Called');
+    if (session) {
+      session.disconnect();
+    }
+  }, [session]);
 
-                // 🕒 웹캠 퍼블리싱 후 약간의 딜레이
-                await new Promise((resolve) => setTimeout(resolve, 500));
+  return (
+    <div className="co-video-call-container">
+      {/* 좌측 상단 로고 */}
+      <img src="/logo.png" alt="로고" className="co-logoo" />
 
-                // 🖥️ 화면 공유 퍼블리셔 (같은 세션에 추가)
-                const screenPub = OV.current.initPublisher(undefined, {
-                    videoSource: 'screen',
-                    audioSource: false,
-                    mirror: false,
-                });
-
-                screenPub.on('accessDenied', () => {
-                    console.error('🛑 화면 공유 권한 거부됨');
-                });
-
-                sessionInstance.publish(screenPub);
-                setScreenPublisher(screenPub);
-                console.log('🖥️ 화면 공유 퍼블리싱 완료');
-
-                // 세션 상태 저장
-                setSession(sessionInstance);
-            } catch (error) {
-                console.error('❌ 세션 초기화 실패:', error);
-            }
-        }
-
-        initializeSession();
-    }, [type, childId]);
-
-    return (
-        <div className="consultation-page">
-            <h2>상담사 웹캠</h2>
-            <ConsultantCam session={session} publisher={consultantPublisher} />
-            <h2>학부모 웹캠</h2>
-            {/*여기*/}
-            <h2>상담사 화면 공유</h2>
-            <ScreenShareCam session={session} publisher={screenPublisher} />
+      <div className="co-video-layout">
+        {/* 메인 비디오 */}
+        <div className="co-main-video">
+          <ScreenCounselorVideo share session={session} />
         </div>
-    );
+
+        {/* 참여자 비디오 */}
+        <div className="co-participant-videos">
+          <div className="co-participant">
+            x
+            <ParentvideoScreen
+              subscribers={subscribers}
+            />
+          </div>
+          <div className="co-participant">
+            <ConsultCounselorVideoScreen
+            session={session}
+            setSession={setSession}
+            setPublisher={setPublisher}
+            onStreamCreated={subscribeToStreamCreated}
+            onStreamDestroyed={subscribeToStreamDestroyed} />
+          </div>
+        </div>
+      </div>
+
+      {/* 하단 컨트롤 버튼 */}
+      <div className="co-video-controls">
+        <ButtonControlsVideo
+          userType="counselor"
+          onVideoToggle={toggleVideo}
+          onAudioToggle={toggleAudio}
+          onEndCall={leaveSessionInternal}
+        />
+      </div>
+    </div>
+  );
 }
 
-export default CounselorParentVideoCallPage;
+export default ParentVideoCallPage;
