@@ -107,9 +107,28 @@ function ChildClassPage() {
     };
 
     fetchLimitData();
+
+    // 상담사가 종료버튼을 누르면 아동도 나가지기
+    // if (session) {
+    //   session.on("sessionDisconnected", (event) => {
+    //     Swal.fire({
+    //       title: "함께 학습해서 즐거웠어~",
+    //       text: "다다음에 만나!",
+    //       imageUrl: "/child/character/againCh.png",
+    //       imageWidth: 200,
+    //       imageHeight: 200,
+    //       showConfirmButton: false,
+    //       timer: 2000,
+    //     }).then(() => {
+    //       navigate(`/child/${childId}/`);
+    //     });
+    //   });
+    // }
+
+    // 아래 session 추가하기
   }, []);
 
-  // 상태관리 3
+  // 상태관리 2
 
   const [showContent, setShowContent] = useState(false); //비디오 false이면 모달 및 내용 보여주는 상태관리
   const [feedback, setFeedback] = useState(null); // 임시(정답시 오답시 피드백)

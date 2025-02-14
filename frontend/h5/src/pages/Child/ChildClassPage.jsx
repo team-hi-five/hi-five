@@ -212,7 +212,13 @@ function ChildReviewGamePage() {
         }));
         candidateAverages.sort((a, b) => b.value - a.value);
         const bestEmotion = candidateAverages[0].emotion;
-        const expectedEmotions = ["happy", "sad", "angry", "fearful", "surprised"];
+        const expectedEmotions = [
+          "happy",
+          "sad",
+          "angry",
+          "fearful",
+          "surprised",
+        ];
         const expectedEmotion = expectedEmotions[currentVideoIndex] || "없음";
         const resultMsg =
           bestEmotion === expectedEmotion
@@ -224,11 +230,15 @@ function ChildReviewGamePage() {
 
     // 음성 인식 Promise
     const voicePromise = new Promise((resolve, reject) => {
-      if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+      if (
+        !("webkitSpeechRecognition" in window) &&
+        !("SpeechRecognition" in window)
+      ) {
         reject("이 브라우저는 Speech Recognition을 지원하지 않습니다.");
         return;
       }
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       recognition.lang = "ko-KR";
       recognition.interimResults = false;
@@ -241,7 +251,10 @@ function ChildReviewGamePage() {
           }
         }
         const optionsArray = gameInfos[currentVideoIndex].options;
-        const bestMatch = stringSimilarity.findBestMatch(finalResult, optionsArray);
+        const bestMatch = stringSimilarity.findBestMatch(
+          finalResult,
+          optionsArray
+        );
         const bestOptionIndex = bestMatch.bestMatchIndex;
         const voiceMsg =
           bestOptionIndex === gameInfos[currentVideoIndex].answer - 1
@@ -384,15 +397,14 @@ function ChildReviewGamePage() {
               </div>
               <Card className="ch-game-counselor-screen">
                 <div className="review-message">
-                  {phase === "video" ? null :
-                    phase === "analysis" ? (
-                      <h3>표정 및 음성 분석 중입니다...</h3>
-                    ) : phase === "analysisResult" ? (
-                      <>
-                        <h3>표정 분석 결과: {faceResult}</h3>
-                        <h3>음성 인식 결과: {voiceResult}</h3>
-                      </>
-                    ) : null}
+                  {phase === "video" ? null : phase === "analysis" ? (
+                    <h3>표정 및 음성 분석 중입니다...</h3>
+                  ) : phase === "analysisResult" ? (
+                    <>
+                      <h3>표정 분석 결과: {faceResult}</h3>
+                      <h3>음성 인식 결과: {voiceResult}</h3>
+                    </>
+                  ) : null}
                 </div>
               </Card>
               <div className="ch-game-button-right">
