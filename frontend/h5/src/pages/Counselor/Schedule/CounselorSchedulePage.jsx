@@ -169,7 +169,7 @@ function CounselorSchedulePage() {
                     parentEmail: item.parentEmail,
                     date: formattedDate,
                     isLoading: false,
-                    isCompleted: item.status === 'E' || dateTime + hour(1) < now
+                    isCompleted: item.status === 'E' || new Date(dateTime.getTime() + 60 * 60 * 1000) < now
                 };
             });
 
