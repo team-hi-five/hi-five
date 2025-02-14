@@ -1,10 +1,11 @@
 package com.h5.chatbot.service;
 
 import com.h5.chatbot.document.ChatBotDocument;
-import com.h5.chatbot.dto.request.InsertChatbotReqeustDto;
+import com.h5.chatbot.dto.request.InsertChatbotRequestDto;
 import com.h5.chatbot.repository.ChatbotRepository;
 import com.h5.chatbot.dto.response.GetChatbotResponseDto;
 import com.h5.chatbot.dto.response.GetChatbotDatesResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ChatbotServiceImpl implements ChatbotService {
 
@@ -26,10 +28,8 @@ public class ChatbotServiceImpl implements ChatbotService {
 
 
     @Override
-    public String insertChatbot(InsertChatbotReqeustDto insertChatbotReqeustDto) {
-        chatbotRepository.saveAll(
-                insertChatbotReqeustDto
-                        .getChatbotDtos().stream()
+    public String insertChatbot(InsertChatbotRequestDto insertChatbotRequestDto) {
+        chatbotRepository.saveAll(insertChatbotRequestDto.getChatbotDocumentList().stream()
                         .map(chatbot -> ChatBotDocument.builder()
                                 .childUserId(chatbot.getChildUserId())
                                 .chatBotUseDttm(LocalDateTime.now())
