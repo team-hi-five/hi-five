@@ -15,7 +15,7 @@ function ScreenShareCam({ session, publisher }) {
     return (
         <div className="screen-share-cam">
             <div className="video-label">화면 공유</div>
-            <video ref={videoRef} autoPlay={true} />
+            <video ref={videoRef} autoPlay playsInline muted />
         </div>
     );
 }

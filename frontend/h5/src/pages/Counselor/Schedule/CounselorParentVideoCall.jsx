@@ -19,7 +19,7 @@ function CounselorParentVideoCallPage() {
   // 내 화면 공유 퍼블리셔 (상담사 전용)
   const [ownScreenPublisher, setOwnScreenPublisher] = useState(null);
 
-  // remote 스트림 구독: 상대방의 카메라 스트림과 화면 공유 스트림
+  // 상대방의 스트림 (카메라, 화면 공유)
   const [remoteCam, setRemoteCam] = useState(null);
   const [remoteScreen, setRemoteScreen] = useState(null);
 
@@ -39,11 +39,11 @@ function CounselorParentVideoCallPage() {
         const sessionInstance = OV.current.initSession();
         setSession(sessionInstance);
 
-        // remote 스트림 구독 (디버깅 로그 추가)
+        // remote 스트림 subscribe: 다른 사람의 송출을 무조건 가져옵니다.
         sessionInstance.on('streamCreated', (event) => {
           console.log("streamCreated 이벤트 발생:", event.stream.streamId, event.stream.videoType);
+          // subscribe 시 clone() 없이 원본 스트림을 그대로 할당합니다.
           const sub = sessionInstance.subscribe(event.stream, undefined);
-          // videoType에 따라 카메라와 화면 공유를 구분합니다.
           if (event.stream.videoType === 'screen') {
             setRemoteScreen(sub);
             console.log("Remote screen share subscribed:", event.stream.streamId);
