@@ -6,7 +6,7 @@ const useGameStore = create((set, get) => ({
   chapterData: {},
   currentChapter: null,
   currentStageIndex: 0,
-
+  
   // 지정된 챕터의 모든 스테이지 데이터를 가져옴
   fetchChapterData: async (chapterId) => {
     try {
@@ -17,7 +17,7 @@ const useGameStore = create((set, get) => ({
 
       const stageResults = await Promise.all(stagePromises);
       const chapterData = stageResults
-        .map((res, index) => (res ? { ...res, gameStageId: index + 1 } : null))
+        .map((res) => (res ? { ...res} : null))
         .filter(Boolean);
 
       // 기존 데이터를 병합하여 상태 업데이트
@@ -65,5 +65,6 @@ const useGameStore = create((set, get) => ({
     get().fetchChapterData(chapterId);
   },
 }));
+
 
 export default useGameStore;
