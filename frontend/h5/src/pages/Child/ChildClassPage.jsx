@@ -5,8 +5,8 @@ import { useEffect, useState, useRef } from "react"; // useRef 추가
 import { limitGamedata } from "../../api/childGameContent";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import { ChildVideoScreen } from "../../components/OpenviduSession/ChildVideoScreen";
-import { CounselorVideoScreen } from "../../components/OpenviduSession/CounselorVideoScreen";
+// import { ChildVideoScreen } from "../../components/OpenviduSession/ChildVideoScreen";
+// import { CounselorVideoScreen } from "../../components/OpenviduSession/CounselorVideoScreen";
 
 function ChildClassPage() {
   // 상태관리 1
