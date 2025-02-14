@@ -435,6 +435,7 @@ function ChildReviewGamePage() {
                   width: "100%",
                   height: "300px",
                   marginTop: "4px",
+                  transform: "scaleX(-1)",
                 }}
               />
             </Card>

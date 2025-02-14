@@ -6,6 +6,7 @@ import ScreenCounselorVideo from "../../../components/OpenviduSession/ShareCouns
 import { useState, useCallback } from "react";
 
 function ParentVideoCallPage() {
+
   // 스트림
   const [session, setSession] = useState(null);
   const [subscribers, setSubscribers] = useState([]); // 상담사의 스트림
@@ -31,18 +32,23 @@ function ParentVideoCallPage() {
   // 제어 함수
 
   const toggleVideo = useCallback(() => {
+    console.log('Toggle Video Called');
     if (publisher) {
+      console.log('Current Video State:', publisher.stream.videoActive);
       publisher.publishVideo(!publisher.stream.videoActive);
     }
   }, [publisher]);
 
   const toggleAudio = useCallback(() => {
+    console.log('Toggle Audio Called');
     if (publisher) {
+      console.log('Current Audio State:', publisher.stream.audioActive);
       publisher.publishAudio(!publisher.stream.audioActive);
     }
   }, [publisher]);
 
   const leaveSessionInternal = useCallback(() => {
+    console.log('Toggle Audio Called');
     if (session) {
       session.disconnect();
     }
