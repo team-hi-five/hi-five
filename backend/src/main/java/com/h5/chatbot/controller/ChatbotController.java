@@ -1,10 +1,6 @@
 package com.h5.chatbot.controller;
 
-import com.h5.chatbot.document.ChatBotDocument;
-import com.h5.chatbot.dto.request.ChatbotContinueRequestDto;
 import com.h5.chatbot.dto.request.InsertChatbotReqeustDto;
-import com.h5.chatbot.dto.response.ChatbotContinueResponseDto;
-import com.h5.chatbot.dto.response.ChatbotStartResponseDto;
 import com.h5.chatbot.service.ChatbotService;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
@@ -13,9 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/chatbot")
@@ -28,8 +22,8 @@ public class ChatbotController {
     }
 
     @PostMapping("/insert-chatbot")
-    public ResponseEntity<?> insertChatbot(@Valid @RequestBody List<InsertChatbotReqeustDto> insertChatbotReqeustDtos) {
-        return ResponseEntity.ok(chatbotService.insertChatbot(insertChatbotReqeustDtos));
+    public ResponseEntity<?> insertChatbot(@Valid @RequestBody InsertChatbotReqeustDto insertChatbotReqeustDto) {
+        return ResponseEntity.ok(chatbotService.insertChatbot(insertChatbotReqeustDto));
     }
 
     @GetMapping("/get-dates/chatbot")
