@@ -77,7 +77,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/parent/change-pwd","/api/user/parent/my-page",
                                 "/api/user/parent/my-children").hasRole("PARENT")
                         .requestMatchers("/api/qna/write","/api/qna/update").hasRole("PARENT")
-                        .requestMatchers("/api/chatbot/insert-chatbot").hasRole("PARENT")
+                        .requestMatchers("/api/chatbot/save").hasRole("PARENT")
                         .requestMatchers("/api/user/delete/request").hasRole("PARENT")
                         .requestMatchers("/api/game/start-game-chapter","/api/game/start-game-stage",
                                 "/api/game/end-game-chapter","/api/game/save-log").hasRole("PARENT")
