@@ -1,6 +1,8 @@
 import "/src/pages/Parent/ParentCss/ParentVideoCallPage.css";
 import ButtonControlsVideo from "../../../components/OpenviduSession/ButtonControlsVideo";
 import ParentvideoScreen from "../../../components/OpenviduSession/ParentVideoScreen";
+import ConsultCounselorVideoScreen from "../../../components/OpenviduSession/ConsultCounselorVideoScreen";
+import ScreenCounselorVideo from "../../../components/OpenviduSession/ShareCounselorVideo"
 import { useState, useCallback } from "react";
 
 function ParentVideoCallPage() {
@@ -54,7 +56,7 @@ function ParentVideoCallPage() {
       <div className="pa-video-layout">
         {/* 메인 비디오 */}
         <div className="pa-main-video">
-          {/*<ConsultantVideoScreen share subscribers={subscribers} />*/}
+          <ScreenCounselorVideo share subscribers={subscribers} />
         </div>
 
         {/* 참여자 비디오 */}
@@ -70,7 +72,7 @@ function ParentVideoCallPage() {
             />
           </div>
           <div className="pa-participant">
-            {/* <ConsultantVideoScreen subscribers={subscribers} /> */}
+            <ConsultCounselorVideoScreen subscribers={subscribers} />
           </div>
         </div>
       </div>
