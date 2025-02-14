@@ -1,15 +1,57 @@
-// import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-// function ScreenShareCam({ session, publisher }) {
-//     const videoRef = useRef(null);
+function ScreenShareCam({ publisher, mode }) {
+    const videoRef = useRef(null);
+    const retryTimeout = useRef(null);
 
-//     useEffect(() => {
-//         if (publisher && videoRef.current) {
-//             publisher.addVideoElement(videoRef.current);
-//         }
-//     }, [publisher]);
+    const setVideoStream = () => {
+        if (publisher && videoRef.current) {
+            const stream = publisher.stream?.getMediaStream();
+            console.log('[ScreenShareCam] setVideoStream 호출, mode:', mode, 'publisher.stream:', publisher.stream);
 
-//     return <video ref={videoRef} autoPlay={true} />;
-// }
+            if (stream) {
+                videoRef.current.srcObject = stream;
+                videoRef.current
+                    .play()
+                    .then(() => console.log('[ScreenShareCam] video 재생 시작'))
+                    .catch((err) => console.error('[ScreenShareCam] video play 에러:', err));
+            } else {
+                console.warn('[ScreenShareCam] publisher stream이 없습니다. 300ms 후 재확인.');
+                retryTimeout.current = setTimeout(() => {
+                    setVideoStream();
+                }, 300);
+            }
+        }
+    };
 
-// export default ScreenShareCam;
+    useEffect(() => {
+        console.log('[ScreenShareCam] useEffect 시작, publisher:', publisher, 'mode:', mode);
+        setVideoStream();
+
+        if (publisher) {
+            console.log('[ScreenShareCam] streamPlaying 이벤트 리스너 등록');
+            publisher.on('streamPlaying', setVideoStream);
+        }
+
+        // Cleanup: 컴포넌트가 언마운트되면 재시도 및 이벤트 해제
+        return () => {
+            if (publisher) {
+                console.log('[ScreenShareCam] streamPlaying 이벤트 리스너 제거');
+                publisher.off('streamPlaying', setVideoStream);
+            }
+            if (retryTimeout.current) {
+                clearTimeout(retryTimeout.current);
+            }
+        };
+    }, [publisher, mode]);
+
+    return (
+        <div className="counselor-cam">
+            <div className="video-label">
+                <video ref={videoRef} autoPlay muted={mode === 'publish'} />
+            </div>
+        </div>
+    );
+}
+
+export default ScreenShareCam;
