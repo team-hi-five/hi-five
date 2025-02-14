@@ -717,6 +717,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
                 onChange={(e) => setDateChatBot(e.value)}
                 showIcon
                 style={{ width: "400px" }}
+                dateFormat="yy/mm/dd"
                 appendTo="self"
                 onViewDateChange={handleViewDateChangeForChatBot}
                 onShow={() => fetchChatBotDate(dateChatBot)}
