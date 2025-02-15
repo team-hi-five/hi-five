@@ -93,3 +93,22 @@ export const requestConsultantTempPassword = async (name, email) => {
         throw error;
     }
 };
+
+export const getUserInfo = async () => {
+
+    try {
+        const accessToken = sessionStorage.getItem("access_token");
+
+        if (accessToken) {
+            const response = await api.get("/auth/get-user-info", {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+            return response.data;
+        }
+    } catch (error) {
+        console.error("❌ 유저 정보 불러오기 실패:", error);
+    }
+};
+
