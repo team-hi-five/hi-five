@@ -30,6 +30,7 @@ function CounselorSchedulePage() {
     const [date, setDate] = useState(new Date());
     const [searchTerm, setSearchTerm] = useState('');
     const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date()); // 현재 선택된 월을 추적
     const [selectedChildId, setSelectedChildId] = useState(null);
     const [highlightedDates, setHighlightedDates] = useState([])
@@ -84,6 +85,7 @@ function CounselorSchedulePage() {
 
             setSchedules(formattedSchedules);
         };
+        setShowSuggestions(false);
         fetchSchedulesChild();
     };
 
@@ -114,6 +116,7 @@ function CounselorSchedulePage() {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
+        setShowSuggestions(true);
     };
 
     const handleSearchKeyDown = async (e) => {
@@ -332,6 +335,22 @@ const handleDelete = async (scheduleToDelete) => {
         }));
     };
 
+    const handleFocus = () => {
+        // 이미 suggestions가 존재하면 드롭다운 열기
+        if (suggestions.length > 0) {
+            setShowSuggestions(true);
+        }
+    };
+
+    // input이 포커스를 잃었을 때
+    const handleBlur = () => {
+        // 클릭 선택 중에 blur가 일어나면 곧바로 닫히는 문제를 방지하기 위해
+        // 약간의 지연을 주고 닫기
+        setTimeout(() => {
+            setShowSuggestions(false);
+        }, 100);
+    };
+
     return (
         <>
             <main className="co-schedule-container">
@@ -373,14 +392,17 @@ const handleDelete = async (scheduleToDelete) => {
                                                     onChange={handleSearchChange}
                                                     onKeyDown={handleSearchKeyDown}
                                                     className="co-search-input"
+                                                    onFocus={handleFocus}
+                                                    onBlur={handleBlur}
                                                 />
-                                                {suggestions.length > 0 && (
+                                                {showSuggestions && suggestions.length > 0 && (
                                                     <ul className="co-search-dropdown">
                                                         {suggestions.map((child) => (
                                                             <li
                                                                 key={child.id}
                                                                 className="co-search-item"
-                                                                onClick={() => handleChildSelect(child.id)}
+                                                                onMouseDown={() => handleChildSelect(child.id)}
+                                                                style={{cursor:'pointer'}}
                                                             >
                                                                 <img
                                                                     src={child.img}

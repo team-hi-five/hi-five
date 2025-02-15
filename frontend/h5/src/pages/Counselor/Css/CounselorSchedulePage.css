@@ -25,7 +25,7 @@
     width: 100%;
     max-width: 600px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-height: 525.43px;
+    min-height: 525px;
     /* min-width: 600px; */
 }
 
@@ -50,7 +50,7 @@
     padding: 10px 30px 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 100%;
-    min-height: 470px;
+    min-height: 525px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
