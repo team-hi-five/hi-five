@@ -1,4 +1,4 @@
-.co-video-call-container {
+.co-consultation-page {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -18,6 +18,7 @@
     height: 40px;
     width: auto;
   }
+
   
   /* 비디오 레이아웃 컨테이너 */
   .co-video-layout {
@@ -26,34 +27,53 @@
     width: 95%;
     height: calc(100vh - 140px);
     margin-top: 50px;
-    margin-bottom: 15px;
+    margin-bottom: 0;
     padding: 0 20px;
     align-items: center;
     justify-content: center;
   }
+
+  .co-error{
+    color: #848282;
+  }
   
-  /* 메인 비디오 */
+  /* 공유화면 */
+
+  .co-main-video-contaioner{
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    margin-right: 5rem;
+
+  }
   .co-main-video {
     flex: 0.8;
     position: relative;
-    width: 100%;
+    width: 90%;
     aspect-ratio: 14 / 9;
     border-radius: 20px;
     overflow: hidden;
-    background: black;
-    /* margin-left: 40px; */
-    margin-right: 20px;
-    height: 80%;
+    height: 70%;
+  }
+
+  .co-share-h3{
+    color: aliceblue;
+    margin-bottom: 0;
+  }
+  /* 비디오 */
+  .co-participant-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    margin-right: 5rem;
+
   }
   
-  .co-main-video-feed {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .co-participant-container h3 {
+    color: aliceblue;
+    margin-bottom: 0;
   }
+
   
   /* 참여자 비디오 */
   .co-participant-videos {
@@ -73,23 +93,17 @@
     overflow: hidden;
   }
   
-  .co-participant img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  /* 컨트롤 버튼 */
-  .co-video-controls {
+ /* 버튼  */
+  .web-button-controls-container {
     display: flex;
     gap: 40px;
-    margin-bottom: 20px;
+    margin-bottom: 0px;
     z-index: 10;
   }
   
-  .co-control-btn {
-    background: #444;
-    color: white;
+  .web-control-btn {
+    background: #fffefe;
+    color: rgb(4, 4, 4);
     border: none;
     padding: 15px;
     border-radius: 50%;
@@ -103,20 +117,22 @@
     justify-content: center;
   }
   
-  .co-control-btn:hover {
+  .web-control-btn:hover {
     background: #666;
   }
   
-  .co-end-call {
+  .web-control-btn.end-call {
     background: #dc3545;
   }
   
-  .co-end-call:hover {
+  .web-control-btn.end-call:hover {
     background: #c82333;
   }
   
+
+   
   /* 반응형 디자인 */
-  @media (max-width: 768px) {
+   @media (max-width: 768px) {
     .co-video-layout {
       flex-direction: column;
     }
@@ -137,4 +153,4 @@
       height: 100%;
       width: 200px;
     }
-  }
+}
