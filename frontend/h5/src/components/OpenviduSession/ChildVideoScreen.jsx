@@ -1,22 +1,30 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
-function ChildCam({ session, publisher }) {
-    const videoRef = useRef(null);
+function ChildCam({ publisher, session, subscribers, videoRef }) {
 
     useEffect(() => {
         if (publisher && videoRef.current) {
-            publisher.addVideoElement(videoRef.current);
+            const video = publisher.videos[0].video;
+            videoRef.current = video; 
         }
     }, [publisher]);
 
     return (
       <>
-        <video 
-          ref={videoRef} 
-          autoPlay 
-          style={{ width: "500px", height: "400px" }}
-        />
-      </>
+      {publisher && (
+          <video
+              ref={videoRef}
+              autoPlay
+              style={{ 
+                  width: "500px", 
+                  height: "400px",
+                  backgroundColor: "#000",
+                  transform: "scaleX(-1)",
+                  borderRadius: "1%" 
+              }}
+          />
+      )}
+  </>
     );
 }
 
