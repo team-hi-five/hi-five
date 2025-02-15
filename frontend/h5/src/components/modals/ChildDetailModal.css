@@ -26,7 +26,7 @@
     width: 90%;
     max-width: 550px;
     border-radius: 20px;
-    padding: 30px;
+    padding: 30px 50px;
     z-index: 1001;  /* overlay보다 높은 z-index */
     max-height: 90vh;  /* 추가: 뷰포트 높이의 90% */
     overflow-y: auto;  /* 추가: 내용이 넘칠 경우 스크롤 */
@@ -229,3 +229,46 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* 모달 바디를 상대 배치로 설정 (이미 있다면 중복 X) */
+.modal-body {
+    position: relative;
+}
+
+/* 좌우 버튼 감싸는 컨테이너 */
+.carousel-controls {
+    position: absolute;
+    top: 50%;
+    left: -40px;
+    right: -40px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none; /* 배경 클릭 방지 (버튼 영역만 클릭 허용) */
+    z-index: 10;         /* 내용보다 앞에 표시 */
+    transform: translateY(-50%); /* 수직 중앙정렬 (40%에서 반만큼 올림) */
+}
+
+/* 좌우 버튼 스타일 */
+.carousel-button {
+    pointer-events: all; /* 버튼 자체는 클릭 가능하게 */
+    background: rgba(58, 94, 141, 0.8);
+    border: none;
+    color: white;
+    font-size: 12px;
+    padding: 10px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+/* 마우스 호버 시 */
+.carousel-button:hover {
+    background: rgba(44, 75, 118, 0.8);
+}
+
+/* 비활성화( disabled ) 상태일 때 스타일 */
+.carousel-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
