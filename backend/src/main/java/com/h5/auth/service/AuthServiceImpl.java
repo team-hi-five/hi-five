@@ -1,6 +1,7 @@
 package com.h5.auth.service;
 
 import com.h5.auth.dto.request.LoginRequestDto;
+import com.h5.auth.dto.response.GetUserInfoResponseDto;
 import com.h5.auth.dto.response.LoginResponseDto;
 import com.h5.auth.dto.response.RefreshAccessTokenResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
@@ -150,6 +151,17 @@ public class AuthServiceImpl implements AuthService {
 
         return RefreshAccessTokenResponseDto.builder()
                 .accessToken(newAccessToken)
+                .build();
+    }
+
+    @Override
+    public GetUserInfoResponseDto getUserInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        return GetUserInfoResponseDto.builder()
+                .email(email)
+                .role(authentication.getAuthorities().iterator().next().getAuthority())
                 .build();
     }
 
