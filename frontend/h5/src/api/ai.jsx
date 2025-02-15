@@ -21,19 +21,18 @@ export const saveChatBotData = async (chatbotDocumentList) => {
 
 export const getChatBotData = async (childUserId, date) => {
   try {
-    console.log("📢 챗봇 데이터 불러오기기 : ", childUserId, date);
-    
-    const response = await api.get("/statistic/get-chatbot", {
-      childUserId,
-      date
+    console.log("📢 챗봇 데이터 불러오기: ", childUserId, date);
+
+    const response = await api.get("/chatbot/get-chatbot", {
+      params: { childUserId, date },
     });
-    console.log("✅ 챗봇 데이터 불러오기기 성공:", response.data);
+    console.log("✅ 챗봇 데이터 불러오기 성공:", response.data);
     return response.data;
-    
+
   } catch (error) {
     console.error(
-      "❌ 챗봇봇 데이터 불러오기 실패:",
-      error.response ? error.response.data : error.message
+        "❌ 챗봇 데이터 불러오기 실패:",
+        error.response ? error.response.data : error.message
     );
     throw error;
   }

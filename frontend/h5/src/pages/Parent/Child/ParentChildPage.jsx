@@ -354,28 +354,50 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
   
     fetchChildren();
   }, []);
-  
-   // ✅ childId로 학습 데이터 api 호출출
+
   useEffect(() => {
-    if (selectedChild) {
-      const timeoutId = setTimeout(() => {
-        const fetchEmotionData = async () => {
-          try {
-            console.log("selectedChild : ", selectedChild.childUserId);
-            const data = await getChildEmotionData(selectedChild.childUserId);
-            setEmotionData(data);
-            console.log("감정 데이터 : ", data);
-          } catch (error) {
-            console.error("❌ 감정 데이터 불러오기 실패:", error);
-          }
-        };
-  
-        fetchEmotionData();
-      }, 300);
-  
-      return () => clearTimeout(timeoutId); // ✅ 이전 타이머를 클리어하여 중복 실행 방지
-    }
-  }, [selectedChild]); // ✅ `selectedChild`가 변경된 후 실행
+    if (!selectedChild) return;
+
+    // 1) 모든 상태 초기화
+    setEmotionData(null);
+    setChatBotDates([]);
+    setVideoDates1([]);
+    setVideoDates2([]);
+    setAnalysisResult("");
+    setAnalysisError("");
+
+    // 2) 데이터 다시 로딩
+    fetchChatBotDate(dateChatBot);
+    fetchVideoDates(dateVideo1, 1);
+    fetchVideoDates(dateVideo2, 2);
+
+    // 감정 데이터 로딩
+    const timeoutId = setTimeout(() => {
+      const fetchEmotionData = async () => {
+        try {
+          const data = await getChildEmotionData(selectedChild.childUserId);
+          setEmotionData(data);
+          console.log("감정 데이터:", data);
+          await analyzeEmotionData(data);
+        } catch (error) {
+          console.error("❌ 감정 데이터 불러오기 실패:", error);
+          setAnalysisError("감정 데이터를 불러오는데 실패했습니다.");
+        }
+      };
+      fetchEmotionData();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    selectedChild,
+    dateChatBot,
+    dateVideo1,
+    dateVideo2,
+    fetchChatBotDate,
+    fetchVideoDates,
+    analyzeEmotionData,
+  ]);
+
   
 
 
@@ -451,6 +473,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
     },
     scales: {
       r: {
+        min: 0,
         angleLines: { display: false },
         grid: { display: true, color: "#ddd" },
         ticks: { display: true },
