@@ -1,7 +1,6 @@
 package com.h5.deleterequest.repository;
 
 import com.h5.deleterequest.entity.DeleteUserRequestEntity;
-import com.h5.parent.entity.ParentUserEntity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
