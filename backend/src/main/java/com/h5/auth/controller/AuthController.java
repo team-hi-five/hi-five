@@ -1,6 +1,7 @@
 package com.h5.auth.controller;
 
 import com.h5.auth.dto.request.LoginRequestDto;
+import com.h5.auth.dto.response.GetUserInfoResponseDto;
 import com.h5.auth.dto.response.LoginResponseDto;
 import com.h5.auth.dto.response.RefreshAccessTokenResponseDto;
 import com.h5.auth.service.AuthService;
@@ -39,4 +40,10 @@ public class AuthController {
         RefreshAccessTokenResponseDto refreshAccessTokenResponseDto = authService.refreshAccessToken();
         return ResponseEntity.ok(refreshAccessTokenResponseDto);
     }
+
+    @GetMapping("/get-user-info")
+    public ResponseEntity<?> getUserInfo() {
+        return ResponseEntity.ok(authService.getUserInfo());
+    }
+
 }
