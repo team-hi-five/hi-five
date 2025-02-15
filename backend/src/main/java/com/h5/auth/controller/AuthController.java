@@ -1,7 +1,6 @@
 package com.h5.auth.controller;
 
 import com.h5.auth.dto.request.LoginRequestDto;
-import com.h5.auth.dto.response.GetUserInfoResponseDto;
 import com.h5.auth.dto.response.LoginResponseDto;
 import com.h5.auth.dto.response.RefreshAccessTokenResponseDto;
 import com.h5.auth.service.AuthService;
