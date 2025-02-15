@@ -4,6 +4,7 @@ import { Card } from "primereact/card";
 import ChildMainBackground from "/src/components/Child/ChildMainBackground";
 import { saveChatBotData } from "/src/api/ai"; // API 호출 함수 import
 import "/src/pages/Child/ChildCss/ChildChatbotPage.css";
+import { useParams } from "react-router-dom";
 
 function ChildChatbotPage() {
   // 상태 변수 선언
@@ -13,6 +14,7 @@ function ChildChatbotPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const recognitionRef = useRef(null);
+  const { childId } = useParams();
 
   // 챗봇 질문 및 최종 응답 메시지 (메모이제이션)
   const chatbotPrompts = useMemo(
@@ -196,9 +198,9 @@ try {
           // finalMessage를 messagesRef.current에 직접 추가하여 최신 대화 내역에 포함
           const updatedMessages = [...messagesRef.current, { type: "bot", message: finalMessage }];
           const logData = updatedMessages.map((msg, index) => ({
-            childUserId: 1,
+            childUserId: Number(childId),
             sender: msg.type === "bot" ? "gpt" : "user",
-            messageIndex: index,
+            messageIndex: Number(index),
             message: msg.message,
           }));
           await saveChatBotData(logData);
@@ -234,7 +236,8 @@ try {
     userResponses,
     callGPT4,
     finalResponses,
-    playTTS
+    playTTS,
+    childId
   ]);
 
   // 음성 입력을 자동 시작하는 useEffect (1.5초 후)

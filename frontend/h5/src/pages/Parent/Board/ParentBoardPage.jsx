@@ -423,7 +423,7 @@ const handleSearchChange = (e) => {
               className={`pa-board-tab ${paActiveTab === "qna" ? "pa-active-tab" : ""}`}
               onClick={() => handleTabClick("qna")}
             >
-              질문
+              QNA
             </button>
           </div>
         </div>

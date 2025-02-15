@@ -62,7 +62,7 @@ function ParentVideoMultiplePage() {
               </div>
               
               <div className="control-item video-picker-m">
-                <label>영상 선택</label>
+                <label>회차 선택</label>
                 <Dropdown
                   value={selectedVideos[index]}
                   options={videoOptions}
@@ -71,7 +71,7 @@ function ParentVideoMultiplePage() {
                     newVideos[index] = e.value;
                     setSelectedVideos(newVideos);
                   }}
-                  placeholder="영상"
+                  placeholder="회차 "
                   className="dropdown-input"
                 />
               </div>

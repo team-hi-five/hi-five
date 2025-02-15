@@ -39,7 +39,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
                 scheduleId: editData.scheduleId || '',
                 childUserId: editData.childUserId || '',
                 childName: editData.childName || '',
-                type: editData.type === 'game' ? 'type1' : 'type2',
+                type: editData.type === '게임' ? 'type1' : 'type2',
                 date: editData.date || '',
                 time: editData.time || '',
             });
