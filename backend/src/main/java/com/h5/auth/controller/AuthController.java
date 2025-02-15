@@ -39,4 +39,10 @@ public class AuthController {
         RefreshAccessTokenResponseDto refreshAccessTokenResponseDto = authService.refreshAccessToken();
         return ResponseEntity.ok(refreshAccessTokenResponseDto);
     }
+
+    @GetMapping("/get-user-info")
+    public ResponseEntity<?> getUserInfo() {
+        return ResponseEntity.ok(authService.getUserInfo());
+    }
+
 }
