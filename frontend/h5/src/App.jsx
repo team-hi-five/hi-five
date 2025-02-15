@@ -12,6 +12,7 @@ import AppChild from "./routes/AppChild";
 import AppParent from "./routes/AppParent";
 import AppCounselor from "./routes/AppCounselor";
 import AuthRoutes from "./routes/AuthRoutes";
+import ProtectedRoute from "/src/routes/ProtectedRoute";
 
 function App() {
   return (
@@ -27,15 +28,17 @@ function App() {
           <Route path="/child/*" element={<AppChild />} />
         </Route>
 
-        {/* 학부모 페이지 */}
-        <Route path="/parent" element={<ParentMainPage />} />
-        {/* 학부모 하위 경로 */}
-        <Route path="/parent/*" element={<AppParent />} />
+        {/* 학부모 전용 페이지: ProtectedRoute로 감쌈 */}
+        <Route element={<ProtectedRoute allowedRoles={['ROLE_PARENT']} />}>
+          <Route path="/parent" element={<ParentMainPage />} />
+          <Route path="/parent/*" element={<AppParent />} />
+        </Route>
 
-        {/* 상담사 페이지 */}
-        <Route path="/counselor" element={<CounselorMainPage />} />
-        {/* 상담사 하위 경로 */}
-        <Route path="/counselor/*" element={<AppCounselor />} />
+        {/* 상담사 전용 페이지: ProtectedRoute로 감쌈 */}
+        <Route element={<ProtectedRoute allowedRoles={['ROLE_CONSULTANT']} />}>
+          <Route path="/counselor" element={<CounselorMainPage />} />
+          <Route path="/counselor/*" element={<AppCounselor />} />
+        </Route>
       </Routes>
     </Router>
   );

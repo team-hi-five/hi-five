@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import '../Counselor/Css/CoChildCard.css';
 import ChildDetailModal from '../modals/ChildDetailModal';
 import defaultImg from '/child/character/angrymi.png'
+import { useUserStore } from "/src/store/userStore";
 
 const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDate, parentPhone, parentEmail, treatmentPeriod, firstConsultDate, interests, notes, onDelete, onUpdate }) => {
  const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,6 +25,7 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
 
   const handleStatusClick = () => {
     // childName을 state로 전달하면서 페이지 이동
+    useUserStore.getState().setChildData(id, childName);
     navigate('/counselor/children/data', { state: { selectedChild: childName } });
   };
 
