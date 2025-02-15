@@ -157,7 +157,7 @@ async function fetchChildren() {
                     }}
                     onClick={handleNotificationClick}
                 >
-                  {/*<i className="pi pi-bell" style={{ fontSize: '1.5rem', color: '#FF9F1C', marginRight: '0.3rem' }} />*/}
+                  <i className="pi pi-bell" style={{ fontSize: '1.5rem', color: '#FF9F1C', marginRight: '0.3rem' }} />
                   <span style={{ fontSize: '0.9rem', color: '#FF9F1C', width:60 }}>탈퇴 요청</span>
                 </button>
                 <span className="co-notification-badge">{deleteRequestCount}</span>
