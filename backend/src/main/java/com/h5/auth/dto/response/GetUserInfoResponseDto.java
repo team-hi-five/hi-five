@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class GetUserInfoResponseDto {
-    private String email;
+    private String name;
     private String role;
 }
