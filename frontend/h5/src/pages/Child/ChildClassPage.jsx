@@ -53,6 +53,7 @@ function ChildReviewGamePage() {
           type: 'game', 
           childId 
         });
+        console.log("받은 OpenVidu 토큰:", response.data); 
         return response.data;
       } catch (error) {
         console.error('토큰 요청 실패:', error);

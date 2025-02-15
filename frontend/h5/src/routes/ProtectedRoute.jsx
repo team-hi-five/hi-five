@@ -3,11 +3,11 @@ import { useUserStore } from "/src/store/userStore";
 import PropTypes from "prop-types";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const { role } = useUserStore.getState();
+  // const { role } = useUserStore.getState();
 
-  if (!allowedRoles.includes(role)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
+  // if (!allowedRoles.includes(role)) {
+  //   return <Navigate to="/unauthorized" replace />;
+  // }
 
   return <Outlet />;
 };

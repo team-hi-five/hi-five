@@ -1,31 +1,41 @@
-import { useEffect } from 'react';
+import { useEffect } from 'react'; 
 
-function ChildCam({ publisher, session, subscribers, videoRef }) {
+function ChildVideoScreen({ publisher, mode, videoRef }) {  // videoRef props로 받기
+    // videoRef를 사용하므로 내부 ref는 제거
+
+    const setVideoStream = () => {
+        if (publisher && videoRef.current) {
+            const stream = publisher.stream ? publisher.stream.getMediaStream() : null;
+            if (stream) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.play()
+                    .then(() => console.log('[ChildVideoScreen] video 재생 시작'))
+                    .catch(err => console.error('[ChildVideoScreen] video play 에러:', err));
+            } else {
+                setTimeout(() => {
+                    setVideoStream();
+                }, 500);
+            }
+        }
+    };
 
     useEffect(() => {
-        if (publisher && videoRef.current) {
-            const video = publisher.videos[0].video;
-            videoRef.current = video; 
+        setVideoStream();
+        if (publisher) {
+            publisher.on('streamPlaying', setVideoStream);
         }
-    }, [publisher]);
+        return () => {
+            if (publisher) {
+                publisher.off('streamPlaying', setVideoStream);
+            }
+        };
+    }, [publisher, mode]);
 
     return (
-      <>
-      {publisher && (
-          <video
-              ref={videoRef}
-              autoPlay
-              style={{ 
-                  width: "500px", 
-                  height: "400px",
-                  backgroundColor: "#000",
-                  transform: "scaleX(-1)",
-                  borderRadius: "1%" 
-              }}
-          />
-      )}
-  </>
+        <div className="counselor-cam">
+            <video ref={videoRef} autoPlay muted={mode === 'publish'} />
+        </div>
     );
 }
 
-export default ChildCam;
+export default ChildVideoScreen;
