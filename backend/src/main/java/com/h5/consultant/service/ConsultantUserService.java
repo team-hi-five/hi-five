@@ -26,7 +26,7 @@ public interface ConsultantUserService {
 
     MyProfileResponseDto getMyProfile();
 
-    boolean emailCheck(String email);
+    EmailCheckResponseDto emailCheck(String email);
 
     List<SearchChildResponseDto> searchChild(String childUserName);
 
