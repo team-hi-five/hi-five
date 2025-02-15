@@ -199,25 +199,25 @@ function CounselorParentVideoCallPage() {
     initializeSession();
   }, [type, childId, role]);
 
-   // -------------------- 버튼 ----------------------
-    const toggleVideo = useCallback(() => {
-      ownPublisher?.publishVideo(!ownPublisher.stream.videoActive);
-    }, [ownPublisher]);
+  // -------------------- 버튼 ----------------------
+  const toggleVideo = useCallback(() => {
+    ownPublisher?.publishVideo(!ownPublisher.stream.videoActive);
+  }, [ownPublisher]);
 
-    // 오디오 ON/OFF
-    const toggleAudio = useCallback(() => {
-      ownPublisher?.publishAudio(!ownPublisher.stream.audioActive);
-      setIsAudioEnabled(!isAudioEnabled);
-    }, [ownPublisher]);
+  // 오디오 ON/OFF
+  const toggleAudio = useCallback(() => {
+    ownPublisher?.publishAudio(!ownPublisher.stream.audioActive);
+    setIsAudioEnabled(!isAudioEnabled);
+  }, [ownPublisher]);
 
-    // 세션 종료
-    const leaveSessionInternal = useCallback(() => {
-      if (session) {
-        session.disconnect();
-      }
-      OV.current = null;
-      setSession(null);
-    }, [session]);
+  // 세션 종료
+  const leaveSessionInternal = useCallback(() => {
+    if (session) {
+      session.disconnect();
+    }
+    OV.current = null;
+    setSession(null);
+  }, [session]);
 
   // -------------------- 렌더링 ----------------------
   if (role === 'consultant') {
@@ -225,46 +225,46 @@ function CounselorParentVideoCallPage() {
         <div className="co-consultation-page">
           <img src="/logo.png" alt="로고" className='co-logoo' />
           <div className='co-video-layout'>
-              {/* 3. 내 화면 공유 송출화면 (상담사) */}
-                <div className='co-main-video-contaioner'>
-                  {ownScreenPublisher ? (
-                      <ScreenShareCam publisher={ownScreenPublisher} mode="publish"
-                      className="co-main-video" />
-                  ) : (
-                      <div className='co-error'>화면 공유 중 아님</div>
-                  )}
-                  <h3 className='co-share-h3'>공유 화면</h3>
-                </div>
-              <div className='co-participant-videos'>
-                {/* 1. 내 화상 송출화면 (상담사) */}
-                <div className='co-participant-container'>
-                  <CounselorCam session={session} publisher={ownPublisher} mode="publish"
-                   className='co-participant' />
-                   <h3>상담사</h3>
-                </div>
-
-                {/* 2. 상대방 화상 (학부모) 구독 화면 */}
-                <div className='co-participant-container'>
-                  {remoteCam ? (
-                      <CounselorCam session={session} publisher={remoteCam} mode="subscribe" 
-                      className='co-participant'/>
-                  ) : (
-                      <div className='co-error'>상대방 화상 없음</div>
-                  )}
-                   <h3>학부모</h3>
-                </div>
+            {/* 3. 내 화면 공유 송출화면 (상담사) */}
+            <div className='co-main-video-contaioner'>
+              {ownScreenPublisher ? (
+                  <ScreenShareCam publisher={ownScreenPublisher} mode="publish"
+                                  className="co-main-video" />
+              ) : (
+                  <div className='co-error'>화면 공유 중 아님</div>
+              )}
+              <h3 className='co-share-h3'>공유 화면</h3>
+            </div>
+            <div className='co-participant-videos'>
+              {/* 1. 내 화상 송출화면 (상담사) */}
+              <div className='co-participant-container'>
+                <CounselorCam session={session} publisher={ownPublisher} mode="publish"
+                              className='co-participant' />
+                <h3>상담사</h3>
               </div>
+
+              {/* 2. 상대방 화상 (학부모) 구독 화면 */}
+              <div className='co-participant-container'>
+                {remoteCam ? (
+                    <CounselorCam session={session} publisher={remoteCam} mode="subscribe"
+                                  className='co-participant'/>
+                ) : (
+                    <div className='co-error'>상대방 화상 없음</div>
+                )}
+                <h3>학부모</h3>
+              </div>
+            </div>
           </div>
           <div className="web-button-controls-container">
-              <button className="web-control-btn" onClick={toggleVideo} >
-                <FaVideo />
-              </button>
-              <button className="web-control-btn" onClick={toggleAudio}>
-                {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
-              </button>
-              <button className="web-control-btn end-call" onClick={leaveSessionInternal}>
-                <FaPhoneSlash />
-              </button>
+            <button className="web-control-btn" onClick={toggleVideo} >
+              <FaVideo />
+            </button>
+            <button className="web-control-btn" onClick={toggleAudio}>
+              {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
+            </button>
+            <button className="web-control-btn end-call" onClick={leaveSessionInternal}>
+              <FaPhoneSlash />
+            </button>
           </div>
         </div>
     );
@@ -273,23 +273,23 @@ function CounselorParentVideoCallPage() {
         <div className="co-consultation-page">
           <img src="/logo.png" alt="로고" className='co-logoo' />
 
-        <div className='co-video-layout'>
-          {/* 3. 상대방 화면 공유 (상담사) 구독 화면 */}
-          <div className='co-main-video-contaioner'>
-            {remoteScreen ? (
-                <ScreenShareCam publisher={remoteScreen} mode="subscribe"
-                className='co-main-video'
-                />
-            ) : (
-                <div className='co-error'>상담사 화면 공유 없음</div>
-            )}
-            <h3 className='co-share-h3'>공유 화면</h3>
-          </div>
+          <div className='co-video-layout'>
+            {/* 3. 상대방 화면 공유 (상담사) 구독 화면 */}
+            <div className='co-main-video-contaioner'>
+              {remoteScreen ? (
+                  <ScreenShareCam publisher={remoteScreen} mode="subscribe"
+                                  className='co-main-video'
+                  />
+              ) : (
+                  <div className='co-error'>상담사 화면 공유 없음</div>
+              )}
+              <h3 className='co-share-h3'>공유 화면</h3>
+            </div>
             <div className='co-participant-videos'>
               {/* 1. 내 화상 송출화면 (학부모) */}
               <div className='co-participant-container'>
                 <CounselorCam session={session} publisher={ownPublisher} mode="publish"
-                className='co-participant'
+                              className='co-participant'
                 />
                 <h3>내 화상 송출화면 (학부모)</h3>
               </div>
@@ -298,24 +298,24 @@ function CounselorParentVideoCallPage() {
               <div className='co-participant-container'>
                 <h2>상대방 화상 구독 화면</h2>
                 {remoteCam ? (
-                    <CounselorCam session={session} publisher={remoteCam} mode="subscribe" 
-                    className="co-participant"/>
+                    <CounselorCam session={session} publisher={remoteCam} mode="subscribe"
+                                  className="co-participant"/>
                 ) : (
                     <div className='co-error'>상대방 화상 없음</div>
                 )}
               </div>
             </div>
-        </div>
-         <div className="web-button-controls-container">
-              <button className="web-control-btn"onClick={toggleVideo} >
-                <FaVideo />
-              </button>
-              <button className="web-control-btn" onClick={toggleAudio}>
-                {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
-              </button>
-              <button className="web-control-btn end-call"onClick={leaveSessionInternal} >
-                <FaPhoneSlash />
-              </button>
+          </div>
+          <div className="web-button-controls-container">
+            <button className="web-control-btn" onClick={toggleVideo} >
+              <FaVideo />
+            </button>
+            <button className="web-control-btn" onClick={toggleAudio}>
+              {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
+            </button>
+            <button className="web-control-btn end-call" onClick={leaveSessionInternal} >
+              <FaPhoneSlash />
+            </button>
           </div>
         </div>
     );
