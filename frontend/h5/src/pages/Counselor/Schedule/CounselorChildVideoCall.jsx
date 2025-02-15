@@ -10,29 +10,33 @@ function OpenviduVideo() {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
-  // 화면 공유 상태
+  // 화면 공유 상태 (송출은 하지만 로컬 미리보기는 하지 않음)
   const [screenPublisher, setScreenPublisher] = useState(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   // ref 선언
   const videoRef = useRef(null);
-  const screenVideoRef = useRef(null);
+  // 기존에는 로컬 화면 공유 미리보기를 위해 사용했으나 제거합니다.
+  // const screenVideoRef = useRef(null);
   const OVRef = useRef(null);
 
-  // URL 파라미터에서 childUserId 가져오기
+  // URL 파라미터에서 childUserId와 type 가져오기
   const params = new URLSearchParams(location.search);
-  const childUserId = params.get("childUserId");
+  const childUserId = params.get("childId");
+  const type = params.get("type");
   console.log(childUserId);
 
   // ====================================================================
   // 1. 이벤트 리스너 함수들
   // ====================================================================
 
-  // 새로운 참가자 스트림 구독
+  // 상대방의 화면 공유 스트림만 구독하도록 수정 (videoSource가 "screen"인 경우)
   const subscribeToStreamCreated = useCallback((session) => {
     session.on("streamCreated", (event) => {
-      const subscriber = session.subscribe(event.stream, undefined);
-      setSubscribers((prev) => [...prev, subscriber]);
+      if (event.stream.videoSource === "screen") {
+        const subscriber = session.subscribe(event.stream, undefined);
+        setSubscribers((prev) => [...prev, subscriber]);
+      }
     });
   }, []);
 
@@ -45,7 +49,7 @@ function OpenviduVideo() {
     });
   }, []);
 
-  // 사용자 상태 변경 처리
+  // 사용자 상태 변경 처리 (필요 시 활용)
   const subscribeToUserChanged = useCallback((session) => {
     session.on("signal:userChanged", (event) => {
       console.log("User changed:", event.data);
@@ -56,7 +60,7 @@ function OpenviduVideo() {
   // 2. 헬퍼 함수들
   // ====================================================================
 
-  // 웹캠 연결 함수
+  // 웹캠 연결 함수 (로컬 웹캠 미디어 송출)
   const connectWebCam = useCallback(async (currentSession) => {
     try {
       const publisher = await OVRef.current.initPublisherAsync(undefined, {
@@ -84,7 +88,7 @@ function OpenviduVideo() {
     try {
       const requestData = {
         childId: Number(childUserId),
-        type: "game",
+        type,
       };
 
       const res = await api.post("/session/join", requestData, {
@@ -92,7 +96,6 @@ function OpenviduVideo() {
       });
 
       console.log("Sending request data:", res.data);
-
       const token = res.data;
       if (!token) {
         throw new Error("토큰을 추출할 수 없습니다.");
@@ -107,7 +110,7 @@ function OpenviduVideo() {
       });
       throw error;
     }
-  }, [childUserId]);
+  }, [childUserId, type]);
 
   // 웹소켓 재연결 함수
   const connectWithRetry = async (session, token, maxAttempts = 3) => {
@@ -163,7 +166,7 @@ function OpenviduVideo() {
 
       setSession(newSession);
 
-      // 토큰으로 세션 연결 후 웹캠 연결
+      // 토큰으로 세션 연결 후 웹캠 연결 (로컬 미디어 송출)
       const token = await getToken();
       await newSession.connect(token, { clientData: String(childUserId) });
       await connectWebCam(newSession);
@@ -214,13 +217,13 @@ function OpenviduVideo() {
     setSubscribers([]);
   }, [session]);
 
-  // 화면 공유 시작
+  // 화면 공유 시작 (자신의 화면은 송출만 하고 로컬 미리보기는 하지 않음)
   const startScreenShare = useCallback(async () => {
     if (!session || isScreenSharing) return;
     try {
       const screenPublisher = await OVRef.current.initPublisherAsync(undefined, {
         videoSource: "screen",
-        publishAudio: true,  // 음성을 공유할지 선택
+        publishAudio: true,  // 음성도 함께 송출할지 선택
         publishVideo: true,
         mirror: false,
       });
@@ -229,6 +232,7 @@ function OpenviduVideo() {
       setScreenPublisher(screenPublisher);
       setIsScreenSharing(true);
 
+      // 화면 공유 스트림이 종료되면 자동으로 처리
       screenPublisher.on("streamDestroyed", () => {
         stopScreenShare();
       });
@@ -237,7 +241,6 @@ function OpenviduVideo() {
     }
   }, [session, isScreenSharing]);
 
-  // 화면 공유 중지
   const stopScreenShare = useCallback(() => {
     if (screenPublisher) {
       screenPublisher.stream.dispose();
@@ -279,15 +282,12 @@ function OpenviduVideo() {
         }
       }
     };
-  }, [session, joinSession, leaveSessionInternal, publisher]);
+  }, [session, joinSession, publisher]);
 
   useEffect(() => {
     if (publisher && videoRef.current) {
       try {
         const mediaStream = publisher.stream?.getMediaStream();
-        console.log("Publisher:", publisher);
-        console.log("MediaStream:", mediaStream);
-        console.log("VideoRef:", videoRef.current);
         if (mediaStream) {
           videoRef.current.srcObject = mediaStream;
         }
@@ -297,27 +297,13 @@ function OpenviduVideo() {
     }
   }, [publisher]);
 
-  // 화면 공유 스트림을 video 요소에 연결
-  useEffect(() => {
-    if (screenPublisher && screenVideoRef.current) {
-      try {
-        const mediaStream = screenPublisher.stream?.getMediaStream();
-        if (mediaStream) {
-          screenVideoRef.current.srcObject = mediaStream;
-        }
-      } catch (error) {
-        console.error("화면 공유 스트림 오류:", error);
-      }
-    }
-  }, [screenPublisher]);
-
   // ====================================================================
   // 6. 렌더링
   // ====================================================================
   return (
       <div className="webcam-container">
         <div className="webcam-video">
-          {/* 로컬 비디오 스트림 */}
+          {/* 로컬 웹캠 스트림 (미리보기) */}
           {publisher && (
               <div className="local-video-container">
                 <video
@@ -329,7 +315,7 @@ function OpenviduVideo() {
               </div>
           )}
 
-          {/* 다른 참가자의 비디오 스트림 */}
+          {/* 구독한 상대방의 화면 공유 스트림 렌더링 */}
           {subscribers.map((subscriber, index) => (
               <div key={index} className="remote-video-container">
                 <video
@@ -344,19 +330,6 @@ function OpenviduVideo() {
                 />
               </div>
           ))}
-
-          {/* 화면 공유 스트림을 보여주는 영역 (화면 공유 중일 때) */}
-          {isScreenSharing && (
-              <div className="screen-share-container">
-                <h2>화면 공유 중...</h2>
-                <video
-                    ref={screenVideoRef}
-                    autoPlay
-                    playsInline
-                    className="screen-video"
-                />
-              </div>
-          )}
 
           <div className="control-buttons">
             <button onClick={toggleAudio} className="control-button-audio">
