@@ -340,7 +340,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
     handleMonthChange(e, "video2");
     setCurrentMonth(e.value);
   };
-  
+
    // ✅ childId로 학습 데이터 api 호출출
   useEffect(() => {
     if (selectedChild) {
@@ -355,10 +355,10 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
             console.error("❌ 감정 데이터 불러오기 실패:", error);
           }
         };
-  
+
         fetchEmotionData();
       }, 300);
-  
+
       return () => clearTimeout(timeoutId); // ✅ 이전 타이머를 클리어하여 중복 실행 방지
     }
   }, [selectedChild]); // ✅ `selectedChild`가 변경된 후 실행
@@ -427,6 +427,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
     },
     scales: {
       r: {
+        min: 0,
         angleLines: { display: false },
         grid: { display: true, color: "#ddd" },
         ticks: { display: true },
@@ -581,7 +582,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
       {/* 감정 분석 영역 */}
       <div className="pa-container">
         <div className="pa-title">
-          <span>선택된 아동: {selectedChild ? selectedChild.childUserName : "선택된 아동 없음"}</span>
+          <span>{selectedChild ? selectedChild.childUserName : "선택된 아동 없음"}</span>
           <span>감정이의 학습 데이터</span>
         </div>
 
