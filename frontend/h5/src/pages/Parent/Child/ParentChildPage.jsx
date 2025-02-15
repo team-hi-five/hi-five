@@ -114,7 +114,7 @@ function ParentChildPage() {
         const fetchEmotionData = async () => {
           try {
             console.log("selectedChild : ", selectedChild.childUserId);
-            const data = await getChildEmotionData(selectedChild.childUserId);
+            const data = await getChildEmotionData(Number(selectedChild.childUserId));
             setEmotionData(data);
             console.log("감정 데이터 : ", data);
             await analyzeEmotionData(data);
@@ -723,7 +723,8 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
                 onShow={() => fetchChatBotDate(dateChatBot)}
               />
             </div>
-            <ChatBotData selectedDate={dateChatBot} />
+            <ChatBotData selectedDate={dateChatBot} selectedChild={selectedChild} />
+
           </div>
 
         </div>
