@@ -153,6 +153,7 @@ export const checkConsultantParentEmail = async (email) => {
         const response = await api.get(`/user/consultant/email-check`, {
             params: { email }
         });
+        console.log("이메일 체크 결과: ", response.data)
         return response.data;
     } catch (error) {
         console.error("❌ 부모 이메일 중복 확인 실패:", error.response ? error.response.data : error.message);
