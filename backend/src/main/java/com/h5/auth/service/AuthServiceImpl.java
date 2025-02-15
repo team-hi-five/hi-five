@@ -15,6 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -159,11 +160,34 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse(null);
+
+        String name = findUserNameByEmail(email);
+
         return GetUserInfoResponseDto.builder()
-                .email(email)
-                .role(authentication.getAuthorities().iterator().next().getAuthority())
+                .name(name)
+                .role(role)
                 .build();
     }
+
+    private String findUserNameByEmail(String email) {
+        ConsultantUserEntity consultantUser = getConsultantUser(email);
+        if (consultantUser != null) {
+            return consultantUser.getName();
+        }
+
+        ParentUserEntity parentUser = getParentUser(email);
+        if (parentUser != null) {
+            return parentUser.getName();
+        }
+
+        // 둘 다 없으면 null
+        return null;
+    }
+
 
     private void refreshTokenIfNeeded(String refreshToken, UserDetails userDetails, String email) {
         if (jwtUtil.isTokenNearExpiry(refreshToken)) {
