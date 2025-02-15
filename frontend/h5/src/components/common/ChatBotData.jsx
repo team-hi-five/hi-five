@@ -67,7 +67,10 @@ function ChatBotData({ selectedDate, selectedChild }) {
           formattedDate
         );
         console.log("챗봇 데이터 조회 결과:", response);
-        setChatData(response);
+        const transformedData = {
+          chatbotDtos: response.chatBotDocumentList,
+        };
+        setChatData(transformedData);
       } catch (error) {
         console.error("챗봇 데이터 조회 실패:", error);
       }
@@ -81,12 +84,12 @@ function ChatBotData({ selectedDate, selectedChild }) {
 
   return (
     <div className="chatbot-history-page">
-      <p>
-        선택된 날짜는 :{" "}
-        {selectedDate
-          ? selectedDate.toLocaleDateString()
-          : "날짜가 선택되지 않았습니다."}
-      </p>
+      {/*<p>*/}
+      {/*  선택된 날짜는 {" "}*/}
+      {/*  {selectedDate*/}
+      {/*    ? `${selectedDate.toLocaleDateString()} 입니다.`*/}
+      {/*    : "날짜가 선택되지 않았습니다."}*/}
+      {/*</p>*/}
       <div className="chatbot-history-container">
         <Card className="chatbot-history-card">
           <div className="chatbot-box">
@@ -96,7 +99,7 @@ function ChatBotData({ selectedDate, selectedChild }) {
                 return (
                   <div
                     key={index}
-                    className={`chat-bubble ${isBot ? "bot" : "user"}`}
+                    className={`chat-bubble ${isBot ? "gpt" : "user"}`}
                   >
                     {isBot && (
                       <img
