@@ -1,6 +1,7 @@
+import "./Css/CounselorShareScreen.css"
 import { useEffect, useRef } from 'react';
 
-function ScreenShareCam({ publisher, mode }) {
+function ScreenShareCam({ publisher, mode}) {
     const videoRef = useRef(null);
     const retryTimeout = useRef(null);
 
@@ -46,10 +47,8 @@ function ScreenShareCam({ publisher, mode }) {
     }, [publisher, mode]);
 
     return (
-        <div className="counselor-cam">
-            <div className="video-label">
-                <video ref={videoRef} autoPlay muted={mode === 'publish'} />
-            </div>
+        <div className="co-share-counselor-cam" >
+            <video ref={videoRef} autoPlay muted={mode === 'publish'} />
         </div>
     );
 }
