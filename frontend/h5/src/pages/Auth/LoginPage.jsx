@@ -76,9 +76,9 @@ const LoginPage = () => {
       </div>
       <div className="login-container">
         <div className="characters-container">
-          <img src="../../../public/child/character/againCh.png" alt="Blue character" className="character" style={{ transform: 'translateY(35px)' }}/>
-          <img src="../../../public/child/character/againCh.png" alt="Yellow character" className="character" style={{ transform: 'translateY(35px)' }}/>
-          <img src="../../../public/child/character/againCh.png" alt="Gray character" className="character" style={{ transform: 'translateY(35px)' }}/>
+          <img src="test\againCh.png" alt="Blue character" className="character" style={{ transform: 'translateY(35px)' }}/>
+          <img src="test\againCh.png" alt="Yellow character" className="character" style={{ transform: 'translateY(35px)' }}/>
+          <img src="test\againCh.png" alt="Gray character" className="character" style={{ transform: 'translateY(35px)' }}/>
         </div>
 
         <div className="login-box">
