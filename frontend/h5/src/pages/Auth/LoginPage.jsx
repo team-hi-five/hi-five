@@ -37,6 +37,7 @@ const LoginPage = () => {
       useUserStore.getState().setUserName(data.name);
       useUserStore.getState().setUserRole(role);
 
+
       if (saveId) {
         localStorage.setItem("savedEmail", email); // 아이디 저장
       } else {
