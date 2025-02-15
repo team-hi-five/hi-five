@@ -1,0 +1,16 @@
+.co-share-counselor-cam {
+    max-width: 800px;
+    min-height: 680px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  
+  .co-share-counselor-cam video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 10px;
+  }
+  

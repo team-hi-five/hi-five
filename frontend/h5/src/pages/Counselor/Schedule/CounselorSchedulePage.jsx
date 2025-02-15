@@ -280,8 +280,8 @@ const handleDelete = async (scheduleToDelete) => {
 
         // 상담 유형에 따라 다른 창 열기
         const path = targetSchedule.consultation_type === 'game'
-            ? `schedule/child-video-call?type=${targetSchedule.consultation_type}&childId=${targetSchedule.childUserId}`
-            : `schedule/parent-video-call?type=${targetSchedule.consultation_type}&childId=${targetSchedule.childUserId}&role=consultant`;
+            ? `schedule/child-video-call?type=game&childId=${targetSchedule.childUserId}`
+            : `schedule/parent-video-call?type=consult&childId=${targetSchedule.childUserId}&role=consultant`;
 
         window.open(
             path,
@@ -289,6 +289,7 @@ const handleDelete = async (scheduleToDelete) => {
             'left=0,top=0,width=' + screen.width + ',height=' + screen.height
         );
     };
+
 
     const handleModalClose = async () => {
         setShowModal(false);

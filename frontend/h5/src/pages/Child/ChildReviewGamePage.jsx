@@ -428,12 +428,15 @@ function ChildReviewGamePage() {
                     {gameInfos[currentVideoIndex].optionImages.map(
                       (imgSrc, index) => (
                         <div key={index} className="option-item">
+                        <h2 className="ch-options-number">
+                            {["①", "②", "③"][index]}
+                        </h2>
                           <img
                             src={imgSrc}
                             alt={`option ${index + 1}`}
                             className="option-image"
                           />
-                          <p className="option-text">
+                          <p className="ch-option-text">
                             {gameInfos[currentVideoIndex].options[index]}
                           </p>
                         </div>
@@ -456,9 +459,10 @@ function ChildReviewGamePage() {
                 style={{
                   backgroundColor: "#000",
                   width: "100%",
-                  height: "300px",
+                  height: "360px",
                   marginTop: "4px",
                   transform: "scaleX(-1)",
+                  borderRadius: "1%"
                 }}
               />
             </Card>
@@ -468,7 +472,7 @@ function ChildReviewGamePage() {
                 <img src="/child/button-left.png" alt="button-left" />
               </div>
               <Card className="ch-game-counselor-screen">
-                <div className="review-message">
+                <div className="ch-review-message">
                   {phase === "video" ? null : phase === "face1" ? (
                     <h3>표정 분석 중입니다...</h3>
                   ) : phase === "face1Result" ? (

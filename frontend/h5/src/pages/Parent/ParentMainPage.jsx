@@ -23,7 +23,6 @@ const CounselorMainPage = () => {
   const [page, setPage] = useState(0);
   const [numVisible, setNumVisible] = useState(4);
 
-
   // 자동 재생을 위한 useEffect
   useEffect(() => {
     let interval;
@@ -257,7 +256,7 @@ const CounselorMainPage = () => {
                       showIndicators={false}
                       className="c-co_carousel"
                       responsiveOptions={responsiveOptions}
-                      loading={isLoading}
+                      loading={isLoading ? "true" : undefined}
                       circular={false}
                       autoplayInterval={0}
                     />

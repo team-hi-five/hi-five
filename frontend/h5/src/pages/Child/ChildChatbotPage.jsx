@@ -197,13 +197,13 @@ try {
           // 각 메시지 객체에는 childUserId, sender, messageIndex, message가 포함됩니다.
           // finalMessage를 messagesRef.current에 직접 추가하여 최신 대화 내역에 포함
           const updatedMessages = [...messagesRef.current, { type: "bot", message: finalMessage }];
-          const logData = updatedMessages.map((msg, index) => ({
+          const chatbotDocumentList = updatedMessages.map((msg, index) => ({
             childUserId: Number(childId),
             sender: msg.type === "bot" ? "gpt" : "user",
             messageIndex: Number(index),
             message: msg.message,
           }));
-          await saveChatBotData(logData);
+          await saveChatBotData(chatbotDocumentList);
 
 
 
