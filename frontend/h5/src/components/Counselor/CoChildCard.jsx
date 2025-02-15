@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import '../Counselor/Css/CoChildCard.css';
 import ChildDetailModal from '../modals/ChildDetailModal';
 import defaultImg from '/child/character/angrymi.png'
+import { useUserStore } from "/src/store/userStore";
 
 const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDate, parentPhone, parentEmail, treatmentPeriod, firstConsultDate, interests, notes, onDelete, onUpdate }) => {
  const [isModalOpen, setIsModalOpen] = useState(false);
+ const [isHovered, setIsHovered] = useState(false);
  const navigate = useNavigate();
 
  const handleImageError = (e) => {
@@ -23,6 +25,7 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
 
   const handleStatusClick = () => {
     // childName을 state로 전달하면서 페이지 이동
+    useUserStore.getState().setChildData(id, childName);
     navigate('/counselor/children/data', { state: { selectedChild: childName } });
   };
 
@@ -34,7 +37,14 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
        <div className="file-tab"></div>
        <Card className="co-child-card">
          <div className="co-card-content">
-           <div className="co-image-section" onClick={() => setIsModalOpen(true)}>
+           <div className="co-image-section"
+                onClick={() => setIsModalOpen(true)}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                style={{
+                    cursor: isHovered ? 'pointer' : 'none'
+                }}
+           >
              <img src={imageUrl || defaultImg} alt={childName} className="co-child-image" onError={handleImageError}/>
            </div>
            <div className="co-info-section">
@@ -45,7 +55,10 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
              </div>
              <div 
                 className="co-status-badge"
-                onClick={handleStatusClick}
+                onClick={() => {
+                    setIsModalOpen(false);
+                    handleStatusClick();
+                }}
                 style={{ cursor: 'pointer' }}
               >
                 <span><strong>학습 현황</strong></span>

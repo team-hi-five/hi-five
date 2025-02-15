@@ -1,3 +1,4 @@
+import "./Css/CounselorCam.css"
 import { useEffect, useRef } from 'react';
 
 function CounselorCam({ publisher, mode }) {
@@ -38,9 +39,7 @@ function CounselorCam({ publisher, mode }) {
 
     return (
         <div className="counselor-cam">
-            <div className="video-label">
                 <video ref={videoRef} autoPlay muted={mode === 'publish'} />
-            </div>
         </div>
     );
 }
