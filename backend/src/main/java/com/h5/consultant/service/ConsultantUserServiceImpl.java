@@ -234,9 +234,24 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     }
 
     @Override
-    public boolean emailCheck(String email) {
-        return consultantUserRepository.findByEmail(email).isPresent() || parentUserRepository.findByEmail(email).isPresent();
+    public EmailCheckResponseDto emailCheck(String email) {
+        if (parentUserRepository.findByEmail(email).isEmpty()) {
+            return EmailCheckResponseDto.builder()
+                    .alreadyAccount(false)
+                    .build();
+        }
+
+        ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+
+        return EmailCheckResponseDto.builder()
+                .alreadyAccount(true)
+                .email(email)
+                .parentName(parentUser.getName())
+                .parentPhone(parentUser.getPhone())
+                .build();
     }
+
 
     @Transactional
     @Override
