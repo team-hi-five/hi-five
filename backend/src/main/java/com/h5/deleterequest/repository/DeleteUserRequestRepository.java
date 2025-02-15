@@ -14,5 +14,5 @@ import java.util.Optional;
 public interface DeleteUserRequestRepository extends JpaRepository<DeleteUserRequestEntity, Integer> {
     List<DeleteUserRequestEntity> findALlByStatusAndConsultantUser_Email(DeleteUserRequestEntity.@NotNull Status status, @Size(max = 30) @NotNull String consultantUser_email);
 
-    Optional<DeleteUserRequestEntity> findByParentUserAndStatus(ParentUserEntity parentUserEntity, DeleteUserRequestEntity.Status status);
+    Optional<DeleteUserRequestEntity> findByParentUser_IdAndStatus(Integer parentUserId, DeleteUserRequestEntity.@NotNull Status status);
 }
