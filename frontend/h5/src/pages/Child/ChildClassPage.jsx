@@ -674,6 +674,7 @@ function ChildReviewGamePage() {
       }
     }
   }, [phase, analysisCycle, faceResult, voiceResult, currentGameData?.gameStageId]);
+  
 
   // --- 제어 기능 ------------------------------
   // 정지
@@ -784,13 +785,20 @@ function ChildReviewGamePage() {
                     currentGameData?.options?.length > 0 ? (
                         <div className="option-images">
                           {currentGameData.optionImages.map((imgSrc, index) => (
-                              <div key={index} className="option-item">
+                              <div key={index}
+                              className="learning-option-item"
+
+                              >
                                 <img
                                     src={imgSrc}
                                     alt={`option ${index + 1}`}
                                     className="option-image"
                                 />
-                                <p className="option-text">
+                                <p className={`${
+                                  analysisCycle < 3 
+                                    ? (index + 1 === currentGameData?.answer ? 'ch-learning-before-answer' : '')
+                                    : (index + 1 === currentGameData?.answer ? 'ch-learning-correct-answer' : '')
+                                }`}>
                                   {currentGameData.options[index]}
                                 </p>
                               </div>
