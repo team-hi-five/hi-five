@@ -27,11 +27,11 @@ function App() {
         if (accessToken) {
           const response = await getUserInfo();
           const { name, role } = response;
-          setUserName(name)
+          setUserName(name);
           setUserRole(role);
         }
       } catch (error) {
-        console.error("유저 정보 불러오기 실패: ", error);
+        console.error("유저 정보 조회 실패: ", error);
       }
     };
 
