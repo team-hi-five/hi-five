@@ -34,6 +34,7 @@ const LoginPage = () => {
       const data = await login(email, password, role);
       console.log("🎉 로그인 성공!", data);
       console.log(data.name);
+      useUserStore.getState().setUserName(data.name);
       useUserStore.getState().setUserRole(role);
 
       if (saveId) {
