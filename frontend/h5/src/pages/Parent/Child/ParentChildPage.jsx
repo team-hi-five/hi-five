@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Chart } from "primereact/chart";
 import { Calendar } from 'primereact/calendar';
 import ParentHeader from "/src/components/Parent/ParentHeader";
+import ChatBotData from "/src/components/common/ChatBotData";
 import Footer from "/src/components/common/Footer";
 import "/src/pages/Parent/ParentCss/ParentChildPage.css";
 import { getParentChildren } from "/src/api/userParent";
@@ -716,13 +717,13 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
                 value={dateChatBot}
                 onChange={(e) => setDateChatBot(e.value)}
                 showIcon
-                style={{ width: "400px" }}
+                style={{ width: "340px", marginBottom: "5px"}}
                 appendTo="self"
                 onViewDateChange={handleViewDateChangeForChatBot}
                 onShow={() => fetchChatBotDate(dateChatBot)}
               />
             </div>
-            <p>여기에 아이의 감정 일기 기록을 표시하거나 작성할 수 있습니다.</p>
+            <ChatBotData selectedDate={dateChatBot} />
           </div>
 
         </div>

@@ -178,7 +178,7 @@ function ParentSchedulePage() {
         const type = schedule.type;
         if(type === "consult"){
             window.open(
-                `/parent/schedule/call?childId=${childId}&type=${type}`,
+                `/parent/schedule/call?childId=${childId}&type=${type}&role=parent`,
                 '_blank',
                 'left=0,top=0,width=' + screen.width + ',height=' + screen.height
             );

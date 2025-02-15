@@ -386,7 +386,7 @@ function CounselorBoardPage() {
                             className={`co-board-tab ${paActiveTab === "qna" ? "co-active-tab" : ""}`}
                             onClick={() => handleTabClick("qna")}
                         >
-                            질문
+                            QNA
                         </button>
                     </div>
                 </div>
