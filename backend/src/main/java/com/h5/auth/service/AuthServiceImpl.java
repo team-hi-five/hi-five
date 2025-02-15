@@ -21,6 +21,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -174,18 +175,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private String findUserNameByEmail(String email) {
-        ConsultantUserEntity consultantUser = getConsultantUser(email);
-        if (consultantUser != null) {
-            return consultantUser.getName();
+        Optional<ConsultantUserEntity> consultantUser = consultantUserRepository.findByEmail(email);
+        if (consultantUser.isPresent()) {
+            return consultantUser.get().getName();
         }
 
-        ParentUserEntity parentUser = getParentUser(email);
-        if (parentUser != null) {
-            return parentUser.getName();
-        }
-
-        // 둘 다 없으면 null
-        return null;
+        Optional<ParentUserEntity> parentUser = parentUserRepository.findByEmail(email);
+        return parentUser.map(ParentUserEntity::getName).orElseThrow(UserNotFoundException::new);
     }
 
 
