@@ -18,7 +18,7 @@ import {useUserStore} from "./store/userStore.js";
 import {getUserInfo} from "/src/api/authService.jsx";
 
 function App() {
-  const { setUserRole } = useUserStore();
+  const { setUserName, setUserRole } = useUserStore();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,18 +26,17 @@ function App() {
         const accessToken = sessionStorage.getItem("access_token");
         if (accessToken) {
           const response = await getUserInfo();
-          const { role } = response;
+          const { name, role } = response;
+          setUserName(name)
           setUserRole(role);
-        } else {
-          console.log("accessToken 없음. if 블록 안으로 안 들어감");
         }
       } catch (error) {
-        console.error("fetchData -> 에러:", error);
+        console.error("유저 정보 불러오기 실패: ", error);
       }
     };
 
     fetchData();
-  }, [setUserRole]);
+  }, [setUserName, setUserRole]);
 
 
   return (
