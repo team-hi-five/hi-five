@@ -13,8 +13,33 @@ import AppParent from "./routes/AppParent";
 import AppCounselor from "./routes/AppCounselor";
 import AuthRoutes from "./routes/AuthRoutes";
 import ProtectedRoute from "/src/routes/ProtectedRoute";
+import {useEffect} from "react";
+import {useUserStore} from "./store/userStore.js";
+import {getUserInfo} from "/src/api/authService.jsx";
 
 function App() {
+  const { setUserRole } = useUserStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const accessToken = sessionStorage.getItem("access_token");
+        if (accessToken) {
+          const response = await getUserInfo();
+          const { role } = response;
+          setUserRole(role);
+        } else {
+          console.log("accessToken 없음. if 블록 안으로 안 들어감");
+        }
+      } catch (error) {
+        console.error("fetchData -> 에러:", error);
+      }
+    };
+
+    fetchData();
+  }, [setUserRole]);
+
+
   return (
     <Router>
       <Routes>
