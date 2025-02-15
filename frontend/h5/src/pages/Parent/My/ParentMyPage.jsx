@@ -38,8 +38,11 @@ function ParentMyPage() {
         try {
             const response = await requestParentAccountDeletion();
             console.log("✅ 탈퇴 요청 성공:", response);
-
-            await SingleButtonAlert("탈퇴 요청이 완료되었습니다.");
+            if (response.duplicate) {
+              await SingleButtonAlert("이미 탈퇴 요청한 계정입니다. <br> 상담사의 승인 혹은 거절을 기다리세요.");
+            } else {
+              await SingleButtonAlert("탈퇴 요청이 완료되었습니다.");
+            }
         } catch (error) {
             console.error("❌ 탈퇴 요청 실패:", error);
             await SingleButtonAlert("탈퇴 요청 중 오류가 발생했습니다.");
