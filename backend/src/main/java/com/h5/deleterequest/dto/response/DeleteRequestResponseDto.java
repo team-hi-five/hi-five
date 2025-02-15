@@ -12,4 +12,5 @@ public class DeleteRequestResponseDto {
     private int deleteRequestId;
     private DeleteUserRequestEntity.Status status;
     private String deleteRequestDttm;
+    private boolean duplicate;
 }
