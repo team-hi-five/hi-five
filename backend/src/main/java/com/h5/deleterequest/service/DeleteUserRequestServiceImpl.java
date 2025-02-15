@@ -56,7 +56,7 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
 
         // 이미 삭제 요청이 존재하는지 체크 (예: P(진행중) 상태라면 중복 요청으로 판단)
         Optional<DeleteUserRequestEntity> existingRequest =
-                deleteUserRequestRepository.findByParentUserAndStatus(parentUserEntity, DeleteUserRequestEntity.Status.P);
+                deleteUserRequestRepository.findByParentUser_IdAndStatus(parentUserEntity.getId(), DeleteUserRequestEntity.Status.P);
 
         if (existingRequest.isPresent()) {
             return DeleteRequestResponseDto.builder()
