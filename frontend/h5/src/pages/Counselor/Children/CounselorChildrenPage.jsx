@@ -145,7 +145,21 @@ async function fetchChildren() {
           <div className="co-search-notification-container">
             <div className="co-search-notification-inner">
               <div className="co-notification" onClick={handleNotificationClick}>
-                <i className="pi pi-bell" style={{ fontSize: "1.7rem", color: "#FF9F1C" }}></i>
+                <button
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      backgroundColor: '#FFF2E0',
+                      border: '1px solid #FF9F1C',
+                      borderRadius: '4px',
+                      padding: '0.4rem 0.6rem',
+                      cursor: 'pointer'
+                    }}
+                    onClick={handleNotificationClick}
+                >
+                  {/*<i className="pi pi-bell" style={{ fontSize: '1.5rem', color: '#FF9F1C', marginRight: '0.3rem' }} />*/}
+                  <span style={{ fontSize: '0.9rem', color: '#FF9F1C', width:60 }}>탈퇴 요청</span>
+                </button>
                 <span className="co-notification-badge">{deleteRequestCount}</span>
               </div>
               <div className="co-search-section">
