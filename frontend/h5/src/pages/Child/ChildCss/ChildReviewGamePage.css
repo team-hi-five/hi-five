@@ -5,6 +5,7 @@
   padding-top: 100px;
   gap: 70px;
   position: relative; /* 부모 요소 기준 */
+  font-family: 'Jua';
 }
 
 .ch-review-container::before {
@@ -25,10 +26,16 @@
   width: 40%;
 }
 
+.ch-review-message h3{
+  text-align: center;
+  font-family: "Jua";
+  font-size: 2.2rem;
+}
+
 .ch-game-screen-container {
   display: flex;
   justify-content: center;
-  /* font-family: "Jua"; */
+  font-family: "Jua";
   border-radius: 3%;
   background-color: rgb(251, 251, 251);
 }
@@ -90,6 +97,19 @@
 .ch-option-selection {
   margin-top: 3px;
   text-align: center;
+}
+
+.ch-option-text {
+  text-align: center;
+  align-items: center;
+  font-size: 1.3rem;
+  font-family: "Jua";
+  margin-bottom: 5px;
+  margin-top: 6px;
+}
+
+.ch-options-number{
+  margin: 0;
 }
 
 .ch-game-Top-section {
@@ -193,23 +213,16 @@
   justify-content: center;
   align-items: flex-start;
   gap: 10px;
-  width: 87%;
+  width: 80%;
   box-sizing: border-box;
   overflow: hidden;
   margin-top: 10px;
 }
-
+s
 /* 옵션 이미지 스타일 */
 .option-image {
-  width: 100%;
-  height: auto;
+  width: 80%;
+  height: 80%;
   object-fit: contain;
 }
 
-/* 옵션 텍스트 스타일 */
-.option-text {
-  margin-top: 15px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 14px;
-}
