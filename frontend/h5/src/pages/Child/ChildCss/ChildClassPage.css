@@ -196,7 +196,7 @@
 
 
 /* 옵션 이미지와 텍스트를 담는 개별 컨테이너 */
-.option-item {
+.learning-option-item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -233,4 +233,14 @@
   margin-bottom: 20px;
   text-align: center;
   font-size: 14px;
+  font-family: "Jua";
+}
+
+.ch-learning-before-answer {
+  font-family: "Jua";
+}
+
+.ch-learning-correct-answer {
+  font-family: "Jua";
+  background-color: rgb(104, 194, 222);
 }
