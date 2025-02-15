@@ -104,7 +104,7 @@ const handleChildClick = async (childUserId, deleteUserRequestId) => {
                   >
                     <span>{request.parentName}</span>
                     <span>{request.children.length} 명</span>
-                    <span>{request.joinDate}</span>
+                    <span>{request.deleteRequestDttm.slice(0,10)}</span>
                   </div>
                 ))
               )}
