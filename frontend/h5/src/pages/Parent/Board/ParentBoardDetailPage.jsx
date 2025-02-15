@@ -9,6 +9,7 @@ import { getQnaDetail, deleteQna } from "../../../api/boardQna";
 import { getFileUrl, downloadFile, deleteFile } from "../../../api/file";
 import "../../Counselor/Css/CounselorBoardDetailPage.css";
 import { replaceEditorPlaceholders } from "../../../store/boardStore";
+import ParentHeader from "../../../components/Parent/ParentHeader.jsx";
 
 function ParentBoardDetailPage() {
   const navigate = useNavigate();
@@ -116,7 +117,7 @@ function ParentBoardDetailPage() {
           } else {
             setAnswers([]);
           }
-          
+
           await fetchFileUrls("QE", response.id, setEditorFileUrls);
           await fetchFileUrls("QF", response.id, setAttachmentFileUrls);
         }
@@ -206,7 +207,7 @@ function ParentBoardDetailPage() {
 
   return (
       <div className="co-detail-page">
-        <CounselorHeader />
+        <ParentHeader />
         <div className="co-detail-container">
           <div className="question-section">
             <div className="co-detail-topbar">
