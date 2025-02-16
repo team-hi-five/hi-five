@@ -15,5 +15,9 @@ export default defineConfig({
     host: 'localhost',
     port: 8080, // 원하는 포트 번호
   },
-  plugins: [react()]
+  plugins: [react()],
+  define:{
+    global:{},
+  }
+
 });
