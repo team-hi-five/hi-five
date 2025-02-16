@@ -16,6 +16,7 @@ import ProtectedRoute from "/src/routes/ProtectedRoute";
 import {useEffect} from "react";
 import {useUserStore} from "./store/userStore.js";
 import {getUserInfo} from "/src/api/authService.jsx";
+import NotificationToast from './components/common/NotificationToast.jsx';
 
 function App() {
   const { setUserName, setUserRole } = useUserStore();
@@ -41,6 +42,7 @@ function App() {
 
   return (
     <Router>
+      <NotificationToast/>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/login/*" element={<AuthRoutes />} />
