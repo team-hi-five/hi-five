@@ -41,10 +41,13 @@ function ChildReviewGamePage() {
 
   // 오픈비두
   const [session, setSession] = useState(null);
-  const [subscriber, setSubscriber] = useState([]);
+  // 상대방
+  const [subscriber, setSubscriber] = useState([]);       
+  // 나(자신)  
   const [publisher, setPublisher] = useState(null)
   // 화면공유
   const [screenPublisher, setScreenPublisher] = useState(null);
+  // 오픈비두 객체 사용( 세션 초기화, 스트림 전송, 연결 및 종료 등의 작업)
   const OV = useRef(new OpenVidu());
 
   // --- 0. 오픈비두 토큰 받기 -------------------------
@@ -55,8 +58,8 @@ function ChildReviewGamePage() {
           type: 'game', 
           childId 
         });
-        console.log("토큰!",response.data)
-        console.log("아동 세션 ID:", response.data.sessionId)
+
+        console.log("토큰!:",response.data)
         return response.data;
       } catch (error) {
         console.error('토큰 요청 실패:', error);
@@ -64,12 +67,12 @@ function ChildReviewGamePage() {
       }
     }
 
-    // 세션 초기화
+    // --- 1. 세션 초기화 -------------------------
   const initializeSession = useCallback(async () => {
     try {
       const sessionInstance = OV.current.initSession();
 
-      // 스트림 감지
+      // 스트림 감지 (다른 참가자 웹캠)
       sessionInstance.on('streamCreated', (event) => {
         const subscriber = sessionInstance.subscribe(event.stream, undefined);
         setSubscriber(subscriber);  
@@ -79,9 +82,11 @@ function ChildReviewGamePage() {
         setSubscriber(null);  // null로 초기화
       });
 
-      const token = await getToken();  // 여기서 위의 getToken 함수 호출
+      const token = await getToken(); 
+      // 토큰을 통해 세션과 스트림구독을 연결
       await sessionInstance.connect(token);
 
+      // 초기값 (publisher)
       const pub = OV.current.initPublisher(undefined, {
         audioSource: undefined,
         videoSource: undefined,
@@ -89,24 +94,55 @@ function ChildReviewGamePage() {
         publishVideo: true,
         mirror: true
       });
-
-      await sessionInstance.publish(pub);
-      const screenPub = OV.current.initPublisher(undefined, {
-        videoSource: "screen", // 화면 공유
-        publishAudio: true, 
-      });
   
-      await sessionInstance.publish(screenPub);
-      setScreenPublisher(screenPub);
-      
-      setSession(sessionInstance);
-      setPublisher(pub);
+    
+      await sessionInstance.publish(pub);
+    setSession(sessionInstance);
+    setPublisher(pub);
 
-    } catch (error) {
-      console.error('세션 초기화 오류:', error);
+
+  } catch (error) {
+    console.error('세션 초기화 오류:', error);
+  }
+}, []);
+
+// --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
+// 화면 공유버튼 클릭 -> 함수를 상담사페이지 전달(같은 세션에 있으면 자동 전달됨)-> 전달된 함수는 상담사페이지에 연결되어있는 아동페이지 공유 컴포넌트로 전달 
+const createScreenShareStream = async () => {
+  try {
+    const screenStream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: true
+    });
+
+    const screenPublisher = OV.current.initPublisher(undefined, {
+      videoSource: screenStream,
+      publishAudio: true
+    });
+
+    // 세션에 화면 공유 스트림을 전송
+    await session.publish(screenPublisher);
+    setScreenPublisher(screenPublisher);  // 상태 업데이트
+  } catch (error) {
+    console.error('화면 공유 중 오류:', error);
+  }
+};
+
+// 화면 공유 시작 함수
+const startScreenShare = async () => {
+  await createScreenShareStream();
+};
+
+useEffect(() => {
+  if (screenPublisher && videoRef.current) {
+    const stream = screenPublisher.stream?.getMediaStream();
+    if (stream) {
+      videoRef.current.srcObject = stream;
     }
-  }, []);
+  }
+}, [screenPublisher]);
 
+  // --- 3. 컴포넌트가 처음 마운트될 때 세션 초기화 -------------------------
   useEffect(() => {
     initializeSession();
     return () => {
@@ -435,7 +471,7 @@ function ChildReviewGamePage() {
     }
   };
 
-  // --- 얼굴(표정) 분석만 진행 (사이클 3) ---
+  // --- 얼굴(표정) 분석만 진행 (사이클 3) ------------------------
   const runFaceAnalysis = async () => {
     console.log("[runFaceAnalysis] 호출됨 - 얼굴 분석 시작 (표정 연습)");
     const faceMsg = await new Promise((resolve) => {
@@ -493,7 +529,7 @@ function ChildReviewGamePage() {
     console.log("[runFaceAnalysis] 얼굴 분석 완료, faceResult:", faceMsg);
   };
 
-  // --- 음성 분석만 진행 (사이클 4) ---
+  // --- 음성 분석만 진행 (사이클 4) -----------------------------
   const runVoiceAnalysis = async () => {
     console.log("[runVoiceAnalysis] 호출됨 - 음성 분석 시작 (말 연습)");
     const voiceMsg = await new Promise((resolve, reject) => {
@@ -896,7 +932,7 @@ function ChildReviewGamePage() {
           <div>{/* 추가 버튼 영역 */}</div>
         </div>
 
-        {/* 오른쪽: 웹캠 및 상담가 화면 영역 */}
+        {/* 오른쪽: 웹캠 및 아동 화면 영역 */}
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
             <Card className="ch-game-Top-section">
@@ -912,6 +948,7 @@ function ChildReviewGamePage() {
                 <img src="/child/button-left.png" alt="button-left" onClick={PrevChapter} />
                 <p> 이전 단원</p>
               </div>
+               {/* 오른쪽: 상담사 화면 영역 */}
               <Card className="ch-learning-counselor-screen">
                 <CounselorCamWithChild
                   session={session}
@@ -923,6 +960,9 @@ function ChildReviewGamePage() {
                 <img src="/child/button-right.png" alt="button-right" onClick={NextChapter} />
                 <p>다음 단원</p>
                 <BsStopBtnFill onClick={StopVideo} className="ch-learning-stop-icon" />
+                <button onClick={startScreenShare} disabled={screenPublisher !== null}>
+                  {screenPublisher ? "화면 공유 중" : "화면 공유 시작"}
+                </button>
               </div>
             </div>
           </div>
