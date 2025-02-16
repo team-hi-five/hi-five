@@ -5,18 +5,17 @@ function CounselorCam({ publisher, subscriber, mode }) {
 
     const setVideoStream = () => {
         let stream = null;
-
         // 상담사 페이지 (mode: publish)
         if (mode === 'publish' && publisher && publisher.stream) {
-            stream = publisher.stream.getMediaStream(); // 상담사의 비디오
-        } 
+            stream = publisher.stream.getMediaStream();
+        }
         // 아동 페이지 (mode: subscribe)
         else if (mode === 'subscribe' && subscriber && subscriber.stream) {
-            stream = subscriber.stream.getMediaStream(); // 아동의 비디오
+            stream = subscriber.stream.getMediaStream();
         }
 
-        console.log('[CounselorCam] stream:', stream); // stream 콘솔 출력
-        
+        console.log('[CounselorCam] stream:', stream);
+
         if (stream && videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.play()
@@ -35,17 +34,16 @@ function CounselorCam({ publisher, subscriber, mode }) {
         setVideoStream();
 
         return () => {
-            // Cleanup: 비디오 스트림 초기화
             if (videoRef.current) {
                 videoRef.current.srcObject = null;
             }
         };
-    }, [publisher, subscriber, mode]); // publisher, subscriber, mode가 변경될 때마다 실행
+    }, [publisher, subscriber, mode]);
 
     return (
         <div className="counselor-cam">
-                       <video ref={videoRef} autoPlay muted={mode === 'publish'} />
+            <video ref={videoRef} autoPlay muted={mode === 'publish'} />
         </div>
     );
 }
-export default CounselorCam
+export default CounselorCam;
