@@ -37,6 +37,7 @@ const LoginPage = () => {
       useUserStore.getState().setUserName(data.name);
       useUserStore.getState().setUserRole(role);
 
+
       if (saveId) {
         localStorage.setItem("savedEmail", email); // 아이디 저장
       } else {
@@ -77,11 +78,11 @@ const LoginPage = () => {
       </div>
       <div className="login-container">
         <div className="characters-container">
-          <img src="test\놀라미.png" alt="Blue character" className="character" style={{ transform: 'translateY(50px)' }}/>
-          <img src="test\기쁘미.PNG" alt="Yellow character" className="character" style={{ transform: 'translateY(45px)' }}/>
-          <img src="test\화나미.PNG" alt="Gray character" className="character" style={{ transform: 'translateY(38px)' }}/>
+          <img src="test\againCh.png" alt="Blue character" className="character" style={{ transform: 'translateY(35px)' }}/>
+          <img src="test\againCh.png" alt="Yellow character" className="character" style={{ transform: 'translateY(35px)' }}/>
+          <img src="test\againCh.png" alt="Gray character" className="character" style={{ transform: 'translateY(35px)' }}/>
         </div>
-        
+
         <div className="login-box">
           <img src="/logo.png" alt="Logo" className="l-logo" />
           <h2 className="subtitle">감정을 배우는 즐거운 여행</h2>

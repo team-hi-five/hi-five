@@ -23,6 +23,8 @@ const CounselorMainPage = () => {
   const [page, setPage] = useState(0);
   const [numVisible, setNumVisible] = useState(4);
 
+  const userName = useUserStore((state) => state.userName);
+
   // 자동 재생을 위한 useEffect
   useEffect(() => {
     let interval;
@@ -198,7 +200,7 @@ const CounselorMainPage = () => {
                 안녕하세요.
               </h1>
               <h2 className="co_counselor_intro">
-                <span className="co_highlight">박성원</span> 학부모님.
+                <span className="co_highlight">{userName}</span> 학부모님.
               </h2>
               <p className="co_service_subtitle">감정을 놀이로 전달하는 <span>HI 서비스</span> 입니다.</p>
               <div className="flex flex-wrap gap-5" style={{ marginBottom: '15px' }}>

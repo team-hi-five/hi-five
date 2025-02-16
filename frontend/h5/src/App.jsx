@@ -13,8 +13,32 @@ import AppParent from "./routes/AppParent";
 import AppCounselor from "./routes/AppCounselor";
 import AuthRoutes from "./routes/AuthRoutes";
 import ProtectedRoute from "/src/routes/ProtectedRoute";
+import {useEffect} from "react";
+import {useUserStore} from "./store/userStore.js";
+import {getUserInfo} from "/src/api/authService.jsx";
 
 function App() {
+  const { setUserName, setUserRole } = useUserStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const accessToken = sessionStorage.getItem("access_token");
+        if (accessToken) {
+          const response = await getUserInfo();
+          const { name, role } = response;
+          setUserName(name);
+          setUserRole(role);
+        }
+      } catch (error) {
+        console.error("유저 정보 조회 실패: ", error);
+      }
+    };
+
+    fetchData();
+  }, [setUserName, setUserRole]);
+
+
   return (
     <Router>
       <Routes>
