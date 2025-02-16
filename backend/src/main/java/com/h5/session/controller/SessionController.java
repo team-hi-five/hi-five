@@ -32,7 +32,7 @@ public class SessionController {
     }
 
     @MessageMapping("/control")
-    @SendTo("/topic/game")
+    @SendTo("/topic")
     public ControlRequest handleWebSocketMessage(ControlRequest controlRequest) {
         if (controlRequest == null || controlRequest.getAction() == null) {
             throw new IllegalArgumentException("Invalid control request");
@@ -41,4 +41,6 @@ public class SessionController {
 
         return controlRequest;
     }
+
+
 }
