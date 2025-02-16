@@ -1,10 +1,6 @@
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
 
-if (typeof global === 'undefined') {
-    window.global = window;
-}
-
 let stompClient;
 
 export const connectStomp = () => {
@@ -40,12 +36,3 @@ export const sendNotification = (targetUser, message) => {
     }
 };
 
-// src/pages/auth/loginPage.jsx에서 handleLogin 함수 내부에 connectStomp() 호출 추가
-// 예시: 로그인 성공 후
-// if (whoRU === 'parent' && data.pwdChanged === true) {
-//   connectStomp();
-//   navigate("/login/passwordchange");
-// } else {
-//   connectStomp();
-//   navigate(whoRU === 'parent' ? '/parent' : '/counselor');
-// }
