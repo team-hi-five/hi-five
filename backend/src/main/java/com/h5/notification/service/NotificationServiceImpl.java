@@ -14,9 +14,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendNotificationToUser(NotificationRequestDto notificationRequestDto) {
-        String targetUsername = notificationRequestDto.getTargetUser();
+        String targetUser = notificationRequestDto.getTargetUser();
         String message = notificationRequestDto.getMessage();
 
-        messagingTemplate.convertAndSendToUser(targetUsername, "/queue/notifications", message);
+        messagingTemplate.convertAndSendToUser(targetUser, "/queue/notifications", message);
     }
 }
