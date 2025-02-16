@@ -3,6 +3,7 @@ import ChildGameList from "../../components/Child/Game/ChildGameList";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { chapter } from "../../api/childGame";
+import { Carousel } from 'primereact/carousel';
 
 function ChildReviewPage() {
   const navigate = useNavigate();
@@ -44,31 +45,53 @@ function ChildReviewPage() {
     fetchData();
   }, []);
 
+  const chapterTemplate = (item) => (
+    <ChildGameList
+      gameChapterId={item.gameChapterId}
+      chapterPic={item.chapterPic}
+      title={item.title}
+      isLocked={item.isLocked}
+      onClick={() => {
+        if (item.isLocked) {
+          alert("아직 개발 중인 챕터입니다!");
+          return;
+        }
+        navigate(`/child/${childId}/review/${item.gameChapterId}`, {
+          state: { chapterId: item.gameChapterId },
+        });
+      }}
+    />
+  );
+ 
   return (
-    <div className="ch-child-game-list-container">
-      {chapterData?.map((item) => (
-        // console.log("1번 이미지 URL:", item.chapterPic),
-        // console.log("2번 이미지 URL:", item.chapterPic),
-        <ChildGameList
-          key={item.gameChapterId}
-          gameChapterId={item.gameChapterId}
-          chapterPic={item.chapterPic}
-          title={item.title}
-          isLocked={item.isLocked}
-          onClick={() => {
-            if (item.isLocked) {
-              // 잠금 상태 체크
-              alert("아직 개발 중인 챕터입니다!");
-              return;
-            }
-            // console.log("clicked:", item.gameChapterId);
-            navigate(`/child/${childId}/review/${item.gameChapterId}`, {
-              state: { chapterId: item.gameChapterId },
-            });
-          }}
-        />
-      ))}
+    <div 
+      className="ch-child-game-list-container"
+      style={{ 
+        width: '100%', 
+        height: '520px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}
+    >
+      <Carousel 
+        value={chapterData} 
+        numVisible={1} 
+        numScroll={1} 
+        orientation="vertical" 
+        verticalViewPortHeight="720px"
+        itemTemplate={chapterTemplate} 
+        circular
+        showNavigators
+        style={{
+          width: '160%',
+          maxWidth: '800px', // 최대 너비 제한
+          maxHeight:'800px',
+          height: '700px'
+        }}
+      />
     </div>
   );
-}
-export default ChildReviewPage;
+ }
+ export default ChildReviewPage;
+ 
