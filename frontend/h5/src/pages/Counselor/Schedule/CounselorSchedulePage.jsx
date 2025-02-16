@@ -144,7 +144,7 @@ function CounselorSchedulePage() {
         const timeA = a.time.split('~')[0].trim();
         const timeB = b.time.split('~')[0].trim();
         return timeA.localeCompare(timeB);
-      })); // 시간순으로 나열해주는 로직
+    })); // 시간순으로 나열해주는 로직
 
 
     useEffect(() => {
@@ -191,8 +191,8 @@ function CounselorSchedulePage() {
         return `${year}-${month}-${day}`;
     };
 
-     // 날짜 선택 핸들러
-     const handleDateSelect = (e) => {
+    // 날짜 선택 핸들러
+    const handleDateSelect = (e) => {
         setDate(e.value);
         setCurrentMonth(e.value);
     };
@@ -215,7 +215,7 @@ function CounselorSchedulePage() {
                 scheduleDate.getMonth() === currentMonthDate.getMonth();
 
             return schedule.consultation_target.toLowerCase().includes(searchTerm.toLowerCase())
-                   && isSameMonth;
+                && isSameMonth;
         }
 
         const selectedDate = formatDateToString(date);
@@ -237,36 +237,36 @@ function CounselorSchedulePage() {
     };
 
 
-const handleDelete = async (scheduleToDelete) => {
-    try {
-        console.log("dsglnigjdanilsnvndsi: ", scheduleToDelete);
-        const result = await DoubleButtonAlert('상담을 삭제하시겠습니까?');
+    const handleDelete = async (scheduleToDelete) => {
+        try {
+            console.log("dsglnigjdanilsnvndsi: ", scheduleToDelete);
+            const result = await DoubleButtonAlert('상담을 삭제하시겠습니까?');
 
-        if (result.isConfirmed) {
-            try {
-                // ✅ 상담 일정 삭제 API 호출
-                const response = await deleteSchedule(scheduleToDelete.scheduleId, scheduleToDelete.consultation_type);
-                console.log("✅ 상담 일정 삭제 성공:", response);
+            if (result.isConfirmed) {
+                try {
+                    // ✅ 상담 일정 삭제 API 호출
+                    const response = await deleteSchedule(scheduleToDelete.scheduleId, scheduleToDelete.consultation_type);
+                    console.log("✅ 상담 일정 삭제 성공:", response);
 
-                await SingleButtonAlert(response.message || '성공적으로 삭제되었습니다.');
+                    await SingleButtonAlert(response.message || '성공적으로 삭제되었습니다.');
 
-                // ✅ 삭제된 상담을 화면에서 제거
-                setSchedules(prevSchedules =>
-                    prevSchedules.filter(schedule => schedule.scheduleId !== scheduleToDelete.scheduleId)
-                );
+                    // ✅ 삭제된 상담을 화면에서 제거
+                    setSchedules(prevSchedules =>
+                        prevSchedules.filter(schedule => schedule.scheduleId !== scheduleToDelete.scheduleId)
+                    );
 
-                // ✅ 모달이 닫힐 때 일정 새로고침
-                handleModalClose();
+                    // ✅ 모달이 닫힐 때 일정 새로고침
+                    handleModalClose();
 
-            } catch (error) {
-                console.error("❌ 상담 일정 삭제 실패:", error);
-                await SingleButtonAlert(error.response?.data?.message || '상담 삭제 중 오류가 발생했습니다.');
+                } catch (error) {
+                    console.error("❌ 상담 일정 삭제 실패:", error);
+                    await SingleButtonAlert(error.response?.data?.message || '상담 삭제 중 오류가 발생했습니다.');
+                }
             }
+        } catch (error) {
+            console.error('❌ 삭제 중 오류 발생:', error);
         }
-    } catch (error) {
-        console.error('❌ 삭제 중 오류 발생:', error);
-    }
-};
+    };
 
 
     const handleJoin = (index) => {
@@ -280,9 +280,11 @@ const handleDelete = async (scheduleToDelete) => {
                 : schedule
         ));
         console.log("childId : " + targetSchedule.childUserId)
+        console.log("consultation_type : " + targetSchedule.consultation_type)
+        console.log(targetSchedule.consultation_type === '게임'?"1" : "2");
 
         // 상담 유형에 따라 다른 창 열기
-        const path = targetSchedule.consultation_type === 'game'
+        const path = targetSchedule.consultation_type === "게임"
             ? `schedule/child-video-call?type=game&childId=${targetSchedule.childUserId}`
             : `schedule/parent-video-call?type=consult&childId=${targetSchedule.childUserId}&role=consultant`;
 
@@ -446,8 +448,8 @@ const handleDelete = async (scheduleToDelete) => {
                                                             >
                                                                 참여
                                                             </button>
-                                                            <button 
-                                                                className="co-btn co-btn-modify" 
+                                                            <button
+                                                                className="co-btn co-btn-modify"
                                                                 onClick={() => handleEditClick(schedule)}
                                                             >
                                                                 수정

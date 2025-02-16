@@ -5,6 +5,7 @@ import { getParentDeleteRequests, getConsultantChild } from "/src/api/userCounse
 import defaultImg from '/child/character/angrymi.png';  // 기본 이미지 import
 import './DeleteChildModal.css';
 import { getFileUrl, TBL_TYPES } from '../../api/file';
+import ChildDeleteDetailModal from "./ChildDeleteDetailModal.jsx";
 
 const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
   const [deleteRequests, setDeleteRequests] = useState([]);
@@ -117,7 +118,7 @@ const DeleteChildModal = ({ isOpen, onClose, onDeleteRequestsChange }) => {
 
         {/* ✅ ChildDetailModal: 여러 자식 데이터를 전달 */}
         {selectedRequest && detailedRequestData && (
-            <ChildDetailModal
+            <ChildDeleteDetailModal
                 isOpen={true}
                 onClose={handleCloseDetail}
                 initialRequestData={detailedRequestData}

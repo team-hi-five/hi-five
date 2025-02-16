@@ -246,7 +246,7 @@ function CounselorParentVideoCallPage() {
                 {/* 2. 상대방 화상 (학부모) 구독 화면 */}
                 <div className='co-participant-container'>
                   {remoteCam ? (
-                      <CounselorCam session={session} publisher={remoteCam} mode="subscribe" 
+                      <CounselorCam session={session} publisher={remoteCam} mode="subscribe"
                       className='co-participant'/>
                   ) : (
                       <div className='co-error'>상대방 화상 없음</div>
@@ -298,7 +298,7 @@ function CounselorParentVideoCallPage() {
               <div className='co-participant-container'>
                 <h2>상대방 화상 구독 화면</h2>
                 {remoteCam ? (
-                    <CounselorCam session={session} publisher={remoteCam} mode="subscribe" 
+                    <CounselorCam session={session} publisher={remoteCam} mode="subscribe"
                     className="co-participant"/>
                 ) : (
                     <div className='co-error'>상대방 화상 없음</div>

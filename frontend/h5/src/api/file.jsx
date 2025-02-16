@@ -37,18 +37,21 @@ export const uploadFile = async (files, tblTypes, tblIds) => {
         // 파일 배열을 순회하며 FormData에 파일 추가 (키 이름은 백엔드에서 처리하는 대로 "files"로 지정)
         files.forEach(file => {
             formData.append('file', file);
+            console.log("file:####", file);
         });
-
-        console.log(formData);
 
         // metaData는 tblType, tblId 배열을 JSON 문자열로 변환하여 전송
         const metaData = JSON.stringify({ tblType: tblTypes, tblId: tblIds });
         console.log([metaData])
         formData.append('metaData', new Blob([metaData], { type: 'application/json' }));
 
+        formData.forEach(data => {
+            console.log("formData:",data);
+        })
+
         const response = await api.post("/file/upload", formData, {
             headers: {
-                // Content-Type은 FormData 사용 시 자동 설정됨
+                "Content-Type" : "multipart/form-data"
             },
         });
 
