@@ -5,6 +5,7 @@ import { Button } from 'primereact/button';
 import './LoginPage.css';
 import { login } from "/src/api/authService";
 import { useUserStore } from "/src/store/userStore";
+import {connectStomp} from "../../socket.js";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -46,9 +47,11 @@ const LoginPage = () => {
 
       if(whoRU === 'parent' && data.pwdChanged===true){
         navigate("/login/passwordchange");
+        connectStomp();
       }
       else{
         navigate(whoRU === 'parent' ? '/parent' : '/counselor');
+        connectStomp();
       }
     } catch (err) {
       console.error("❌ 로그인 실패:", err.response ? err.response.data : err.message);
