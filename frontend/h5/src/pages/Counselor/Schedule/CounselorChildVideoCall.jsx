@@ -61,7 +61,6 @@ function CounselorChildVideoCall() {
                     publishAudio: true,
                     publishVideo: true,
                 });
-
                 await sessionInstance.publish(myPublisher);
                 setSession(sessionInstance);
                 setPublisher(myPublisher);
@@ -73,19 +72,20 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
-    // --- 추가: 주기적으로 화면 공유 스트림이 있는지 확인 (화면 재랜더링 문제 해결용) ---
+    // --- 추가: 주기적으로 화면 공유 스트림 확인 (폴링) ---
     useEffect(() => {
         const checkForScreenShare = () => {
-            if (session && !screenSubscriber) {
-                // session.remoteStreams는 OpenVidu가 제공하는 모든 스트림 목록
+            if (session) {
                 const remoteStreams = session.remoteStreams || [];
-                const screenStream = remoteStreams.find((stream) => {
+                console.log("Polling remoteStreams:", remoteStreams);
+                const found = remoteStreams.find((stream) => {
                     const videoType = (stream.videoType || "").toLowerCase();
                     const typeOfVideo = stream.typeOfVideo;
                     return videoType === "screen" || typeOfVideo === "SCREEN";
                 });
-                if (screenStream) {
-                    const screenSub = session.subscribe(screenStream, undefined);
+                if (found && !screenSubscriber) {
+                    console.log("새 화면 공유 스트림 발견, 구독 시도합니다.");
+                    const screenSub = session.subscribe(found, undefined);
                     setScreenSubscriber(screenSub);
                 }
             }
@@ -95,22 +95,12 @@ function CounselorChildVideoCall() {
     }, [session, screenSubscriber]);
 
     return (
-        <div
-            className="counselor-observe-container"
-            style={{ width: "100%", height: "100%" }}
-        >
+        <div className="counselor-observe-container" style={{ width: "100%", height: "100%" }}>
             {/* 아동의 화면 공유 스트림 */}
             {screenSubscriber ? (
-                <div
-                    className="game-screen-share"
-                    style={{ width: "50%", height: "100%", float: "left" }}
-                >
+                <div className="game-screen-share" style={{ width: "50%", height: "100%", float: "left" }}>
                     <video
-                        style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                        }}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         ref={(video) => {
                             if (video && screenSubscriber) {
                                 video.srcObject = screenSubscriber.stream.getMediaStream();
