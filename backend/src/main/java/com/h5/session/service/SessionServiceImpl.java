@@ -12,7 +12,6 @@ import com.h5.session.repository.ConsultSessionRepository;
 import com.h5.session.repository.GameSessionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -138,10 +137,16 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public void processControlMessage(ControlRequest controlRequest) {
-        String sessionId = controlRequest.getSessionId();
-        String action = controlRequest.getAction();
-
-        //gameService.handleGameAction(sessionId, action);
+//        switch (controlRequest.getAction()) {
+//            case "NEXT_STAGE":
+//
+//                break;
+//            case "PAUSE_VIDEO":
+//                break;
+//            // 필요에 따라 다른 명령도 추가
+//            default:
+//                throw new IllegalArgumentException("Unknown control action: " + controlRequest.getAction());
+//        }
     }
 
 }
