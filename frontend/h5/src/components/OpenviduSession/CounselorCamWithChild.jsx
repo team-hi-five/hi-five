@@ -1,55 +1,50 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
-function CounselorCam({ subscriber, publisher, mode }) {
+function CounselorCam({ publisher, subscriber, mode }) {
     const videoRef = useRef(null);
 
-    const setVideoStream = (streamSource) => {
-        if (streamSource && videoRef.current) {
-            const stream = streamSource.stream ? streamSource.stream.getMediaStream() : null;
-            console.log("[CounselorCam] setVideoStream 호출, mode:", mode, "streamSource:", streamSource.stream);
-            if (stream) {
-                videoRef.current.srcObject = stream;
-                videoRef.current.play()
-                    .then(() => console.log("[CounselorCam] video 재생 시작"))
-                    .catch(err => console.error("[CounselorCam] video play 에러:", err));
-            } else {
-                console.warn("[CounselorCam] stream이 없습니다. 500ms 후 재확인합니다.");
-                setTimeout(() => {
-                    setVideoStream(streamSource);
-                }, 500);
-            }
+    const setVideoStream = () => {
+        let stream = null;
+
+        // 상담사 페이지 (mode: publish)
+        if (mode === 'publish' && publisher && publisher.stream) {
+            stream = publisher.stream.getMediaStream(); // 상담사의 비디오
+        } 
+        // 아동 페이지 (mode: subscribe)
+        else if (mode === 'subscribe' && subscriber && subscriber.stream) {
+            stream = subscriber.stream.getMediaStream(); // 아동의 비디오
+        }
+
+        console.log('[CounselorCam] stream:', stream); // stream 콘솔 출력
+        
+        if (stream && videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play()
+                .then(() => console.log('[CounselorCam] video 재생 시작'))
+                .catch(err => console.error('[CounselorCam] video play 에러:', err));
+        } else {
+            console.warn('[CounselorCam] stream이 없습니다. 500ms 후 재확인합니다.');
+            setTimeout(() => {
+                setVideoStream();
+            }, 500);
         }
     };
 
     useEffect(() => {
-        console.log("[CounselorCam] useEffect 시작, subscriber:", subscriber, "publisher:", publisher, "mode:", mode);
-
-        // publisher(상담사 자신의 화면) 또는 subscriber(상대방의 화면) 확인
-        const streamSource = mode === "publish" ? publisher : subscriber;
-        setVideoStream(streamSource);
-
-        if (streamSource) {
-            console.log("[CounselorCam] streamPlaying 이벤트 리스너 등록");
-            streamSource.on("streamPlaying", () => setVideoStream(streamSource));
-        }
+        console.log('[CounselorCam] useEffect 시작, mode:', mode, 'publisher:', publisher, 'subscriber:', subscriber);
+        setVideoStream();
 
         return () => {
-            if (streamSource) {
-                console.log("[CounselorCam] streamPlaying 이벤트 리스너 제거");
-                streamSource.off("streamPlaying", () => setVideoStream(streamSource));
+            // Cleanup: 비디오 스트림 초기화
+            if (videoRef.current) {
+                videoRef.current.srcObject = null;
             }
         };
-    }, [subscriber, publisher, mode]);
+    }, [publisher, subscriber, mode]); // publisher, subscriber, mode가 변경될 때마다 실행
 
     return (
         <div className="counselor-cam">
-            {(mode === "publish" && publisher) || (mode !== "publish" && subscriber) ? (
-                <video ref={videoRef} autoPlay muted={mode === "publish"} />
-            ) : (
-                <div className="no-counselor">
-                    {mode === "publish" ? "내 화면을 불러오는 중..." : "상대방을 기다리는 중..."}
-                </div>
-            )}
+            <video ref={videoRef} autoPlay muted={mode === 'publish'} />
         </div>
     );
 }
