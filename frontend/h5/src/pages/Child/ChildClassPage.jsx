@@ -107,7 +107,7 @@ function ChildReviewGamePage() {
 }, []);
 
 // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
-// 화면 공유버튼 클릭 -> 함수를 상담사페이지 전달(같은 세션에 있으면 자동 전달됨)-> 전달된 함수는 상담사페이지에 연결되어있는 아동페이지 공유 컴포넌트로 전달 
+// 화면 공유버튼 클릭 -> 
 const createScreenShareStream = async () => {
   try {
     const screenStream = await navigator.mediaDevices.getDisplayMedia({
@@ -149,26 +149,6 @@ useEffect(() => {
       if (session) session.disconnect();
     };
   }, []);
-
-  // 4. 스트림 확인용 
-  useEffect(() => {
-    const checkStream = () => {
-      if (subscriber && subscriber.stream) {
-        const stream = subscriber.stream.getMediaStream();
-        if (videoRef.current && stream) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play()
-            .then(() => console.log('[Child] Video started playing'))
-            .catch(err => console.error('[Child] Error playing video:', err));
-        }
-      } else {
-        console.warn('Waiting for subscriber stream...');
-        setTimeout(checkStream, 500);
-      }
-    };
-  
-    checkStream();
-  }, [subscriber]);
 
   // --- 1. API를 통해 동영상 데이터 로드 ----------------
   useEffect(() => {
