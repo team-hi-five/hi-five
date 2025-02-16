@@ -1,7 +1,7 @@
 import api from "../../../api/api";
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
@@ -9,46 +9,44 @@ function CounselorChildVideoCall() {
     const [publisher, setPublisher] = useState(null);
     const [screenSubscriber, setScreenSubscriber] = useState(null);
     const [searchParams] = useSearchParams();
-    const type = searchParams.get('type');
-    const childId = searchParams.get('childId');
+    const type = searchParams.get("type");
+    const childId = searchParams.get("childId");
 
     useEffect(() => {
         const initSession = async () => {
             try {
                 const sessionInstance = OV.current.initSession();
 
-                // 스트림 생성 이벤트 (OpenVidu 기본 이벤트 이름은 "streamCreated")
+                // 스트림 생성 이벤트 (기본 이벤트: "streamCreated")
                 sessionInstance.on("streamCreated", (event) => {
                     console.log("Stream Created Event:", event);
-                    // videoType 또는 typeOfVideo를 사용하여 스트림 구분
                     const videoType = (event.stream.videoType || "").toLowerCase();
                     const typeOfVideo = event.stream.typeOfVideo;
                     console.log("Video Type:", videoType, "typeOfVideo:", typeOfVideo);
 
-                    // 화면 공유 스트림 (화면 캡처 스트림)
+                    // 화면 공유 스트림
                     if (videoType === "screen" || typeOfVideo === "SCREEN") {
                         const screenSub = sessionInstance.subscribe(event.stream, undefined);
                         setScreenSubscriber(screenSub);
                     }
 
-                    // 카메라 스트림 (CAMERA)
-                    if (event.stream.typeOfVideo === 'CAMERA') {
+                    // 카메라 스트림
+                    if (event.stream.typeOfVideo === "CAMERA") {
                         try {
                             const subscriber = sessionInstance.subscribe(event.stream, undefined);
                             setPublisher(subscriber);
                         } catch (error) {
-                            console.error('스트림 구독 중 오류:', error);
+                            console.error("스트림 구독 중 오류:", error);
                         }
                     }
                 });
 
-                // 토큰 요청 함수
                 const getToken = async () => {
                     try {
-                        const response = await api.post('/session/join', { type, childId });
+                        const response = await api.post("/session/join", { type, childId });
                         return response.data;
                     } catch (error) {
-                        console.error('❌ 토큰 요청 실패:', error);
+                        console.error("❌ 토큰 요청 실패:", error);
                         throw error;
                     }
                 };
@@ -56,7 +54,7 @@ function CounselorChildVideoCall() {
                 const token = await getToken();
                 await sessionInstance.connect(token);
 
-                // 상담사 웹캠 퍼블리싱 (자신의 영상 송출)
+                // 상담사 자신의 웹캠 publisher 생성
                 const myPublisher = OV.current.initPublisher(undefined, {
                     audioSource: true,
                     videoSource: true,
@@ -75,13 +73,44 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
+    // --- 추가: 주기적으로 화면 공유 스트림이 있는지 확인 (화면 재랜더링 문제 해결용) ---
+    useEffect(() => {
+        const checkForScreenShare = () => {
+            if (session && !screenSubscriber) {
+                // session.remoteStreams는 OpenVidu가 제공하는 모든 스트림 목록
+                const remoteStreams = session.remoteStreams || [];
+                const screenStream = remoteStreams.find((stream) => {
+                    const videoType = (stream.videoType || "").toLowerCase();
+                    const typeOfVideo = stream.typeOfVideo;
+                    return videoType === "screen" || typeOfVideo === "SCREEN";
+                });
+                if (screenStream) {
+                    const screenSub = session.subscribe(screenStream, undefined);
+                    setScreenSubscriber(screenSub);
+                }
+            }
+        };
+        const intervalId = setInterval(checkForScreenShare, 1000);
+        return () => clearInterval(intervalId);
+    }, [session, screenSubscriber]);
+
     return (
-        <div className="counselor-observe-container" style={{ width: "100%", height: "100%" }}>
+        <div
+            className="counselor-observe-container"
+            style={{ width: "100%", height: "100%" }}
+        >
             {/* 아동의 화면 공유 스트림 */}
             {screenSubscriber ? (
-                <div className="game-screen-share" style={{ width: "50%", height: "100%", float: "left" }}>
+                <div
+                    className="game-screen-share"
+                    style={{ width: "50%", height: "100%", float: "left" }}
+                >
                     <video
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                        }}
                         ref={(video) => {
                             if (video && screenSubscriber) {
                                 video.srcObject = screenSubscriber.stream.getMediaStream();
@@ -92,16 +121,18 @@ function CounselorChildVideoCall() {
                     />
                 </div>
             ) : (
-                <div style={{
-                    width: "50%",
-                    height: "100%",
-                    backgroundColor: "black",
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    float: "left"
-                }}>
+                <div
+                    style={{
+                        width: "50%",
+                        height: "100%",
+                        backgroundColor: "black",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        float: "left",
+                    }}
+                >
                     <p>아동의 화면 공유가 없습니다.</p>
                 </div>
             )}
