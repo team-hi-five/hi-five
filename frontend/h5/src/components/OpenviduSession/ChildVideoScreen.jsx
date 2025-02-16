@@ -1,7 +1,7 @@
-import { useEffect } from 'react'; 
+import { useEffect } from 'react';
 
-function ChildVideoScreen({ publisher, mode, videoRef }) {  // videoRef props로 받기
-    // videoRef를 사용하므로 내부 ref는 제거
+function ChildVideoScreen({ publisher, mode, videoRef }) {
+    // videoRef를 props로 받아 내부 ref는 사용하지 않습니다.
 
     const setVideoStream = () => {
         if (publisher && videoRef.current) {

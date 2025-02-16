@@ -90,7 +90,7 @@ function ChildReviewGamePage() {
       // 초기값 (publisher)
       const pub = OV.current.initPublisher(undefined, {
         audioSource: undefined,
-        videoSource: undefined,
+        videoSource: 'screen',
         publishAudio: true,
         publishVideo: true,
         mirror: true
@@ -110,51 +110,44 @@ function ChildReviewGamePage() {
 // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
 // 화면 공유버튼 클릭 -> 
 // 아동 페이지의 화면 공유 함수
-const createScreenShareStream = async () => {
-  try {
-    console.log('1. 화면 공유 시작 시도...');
-    if (screenSubscriber) {
-      console.log("📌 이미 화면 공유 중입니다.");
-      return;  // 이미 공유 중이면 추가로 실행하지 않음
-    }
+  const createScreenShareStream = async () => {
+    try {
+      console.log('1. 화면 공유 시작 시도...');
+      if (screenSubscriber) {
+        console.log("📌 이미 화면 공유 중입니다.");
+        return;
+      }
 
-    if (!stream) {
-      console.error("❌ 화면 공유 스트림이 없습니다.");
-      return;
-    }
+      // 화면 공유 스트림을 가져옴
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
 
-    // 화면 공유 스트림을 가져옴
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true, // 화면을 비디오로 캡처
-      audio: true, // 선택적으로 오디오도 캡처
-    });
-    
-    console.log("newScreenSubscriber 생성됨:", newScreenSubscriber);
-    
-    const newScreenSubscriber = OV.current.initPublisher(undefined, {
-      videoSource: 'screen',  // 화면 공유 지정
-      audioSource: true,     // 게임 소리도 전송
-      publishVideo: true,
-      mirror: false
-    });
-    console.log('2. newScreenSubscriber 생성됨:', newScreenSubscriber);
-    
-    setscreenSubscriber(newScreenSubscriber);
+      // 화면 공유 스트림 퍼블리셔 생성 (videoSource를 'screen'으로 지정)
+      const newScreenPublisher = OV.current.initPublisher(undefined, {
+        videoSource: 'screen',
+        audioSource: true,
+        publishVideo: true,
+        mirror: false,
+      });
 
-    // 사용자가 화면 공유를 중단했을 때 처리
-    newScreenSubscriber.stream.getVideoTracks()[0].addEventListener('ended', () => {
-      console.log('사용자가 화면 공유를 중단함');
-      session.unpublish(newScreenSubscriber);
+      // 화면 공유 스트림 퍼블리싱
+      await session.publish(newScreenPublisher);
+      setscreenSubscriber(newScreenPublisher);
+
+      // 사용자가 화면 공유 중단 시 처리
+      newScreenPublisher.stream.getVideoTracks()[0].addEventListener('ended', () => {
+        console.log('사용자가 화면 공유를 중단함');
+        session.unpublish(newScreenPublisher);
+        setscreenSubscriber(null);
+      });
+    } catch (error) {
+      console.error('❌ 화면 공유 중 오류:', error);
       setscreenSubscriber(null);
-    });
+    }
+  };
 
-  } catch (error) {
-    console.error('❌ 화면 공유 중 오류:', error);
-    console.error('에러 세부정보:', error.message);
-    // 에러 발생 시 상태 초기화
-    setscreenSubscriber(null);
-  }
-};
 
 // 화면 공유 시작 함수
 const startScreenShare = async () => {
