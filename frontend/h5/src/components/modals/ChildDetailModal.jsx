@@ -214,30 +214,6 @@ const ChildDetailModal = ({ isOpen, onClose, initialChildData, onDelete, onUpdat
         onClose();
     };
 
-    const handleDelete = async () => {
-        try {
-            const result = await DoubleButtonAlert('정말 삭제 하시겠습니까?');
-
-            if (result.isConfirmed) {
-                setIsLoading(true);
-
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    await onDelete(childData.id);
-                    await SingleButtonAlert('성공적으로 삭제되었습니다.');
-                    onClose();
-                } catch (error) {
-                    console.error('삭제 중 오류 발생:', error);
-                    await SingleButtonAlert('회원 삭제 중 오류가 발생했습니다.');
-                } finally {
-                    setIsLoading(false);
-                }
-            }
-        } catch (error) {
-            console.error('삭제 중 오류 발생:', error);
-        }
-    };
-
     const handleEditClick = () => {
         setIsEditing(true);
     };
@@ -390,13 +366,6 @@ const ChildDetailModal = ({ isOpen, onClose, initialChildData, onDelete, onUpdat
                                     <>
                                         <button className="btn-submit" onClick={handleEditClick}>
                                             <strong>수정</strong>
-                                        </button>
-                                        <button
-                                            className="btn-delete2"
-                                            onClick={handleDelete}
-                                            disabled={isLoading}
-                                        >
-                                            <strong>{isLoading ? '삭제 중...' : '회원삭제'}</strong>
                                         </button>
                                     </>
                                 )}
