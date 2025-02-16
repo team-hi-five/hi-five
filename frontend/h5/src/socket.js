@@ -1,5 +1,38 @@
-// 소켓 연결 설정 하는 파일
-// 소켓 동작은 컴포넌트에서 관리리 
-import { io }from 'socket.io-client';
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
 
-export const socket = io('서버주소')
+let stompClient;
+
+export const connectStomp = () => {
+    const socket = new SockJS('https://hi-five.site/api/ws');
+    stompClient = new Client({
+        webSocketFactory: () => socket,
+        reconnectDelay: 5000,
+        onConnect: () => {
+            console.log('STOMP 연결 성공!');
+            stompClient.subscribe('/user/queue/notifications', (message) => {
+                console.log('알림 수신: ', message.body);
+                alert('새 알림: ' + message.body);
+            });
+        },
+        onStompError: (frame) => {
+            console.error('STOMP 오류: ', frame);
+        }
+    });
+
+    stompClient.activate();
+
+    return stompClient;
+};
+
+export const sendNotification = (targetUser, message) => {
+    if (stompClient && stompClient.connected) {
+        stompClient.publish({
+            destination: '/app/send-notification',
+            body: JSON.stringify({ targetUser, message })
+        });
+    } else {
+        console.error('STOMP 연결이 되지 않았습니다.');
+    }
+};
+
