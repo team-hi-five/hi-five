@@ -167,10 +167,10 @@
 
 .ch-learning-stop-icon{
   box-sizing: border-box;
-  color: rgb(121, 170, 175);
+  color: rgb(203, 39, 39);
   color-scheme: light;
   display: block;
-  fill: rgb(120, 177, 182);
+  fill: rgb(203, 39, 39);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   font-size: 64px; /* 아이콘 크기 */
   font-variation-settings: normal;
