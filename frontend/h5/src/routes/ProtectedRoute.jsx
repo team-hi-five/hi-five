@@ -11,9 +11,9 @@ const ProtectedRoute = ({ allowedRoles }) => {
     return <div>Loading...</div>;
   }
 
-  // if (!allowedRoles.includes(role)) {
-  //   return <Navigate to="/unauthorized" replace />;
-  // }
+  if (!allowedRoles.includes(role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
   return <Outlet />;
 };
