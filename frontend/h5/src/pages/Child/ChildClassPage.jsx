@@ -12,6 +12,7 @@ import api from "../../api/api"
 import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen"
 import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild"
 
+
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
 
@@ -46,7 +47,7 @@ function ChildReviewGamePage() {
   // 나(자신)  
   const [publisher, setPublisher] = useState(null)
   // 화면공유
-  const [screenPublisher, setScreenPublisher] = useState(null);
+  const [screenSubscriber, setscreenSubscriber] = useState(null);
   // 오픈비두 객체 사용( 세션 초기화, 스트림 전송, 연결 및 종료 등의 작업)
   const OV = useRef(new OpenVidu());
 
@@ -108,23 +109,50 @@ function ChildReviewGamePage() {
 
 // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
 // 화면 공유버튼 클릭 -> 
+// 아동 페이지의 화면 공유 함수
 const createScreenShareStream = async () => {
   try {
-    const screenStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      audio: true
+    console.log('1. 화면 공유 시작 시도...');
+    if (screenSubscriber) {
+      console.log("📌 이미 화면 공유 중입니다.");
+      return;  // 이미 공유 중이면 추가로 실행하지 않음
+    }
+
+    if (!stream) {
+      console.error("❌ 화면 공유 스트림이 없습니다.");
+      return;
+    }
+
+    // 화면 공유 스트림을 가져옴
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true, // 화면을 비디오로 캡처
+      audio: true, // 선택적으로 오디오도 캡처
+    });
+    
+    console.log("newScreenSubscriber 생성됨:", newScreenSubscriber);
+    
+    const newScreenSubscriber = OV.current.initPublisher(undefined, {
+      videoSource: 'screen',  // 화면 공유 지정
+      audioSource: true,     // 게임 소리도 전송
+      publishVideo: true,
+      mirror: false
+    });
+    console.log('2. newScreenSubscriber 생성됨:', newScreenSubscriber);
+    
+    setscreenSubscriber(newScreenSubscriber);
+
+    // 사용자가 화면 공유를 중단했을 때 처리
+    newScreenSubscriber.stream.getVideoTracks()[0].addEventListener('ended', () => {
+      console.log('사용자가 화면 공유를 중단함');
+      session.unpublish(newScreenSubscriber);
+      setscreenSubscriber(null);
     });
 
-    const screenPublisher = OV.current.initPublisher(undefined, {
-      videoSource: screenStream,
-      publishAudio: true
-    });
-
-    // 세션에 화면 공유 스트림을 전송
-    await session.publish(screenPublisher);
-    setScreenPublisher(screenPublisher);  // 상태 업데이트
   } catch (error) {
-    console.error('화면 공유 중 오류:', error);
+    console.error('❌ 화면 공유 중 오류:', error);
+    console.error('에러 세부정보:', error.message);
+    // 에러 발생 시 상태 초기화
+    setscreenSubscriber(null);
   }
 };
 
@@ -134,13 +162,13 @@ const startScreenShare = async () => {
 };
 
 useEffect(() => {
-  if (screenPublisher && videoRef.current) {
-    const stream = screenPublisher.stream?.getMediaStream();
+  if (screenSubscriber && videoRef.current) {
+    const stream = screenSubscriber.stream?.getMediaStream();
     if (stream) {
       videoRef.current.srcObject = stream;
     }
   }
-}, [screenPublisher]);
+}, [screenSubscriber]);
 
   // --- 3. 컴포넌트가 처음 마운트될 때 세션 초기화 -------------------------
   useEffect(() => {
@@ -960,9 +988,13 @@ useEffect(() => {
                 <img src="/child/button-right.png" alt="button-right" onClick={NextChapter} />
                 <p>다음 단원</p>
                 <BsStopBtnFill onClick={StopVideo} className="ch-learning-stop-icon" />
-                <button onClick={startScreenShare} disabled={screenPublisher !== null}>
-                  {screenPublisher ? "화면 공유 중" : "화면 공유 시작"}
-                </button>
+                <button 
+                    onClick={startScreenShare} 
+                    disabled={screenSubscriber !== null}
+                    className="game-screen-share-button"
+                  >
+                    {screenSubscriber ? "화면 공유 중" : "게임 화면 공유하기"}
+              </button>
               </div>
             </div>
           </div>

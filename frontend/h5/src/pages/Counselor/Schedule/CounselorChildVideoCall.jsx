@@ -1,8 +1,6 @@
 import api from "../../../api/api"
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
-import CounselorCamWithChild from '../../../components/OpenviduSession/CounselorCamWithChild';
-import ChildScreenShare from "../../../components/OpenviduSession/ChildShareScreen";
 import { useSearchParams } from 'react-router-dom';
 
 function CounselorChildVideoCall() {
@@ -19,13 +17,15 @@ function CounselorChildVideoCall() {
     const initSession = async () => {
       try {
         const sessionInstance = OV.current.initSession();
-
          // 스트림 생성 이벤트: videoType을 소문자로 변환하여 "screen"인 경우에만 구독
-      sessionInstance.on("streamCreated", (event) => {
-        const videoType = (event.stream.videoType || "").toLowerCase();
-
+         
+          sessionInstance.on("스트림발생!!!!", (event) => {
+          console.log("Stream Created Event:", event);
+          const videoType = (event.stream.videoType || "").toLowerCase();
+          const typeOfVideo = event.stream.typeOfVideo
+          console.log("Video Type:", videoType);
       // 화면 공유 스트림 구독
-      if (videoType === "screen") {
+      if (videoType === "screen" || typeOfVideo === "SCREEN") {
         const screenSub = sessionInstance.subscribe(event.stream, undefined);
         setScreenSubscriber(screenSub);
       }
