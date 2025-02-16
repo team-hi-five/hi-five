@@ -20,39 +20,26 @@ function CounselorChildVideoCall() {
       try {
         const sessionInstance = OV.current.initSession();
 
-        // 스트림 구독 설정
-        sessionInstance.on("streamCreated", (event) => {
-          console.log('Stream Created Event:', event);
-          console.log('Stream Video Type:', event.stream.videoType);
+         // 스트림 생성 이벤트: videoType을 소문자로 변환하여 "screen"인 경우에만 구독
+      sessionInstance.on("streamCreated", (event) => {
+        const videoType = (event.stream.videoType || "").toLowerCase();
 
-          console.log('스트림 타입들:', {
-            typeOfVideo: event.stream.typeOfVideo,
-            videoType: event.stream.videoType
-          });
+      // 화면 공유 스트림 구독
+      if (videoType === "screen") {
+        const screenSub = sessionInstance.subscribe(event.stream, undefined);
+        setScreenSubscriber(screenSub);
+      }
 
-                  // 모든 스트림 구독 시도
-                  try {
-                    const subscriber = sessionInstance.subscribe(event.stream, undefined);
-                    console.log('구독된 스트림:', subscriber);
-                    console.log('구독된 스트림 상세 정보:', {
-                      id: subscriber.stream.streamId,
-                      hasVideo: subscriber.stream.hasVideo,
-                      hasAudio: subscriber.stream.hasAudio
-                    });
-          
-                    // 카메라 스트림 확인
-                    if (event.stream.typeOfVideo === 'CAMERA') {
-                      setPublisher(subscriber);
-                    }
-                    
-                    // 화면 공유 스트림 확인
-                    if (event.stream.typeOfVideo === 'SCREEN') {
-                      setScreenSubscriber(subscriber);
-                    }
-                  } catch (error) {
-                    console.error('스트림 구독 중 오류:', error);
-                  }
-                });
+    // 카메라 스트림 확인 (typeOfVideo 사용)
+    if (event.stream.typeOfVideo === 'CAMERA') {
+      try {
+        const subscriber = sessionInstance.subscribe(event.stream, undefined);
+        setPublisher(subscriber);
+      } catch (error) {
+        console.error('스트림 구독 중 오류:', error);
+      }
+    }
+    });
 
         // 토큰 요청 함수
         const getToken = async () => {
@@ -89,24 +76,53 @@ function CounselorChildVideoCall() {
 
     
       return (
-        <div className="counselor-observe-container">
-          {/* ✅ 아동의 게임 화면 공유 (있을 경우에만 표시) */}
-          {screenSubscriber && (
-            <div className="ch-learning-screen-share">
-              <ChildScreenShare
-                subscriber={screenSubscriber} 
-                session={session}
-              />
-            </div>
-          )}
+        <div className="counselor-observe-container" style={{ width: "100%", height: "100%" }}>
+        {/* 아동의 화면 공유 스트림 */}
+        {screenSubscriber ? (
+          <div className="game-screen-share" style={{ width: "50%", height: "100%", float: "left" }}>
+            <video
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              ref={(video) => {
+                if (video && screenSubscriber) {
+                  video.srcObject = screenSubscriber.stream.getMediaStream();
+                }
+              }}
+              autoPlay
+              playsInline
+            />
+          </div>
+        ) : (
+          <div style={{
+            width: "50%", 
+            height: "100%", 
+            backgroundColor: "black",
+            color: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            float: "left"
+          }}>
+            <p>아동의 화면 공유가 없습니다.</p>
+          </div>
+        )}
     
-          {/* ✅ 상담사 자신의 캠 화면 */}
-          {publisher && (
-            <div className="ch-counselor-self-view">
-              <CounselorCamWithChild subscriber={publisher} mode="publish" />
-            </div>
-          )}
-        </div>
+        {/* 상담사 웹캠 */}
+        {publisher && (
+          <div style={{ width: "50%", height: "100%", float: "right" }}>
+            <video
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              ref={(video) => {
+                if (video && publisher) {
+                  video.srcObject = publisher.stream.getMediaStream();
+                }
+              }}
+              autoPlay
+              muted
+              playsInline
+            />
+          </div>
+        )}
+      </div>
       );
     }
 export default CounselorChildVideoCall;
