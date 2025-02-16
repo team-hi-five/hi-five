@@ -7,10 +7,10 @@ import * as faceapi from "face-api.js";
 import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
-import { OpenVidu } from 'openvidu-browser';
+import { OpenVidu } from "openvidu-browser";
 import api from "../../api/api";
-import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen";
-import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
+import ChildVideoScreen from "../../components/OpenViduSession/ChildVideoScreen";
+import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
@@ -39,28 +39,27 @@ function ChildReviewGamePage() {
   const [voiceResult, setVoiceResult] = useState(null);
   const [analysisCycle, setAnalysisCycle] = useState(1);
 
-  // 오픈비두
+  // 오픈비두 관련 state
   const [session, setSession] = useState(null);
-  // 상대방 (상담사 화면)
-  const [subscriber, setSubscriber] = useState([]);
-  // 나(자신)
-  const [publisher, setPublisher] = useState(null);
-  // 화면공유 (아동 측 publish용)
-  const [screenSubscriber, setscreenSubscriber] = useState(null);
-  // 오픈비두 객체 (세션 초기화, 스트림 전송, 연결 등)
+  // 상담사 화면(구독) – 별도로 관리 (예: 상담사 웹캠)
+  const [subscriber, setSubscriber] = useState(null);
+  // 아동의 웹캠 publisher (ChildVideoScreen에 전달)
+  const [webcamPublisher, setWebcamPublisher] = useState(null);
+  // 아동의 화면 공유 publisher (세션에 publish만 하고, 아동 화면에는 노출하지 않음)
+  const [screenPublisher, setScreenPublisher] = useState(null);
   const OV = useRef(new OpenVidu());
 
   // --- 0. 오픈비두 토큰 받기 -------------------------
   async function getToken() {
     try {
-      const response = await api.post('/session/join', {
-        type: 'game',
-        childId
+      const response = await api.post("/session/join", {
+        type: "game",
+        childId,
       });
       console.log("토큰!:", response.data);
       return response.data;
     } catch (error) {
-      console.error('토큰 요청 실패:', error);
+      console.error("토큰 요청 실패:", error);
       throw error;
     }
   }
@@ -70,74 +69,69 @@ function ChildReviewGamePage() {
     try {
       const sessionInstance = OV.current.initSession();
 
-      // 스트림 감지 (다른 참가자 웹캠)
-      sessionInstance.on('streamCreated', (event) => {
+      // 상담사 등의 다른 스트림 구독 (본인의 스트림은 자동 구독되지 않음)
+      sessionInstance.on("streamCreated", (event) => {
+        if (event.stream.connection.connectionId === sessionInstance.connection.connectionId)
+          return;
+        console.log("[initializeSession] 새 스트림 구독:", event);
         const subscriber = sessionInstance.subscribe(event.stream, undefined);
         setSubscriber(subscriber);
       });
 
-      sessionInstance.on('streamDestroyed', (event) => {
-        setSubscriber(null);  // null로 초기화
+      sessionInstance.on("streamDestroyed", (event) => {
+        setSubscriber(null);
       });
 
       const token = await getToken();
-      // 토큰을 통해 세션과 스트림구독을 연결
       await sessionInstance.connect(token);
 
-      // 초기값 (publisher: 화면 공유 퍼블리셔 생성)
-      const pub = OV.current.initPublisher(undefined, {
-        audioSource: undefined,
-        videoSource: 'screen', // 화면 공유용 스트림 (아동은 공유할 화면을 publish)
+      // 아동의 웹캠 publisher 생성 (기본 webcam 영상)
+      const webcamPub = OV.current.initPublisher(undefined, {
         publishAudio: true,
         publishVideo: true,
-        mirror: true
+        mirror: true,
       });
+      await sessionInstance.publish(webcamPub);
+      setWebcamPublisher(webcamPub);
 
-      await sessionInstance.publish(pub);
       setSession(sessionInstance);
-      setPublisher(pub);
     } catch (error) {
-      console.error('세션 초기화 오류:', error);
+      console.error("세션 초기화 오류:", error);
     }
   }, []);
 
   // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
-  // 아동 페이지의 화면 공유 함수
   const createScreenShareStream = async () => {
     try {
-      console.log('1. 화면 공유 시작 시도...');
-      if (screenSubscriber) {
+      console.log("1. 화면 공유 시작 시도...");
+      if (screenPublisher) {
         console.log("📌 이미 화면 공유 중입니다.");
         return;
       }
-
-      // 화면 공유 스트림을 가져옴
-      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+      // 화면 공유 스트림 획득
+      await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
       });
-
-      // 화면 공유 스트림 퍼블리셔 생성 (videoSource를 'screen'으로 지정)
-      const newScreenPublisher = OV.current.initPublisher(undefined, {
-        videoSource: 'screen',
+      // 화면 공유 publisher 생성 (videoSource를 'screen'으로 지정)
+      const screenPub = OV.current.initPublisher(undefined, {
+        videoSource: "screen",
         audioSource: true,
         publishVideo: true,
         mirror: false,
       });
-
-      // 화면 공유 스트림 퍼블리싱
-      await session.publish(newScreenPublisher);
-      setscreenSubscriber(newScreenPublisher);
+      await session.publish(screenPub);
+      setScreenPublisher(screenPub);
 
       // 사용자가 화면 공유 중단 시 처리
-      newScreenPublisher.stream.getVideoTracks()[0].addEventListener('ended', () => {
-        console.log('사용자가 화면 공유를 중단함');
-        session.unpublish(newScreenPublisher);
-        setscreenSubscriber(null);
+      screenPub.stream.getVideoTracks()[0].addEventListener("ended", () => {
+        console.log("사용자가 화면 공유를 중단함");
+        session.unpublish(screenPub);
+        setScreenPublisher(null);
       });
     } catch (error) {
-      console.error('❌ 화면 공유 중 오류:', error);
-      setscreenSubscriber(null);
+      console.error("❌ 화면 공유 중 오류:", error);
+      setScreenPublisher(null);
     }
   };
 
@@ -145,18 +139,6 @@ function ChildReviewGamePage() {
   const startScreenShare = async () => {
     await createScreenShareStream();
   };
-
-  // **[수정]** 아동 측에서는 화면 공유 스트림을 자기가 렌더링하지 않도록 아래 useEffect를 제거 또는 주석 처리합니다.
-  /*
-  useEffect(() => {
-    if (screenSubscriber && videoRef.current) {
-      const stream = screenSubscriber.stream?.getMediaStream();
-      if (stream) {
-        videoRef.current.srcObject = stream;
-      }
-    }
-  }, [screenSubscriber]);
-  */
 
   // --- 3. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {
@@ -166,7 +148,7 @@ function ChildReviewGamePage() {
     };
   }, []);
 
-  // --- 1. API를 통해 동영상 데이터 로드 ----------------
+  // --- 4. API를 통해 동영상 데이터 로드 ----------------
   useEffect(() => {
     const fetchLimitData = async () => {
       console.log("[fetchLimitData] 호출됨 - childId:", childId);
@@ -198,12 +180,18 @@ function ChildReviewGamePage() {
   // 현재데이터 변경 시 실행
   useEffect(() => {
     if (currentGameData) {
-      console.log("[useEffect - currentGameData] 업데이트된 currentGameData:", currentGameData);
-      console.log("[useEffect - currentGameData] currentGameData.chapterId:", currentGameData?.chapterId);
+      console.log(
+          "[useEffect - currentGameData] 업데이트된 currentGameData:",
+          currentGameData
+      );
+      console.log(
+          "[useEffect - currentGameData] currentGameData.chapterId:",
+          currentGameData?.chapterId
+      );
     }
   }, [currentGameData]);
 
-  // --- 1. face-api 모델 로드 ---
+  // --- 5. face-api 모델 로드 ---
   useEffect(() => {
     const loadModels = async () => {
       console.log("[loadModels] 호출됨 - face-api 모델 로드 시작");
@@ -219,7 +207,7 @@ function ChildReviewGamePage() {
     loadModels();
   }, []);
 
-  // --- 3. 웹캠 스트림 시작 ----------------------------
+  // --- 6. 웹캠 스트림 시작 (로컬 미리보기용) ----------------------------
   useEffect(() => {
     const startWebcam = async () => {
       console.log("[startWebcam] 호출됨 - 웹캠 스트림 시작");
@@ -238,7 +226,7 @@ function ChildReviewGamePage() {
     startWebcam();
   }, []);
 
-  // --- 4. 시작 버튼 누른 후 시작 (모달) ---------------------
+  // --- 7. 시작 버튼 클릭 후 모달로 시작 (예: "감정아! 같이 공부해 볼까?") ---------------------
   useEffect(() => {
     console.log("[useEffect - 시작 모달] 호출됨 - 시작 버튼 모달 실행");
     Swal.fire({
@@ -255,7 +243,7 @@ function ChildReviewGamePage() {
     });
   }, []);
 
-  // --- phase가 "video"이고 showContent가 true일 때 동영상 자동 재생 ---------------------
+  // --- 8. phase가 "video"이고 showContent가 true일 때 동영상 자동 재생 ---------------------
   useEffect(() => {
     if (phase === "video" && currentGameData && videoRef.current && showContent) {
       videoRef.current
@@ -269,10 +257,15 @@ function ChildReviewGamePage() {
     }
   }, [phase, currentGameData, showContent]);
 
-  // --- 모달: 분석 전 (분석 종류에 따라 분기) ---
+  // --- 9. 모달: 분석 전 (분석 종류에 따라 분기) ---
   useEffect(() => {
     if (phase === "analysisModal") {
-      console.log("[useEffect - analysisModal] 현재 phase:", phase, "analysisCycle:", analysisCycle);
+      console.log(
+          "[useEffect - analysisModal] 현재 phase:",
+          phase,
+          "analysisCycle:",
+          analysisCycle
+      );
       if (analysisCycle === 1 || analysisCycle === 2) {
         setPhase("analysis");
         runConcurrentAnalysis();
@@ -286,13 +279,15 @@ function ChildReviewGamePage() {
     }
   }, [phase, analysisCycle]);
 
-  // --- 비디오 종료 시 감정 분석 시작 ----------------------------
+  // --- 10. 비디오 종료 시 감정 분석 시작 ----------------------------
   const handleVideoEnd = () => {
-    console.log("[handleVideoEnd] 호출됨 - 비디오 종료, phase 변경 -> analysisModal");
+    console.log(
+        "[handleVideoEnd] 호출됨 - 비디오 종료, phase 변경 -> analysisModal"
+    );
     setPhase("analysisModal");
   };
 
-  // --- 표정 분석 보조 함수: 평균 감정 계산 ---
+  // --- 11. 표정 분석 보조 함수: 평균 감정 계산 ---
   const computeAverageEmotion = (data) => {
     console.log("[computeAverageEmotion] 호출됨 - 감정 데이터 평균 계산 시작");
     let sum = {
@@ -307,7 +302,10 @@ function ChildReviewGamePage() {
     let count = 0;
     data.forEach((item, dataIndex) => {
       item.emotions.forEach((emotionObj, emotionIndex) => {
-        console.log(`[computeAverageEmotion] dataIndex ${dataIndex}, emotionIndex ${emotionIndex}:`, emotionObj);
+        console.log(
+            `[computeAverageEmotion] dataIndex ${dataIndex}, emotionIndex ${emotionIndex}:`,
+            emotionObj
+        );
         Object.keys(sum).forEach((key) => {
           sum[key] += emotionObj[key] || 0;
         });
@@ -326,9 +324,11 @@ function ChildReviewGamePage() {
     return avg;
   };
 
-  // --- 동시 분석 실행 함수: 표정 및 음성 동시에 진행 (사이클 1,2) ---
+  // --- 12. 동시 분석 실행 함수: 표정 및 음성 동시에 진행 (사이클 1,2) ---
   const runConcurrentAnalysis = async () => {
-    console.log("[runConcurrentAnalysis] 호출됨 - 동시 분석 시작 (표정 및 음성)");
+    console.log(
+        "[runConcurrentAnalysis] 호출됨 - 동시 분석 시작 (표정 및 음성)"
+    );
     // 표정 분석 Promise (9초간 분석)
     const facePromise = new Promise((resolve) => {
       console.log("[facePromise] 표정 분석 시작: 9초간 분석 시작");
@@ -336,7 +336,10 @@ function ChildReviewGamePage() {
       const intervalId = setInterval(async () => {
         if (webcamRef.current) {
           const detections = await faceapi
-              .detectAllFaces(webcamRef.current, new faceapi.TinyFaceDetectorOptions())
+              .detectAllFaces(
+                  webcamRef.current,
+                  new faceapi.TinyFaceDetectorOptions()
+              )
               .withFaceLandmarks()
               .withFaceExpressions();
           console.log("[facePromise] 감지 결과:", detections);
@@ -346,7 +349,10 @@ function ChildReviewGamePage() {
               timestamp: new Date().toISOString(),
               emotions,
             });
-            console.log("[facePromise] 현재 분석 데이터:", analysisDataRef.current);
+            console.log(
+                "[facePromise] 현재 분석 데이터:",
+                analysisDataRef.current
+            );
           }
         }
       }, 100);
@@ -354,7 +360,10 @@ function ChildReviewGamePage() {
       setTimeout(() => {
         clearInterval(analysisIntervalRef.current);
         analysisIntervalRef.current = null;
-        console.log("[facePromise] 9초 분석 종료, 분석 데이터:", analysisDataRef.current);
+        console.log(
+            "[facePromise] 9초 분석 종료, 분석 데이터:",
+            analysisDataRef.current
+        );
         const avgEmotion = computeAverageEmotion(analysisDataRef.current);
         if (!avgEmotion) {
           resolve("표정 분석 실패");
@@ -367,7 +376,13 @@ function ChildReviewGamePage() {
         }));
         candidateAverages.sort((a, b) => b.value - a.value);
         const bestEmotion = candidateAverages[0].emotion;
-        const expectedEmotions = ["happy", "sad", "angry", "fearful", "surprised"];
+        const expectedEmotions = [
+          "happy",
+          "sad",
+          "angry",
+          "fearful",
+          "surprised",
+        ];
         const expectedEmotion = expectedEmotions[currentVideoIndex] || "없음";
         const resultMsg =
             bestEmotion === expectedEmotion
@@ -381,12 +396,18 @@ function ChildReviewGamePage() {
     // 음성 인식 Promise
     const voicePromise = new Promise((resolve, reject) => {
       console.log("[voicePromise] 음성 인식 시작");
-      if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
-        console.error("[voicePromise] 이 브라우저는 Speech Recognition을 지원하지 않습니다.");
+      if (
+          !("webkitSpeechRecognition" in window) &&
+          !("SpeechRecognition" in window)
+      ) {
+        console.error(
+            "[voicePromise] 이 브라우저는 Speech Recognition을 지원하지 않습니다."
+        );
         reject("이 브라우저는 Speech Recognition을 지원하지 않습니다.");
         return;
       }
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       recognition.lang = "ko-KR";
       recognition.interimResults = false;
@@ -407,7 +428,10 @@ function ChildReviewGamePage() {
         }
         console.log("[voicePromise] 최종 음성 결과:", finalResult);
         const optionsArray = currentGameData.options;
-        const bestMatch = stringSimilarity.findBestMatch(finalResult, optionsArray);
+        const bestMatch = stringSimilarity.findBestMatch(
+            finalResult,
+            optionsArray
+        );
         const bestOptionIndex = bestMatch.bestMatchIndex;
         const voiceMsg =
             bestOptionIndex === currentGameData.answer - 1
@@ -426,8 +450,16 @@ function ChildReviewGamePage() {
     });
 
     try {
-      const [faceMsg, voiceMsg] = await Promise.all([facePromise, voicePromise]);
-      console.log("[runConcurrentAnalysis] 동시 분석 완료 - faceMsg:", faceMsg, ", voiceMsg:", voiceMsg);
+      const [faceMsg, voiceMsg] = await Promise.all([
+        facePromise,
+        voicePromise,
+      ]);
+      console.log(
+          "[runConcurrentAnalysis] 동시 분석 완료 - faceMsg:",
+          faceMsg,
+          ", voiceMsg:",
+          voiceMsg
+      );
       setFaceResult(faceMsg);
       setVoiceResult(voiceMsg);
       setPhase("analysisResult");
@@ -437,7 +469,7 @@ function ChildReviewGamePage() {
     }
   };
 
-  // --- 얼굴(표정) 분석만 진행 (사이클 3) ------------------------
+  // --- 13. 얼굴(표정) 분석만 진행 (사이클 3) ------------------------
   const runFaceAnalysis = async () => {
     console.log("[runFaceAnalysis] 호출됨 - 얼굴 분석 시작 (표정 연습)");
     const faceMsg = await new Promise((resolve) => {
@@ -446,7 +478,10 @@ function ChildReviewGamePage() {
       const intervalId = setInterval(async () => {
         if (webcamRef.current) {
           const detections = await faceapi
-              .detectAllFaces(webcamRef.current, new faceapi.TinyFaceDetectorOptions())
+              .detectAllFaces(
+                  webcamRef.current,
+                  new faceapi.TinyFaceDetectorOptions()
+              )
               .withFaceLandmarks()
               .withFaceExpressions();
           console.log("[faceAnalysis] 감지 결과:", detections);
@@ -456,7 +491,10 @@ function ChildReviewGamePage() {
               timestamp: new Date().toISOString(),
               emotions,
             });
-            console.log("[faceAnalysis] 현재 분석 데이터:", analysisDataRef.current);
+            console.log(
+                "[faceAnalysis] 현재 분석 데이터:",
+                analysisDataRef.current
+            );
           }
         }
       }, 100);
@@ -464,7 +502,10 @@ function ChildReviewGamePage() {
       setTimeout(() => {
         clearInterval(analysisIntervalRef.current);
         analysisIntervalRef.current = null;
-        console.log("[faceAnalysis] 9초 분석 종료, 분석 데이터:", analysisDataRef.current);
+        console.log(
+            "[faceAnalysis] 9초 분석 종료, 분석 데이터:",
+            analysisDataRef.current
+        );
         const avgEmotion = computeAverageEmotion(analysisDataRef.current);
         if (!avgEmotion) {
           resolve("표정 분석 실패");
@@ -477,7 +518,13 @@ function ChildReviewGamePage() {
         }));
         candidateAverages.sort((a, b) => b.value - a.value);
         const bestEmotion = candidateAverages[0].emotion;
-        const expectedEmotions = ["happy", "sad", "angry", "fearful", "surprised"];
+        const expectedEmotions = [
+          "happy",
+          "sad",
+          "angry",
+          "fearful",
+          "surprised",
+        ];
         const expectedEmotion = expectedEmotions[currentVideoIndex] || "없음";
         const resultMsg =
             bestEmotion === expectedEmotion
@@ -492,16 +539,22 @@ function ChildReviewGamePage() {
     console.log("[runFaceAnalysis] 얼굴 분석 완료, faceResult:", faceMsg);
   };
 
-  // --- 음성 분석만 진행 (사이클 4) -----------------------------
+  // --- 14. 음성 분석만 진행 (사이클 4) -----------------------------
   const runVoiceAnalysis = async () => {
     console.log("[runVoiceAnalysis] 호출됨 - 음성 분석 시작 (말 연습)");
     const voiceMsg = await new Promise((resolve, reject) => {
-      if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
-        console.error("[runVoiceAnalysis] 이 브라우저는 Speech Recognition을 지원하지 않습니다.");
+      if (
+          !("webkitSpeechRecognition" in window) &&
+          !("SpeechRecognition" in window)
+      ) {
+        console.error(
+            "[runVoiceAnalysis] 이 브라우저는 Speech Recognition을 지원하지 않습니다."
+        );
         reject("이 브라우저는 Speech Recognition을 지원하지 않습니다.");
         return;
       }
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition =
+          window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       recognition.lang = "ko-KR";
       recognition.interimResults = false;
@@ -522,7 +575,10 @@ function ChildReviewGamePage() {
         }
         console.log("[runVoiceAnalysis] 최종 음성 결과:", finalResult);
         const optionsArray = currentGameData.options;
-        const bestMatch = stringSimilarity.findBestMatch(finalResult, optionsArray);
+        const bestMatch = stringSimilarity.findBestMatch(
+            finalResult,
+            optionsArray
+        );
         const bestOptionIndex = bestMatch.bestMatchIndex;
         const resultMsg =
             bestOptionIndex === currentGameData.answer - 1
@@ -544,10 +600,15 @@ function ChildReviewGamePage() {
     console.log("[runVoiceAnalysis] 음성 분석 완료, voiceResult:", voiceMsg);
   };
 
-  // --- 결과 표시 후 다음 사이클 또는 다음 영상으로 전환 ---
+  // --- 15. 결과 표시 후 다음 사이클 또는 다음 영상으로 전환 ---
   useEffect(() => {
     if (phase === "analysisResult") {
-      console.log("[useEffect - analysisResult] phase:", phase, "analysisCycle:", analysisCycle);
+      console.log(
+          "[useEffect - analysisResult] phase:",
+          phase,
+          "analysisCycle:",
+          analysisCycle
+      );
       if (analysisCycle === 1 || analysisCycle === 2) {
         Swal.fire({
           title: `분석 결과예요!`,
@@ -561,10 +622,16 @@ function ChildReviewGamePage() {
           showConfirmButton: true,
           confirmButtonText: "다음으로"
         }).then((result) => {
-          console.log("[useEffect - analysisResult] concurrent analysis modal result:", result);
+          console.log(
+              "[useEffect - analysisResult] concurrent analysis modal result:",
+              result
+          );
           if (result.isConfirmed) {
             if (analysisCycle === 1) {
-              if (faceResult.includes("정답") && voiceResult.includes("정답")) {
+              if (
+                  faceResult.includes("정답") &&
+                  voiceResult.includes("정답")
+              ) {
                 Swal.fire({
                   title: "이제 표정 연습을 해볼까요?",
                   text: "거울을 보면서 천천히 따라해보세요!",
@@ -574,7 +641,9 @@ function ChildReviewGamePage() {
                   timer: 3000,
                   showConfirmButton: false
                 }).then(() => {
-                  console.log("[useEffect - analysisResult] 표정 연습 모달 완료, cycle 변경 -> 3");
+                  console.log(
+                      "[useEffect - analysisResult] 표정 연습 모달 완료, cycle 변경 -> 3"
+                  );
                   setAnalysisCycle(3);
                   setFaceResult(null);
                   setVoiceResult(null);
@@ -590,7 +659,9 @@ function ChildReviewGamePage() {
                   timer: 3000,
                   showConfirmButton: false
                 }).then(() => {
-                  console.log("[useEffect - analysisResult] 다시 연습 모달 완료, cycle 변경 -> 2");
+                  console.log(
+                      "[useEffect - analysisResult] 다시 연습 모달 완료, cycle 변경 -> 2"
+                  );
                   setAnalysisCycle(2);
                   setFaceResult(null);
                   setVoiceResult(null);
@@ -607,7 +678,9 @@ function ChildReviewGamePage() {
                 timer: 3000,
                 showConfirmButton: false
               }).then(() => {
-                console.log("[useEffect - analysisResult] 두 번째 분석 후 표정 연습, cycle 변경 -> 3");
+                console.log(
+                    "[useEffect - analysisResult] 두 번째 분석 후 표정 연습, cycle 변경 -> 3"
+                );
                 setAnalysisCycle(3);
                 setFaceResult(null);
                 setVoiceResult(null);
@@ -626,7 +699,9 @@ function ChildReviewGamePage() {
           timer: 3000,
           showConfirmButton: false
         }).then(() => {
-          console.log("[useEffect - analysisResult] face analysis modal 자동 종료");
+          console.log(
+              "[useEffect - analysisResult] face analysis modal 자동 종료"
+          );
           Swal.fire({
             title: "이제 말 연습을 해볼까요?",
             text: "아래 글자를 천천히 따라해보세요!",
@@ -658,7 +733,9 @@ function ChildReviewGamePage() {
             setVoiceResult(null);
             setPhase("analysisModal");
           } else if (result.dismiss === Swal.DismissReason.cancel) {
-            console.log("[useEffect - analysisResult] '다음으로 넘어가기' 선택됨");
+            console.log(
+                "[useEffect - analysisResult] '다음으로 넘어가기' 선택됨"
+            );
             Swal.fire({
               html: `
                 <style>
@@ -725,9 +802,13 @@ function ChildReviewGamePage() {
                   timer: 3000,
                   showConfirmButton: false,
                 }).then(async () => {
-                  console.log("[useEffect - analysisResult] NextChapter 호출 (자동)");
+                  console.log(
+                      "[useEffect - analysisResult] NextChapter 호출 (자동)"
+                  );
                   await NextChapter();
-                  console.log("[useEffect - analysisResult] NextChapter 완료, cycle 초기화");
+                  console.log(
+                      "[useEffect - analysisResult] NextChapter 완료, cycle 초기화"
+                  );
                   setAnalysisCycle(1);
                   setFaceResult(null);
                   setVoiceResult(null);
@@ -742,9 +823,11 @@ function ChildReviewGamePage() {
   }, [phase, analysisCycle, faceResult, voiceResult, currentGameData?.gameStageId]);
 
   // --- 제어 기능 ------------------------------
-  // 정지
+  // 정지 버튼: 비디오 재생/정지 및 분석 인터벌 중지
   const StopVideo = () => {
-    console.log("[StopVideo] 호출됨 - 비디오 재생 상태 토글 및 분석 중지");
+    console.log(
+        "[StopVideo] 호출됨 - 비디오 재생 상태 토글 및 분석 중지"
+    );
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -767,7 +850,12 @@ function ChildReviewGamePage() {
   const NextChapter = async () => {
     console.log("[NextChapter] 호출됨 - 다음 단원으로 이동");
     const nextStageId = currentGameData.gameStageId + 1;
-    console.log("[NextChapter] 현재 단원:", currentGameData.gameStageId, "다음 단원:", nextStageId);
+    console.log(
+        "[NextChapter] 현재 단원:",
+        currentGameData.gameStageId,
+        "다음 단원:",
+        nextStageId
+    );
     if (nextStageId > 5) {
       Swal.fire({
         title: `${currentGameData.chapterId}단계 마지막이에요!`,
@@ -780,7 +868,11 @@ function ChildReviewGamePage() {
       return;
     }
     setChapterAndStage(currentGameData.chapterId, nextStageId);
-    console.log("[NextChapter] 단원 설정 업데이트:", currentGameData.chapterId, nextStageId);
+    console.log(
+        "[NextChapter] 단원 설정 업데이트:",
+        currentGameData.chapterId,
+        nextStageId
+    );
     const gameData = await useGameStore.getState().getCurrentGameData();
     console.log("[NextChapter] 업데이트된 게임 데이터:", gameData);
     setCurrentGameData(gameData);
@@ -793,10 +885,19 @@ function ChildReviewGamePage() {
   const PrevChapter = async () => {
     console.log("[PrevChapter] 호출됨 - 이전 단원으로 이동");
     const prevStageId = currentGameData.gameStageId - 1;
-    console.log("[PrevChapter] 현재 단원:", currentGameData.gameStageId, "이전 단원:", prevStageId);
+    console.log(
+        "[PrevChapter] 현재 단원:",
+        currentGameData.gameStageId,
+        "이전 단원:",
+        prevStageId
+    );
     if (prevStageId > 0) {
       setChapterAndStage(currentGameData.chapterId, prevStageId);
-      console.log("[PrevChapter] 단원 설정 업데이트:", currentGameData.chapterId, prevStageId);
+      console.log(
+          "[PrevChapter] 단원 설정 업데이트:",
+          currentGameData.chapterId,
+          prevStageId
+      );
     }
     const gameData = await useGameStore.getState().getCurrentGameData();
     console.log("[PrevChapter] 업데이트된 게임 데이터:", gameData);
@@ -850,19 +951,23 @@ function ChildReviewGamePage() {
                     currentGameData?.options?.length > 0 ? (
                         <div className="option-images">
                           {currentGameData.optionImages.map((imgSrc, index) => (
-                              <div key={index}
-                                   className="learning-option-item"
-                              >
+                              <div key={index} className="learning-option-item">
                                 <img
                                     src={imgSrc}
                                     alt={`option ${index + 1}`}
                                     className="option-image"
                                 />
-                                <p className={`${
-                                    analysisCycle < 3
-                                        ? (index + 1 === currentGameData?.answer ? 'ch-learning-before-answer' : '')
-                                        : (index + 1 === currentGameData?.answer ? 'ch-learning-correct-answer' : '')
-                                }`}>
+                                <p
+                                    className={`${
+                                        analysisCycle < 3
+                                            ? index + 1 === currentGameData?.answer
+                                                ? "ch-learning-before-answer"
+                                                : ""
+                                            : index + 1 === currentGameData?.answer
+                                                ? "ch-learning-correct-answer"
+                                                : ""
+                                    }`}
+                                >
                                   {currentGameData.options[index]}
                                 </p>
                               </div>
@@ -885,7 +990,7 @@ function ChildReviewGamePage() {
           <div className="ch-game-face-screen">
             <Card className="ch-game-Top-section">
               <ChildVideoScreen
-                  publisher={publisher}
+                  publisher={webcamPublisher}
                   session={session}
                   videoRef={webcamRef}
               />
@@ -893,7 +998,11 @@ function ChildReviewGamePage() {
             <div className="ch-learning-middle-section"></div>
             <div className="ch-learning-bottom-section">
               <div className="ch-learning-button-left">
-                <img src="/child/button-left.png" alt="button-left" onClick={PrevChapter} />
+                <img
+                    src="/child/button-left.png"
+                    alt="button-left"
+                    onClick={PrevChapter}
+                />
                 <p> 이전 단원</p>
               </div>
               {/* 오른쪽: 상담사 화면 영역 */}
@@ -905,15 +1014,22 @@ function ChildReviewGamePage() {
                 />
               </Card>
               <div className="ch-learning-button-right">
-                <img src="/child/button-right.png" alt="button-right" onClick={NextChapter} />
+                <img
+                    src="/child/button-right.png"
+                    alt="button-right"
+                    onClick={NextChapter}
+                />
                 <p>다음 단원</p>
-                <BsStopBtnFill onClick={StopVideo} className="ch-learning-stop-icon" />
+                <BsStopBtnFill
+                    onClick={StopVideo}
+                    className="ch-learning-stop-icon"
+                />
                 <button
                     onClick={startScreenShare}
-                    disabled={screenSubscriber !== null}
+                    disabled={screenPublisher !== null}
                     className="game-screen-share-button"
                 >
-                  {screenSubscriber ? "화면 공유 중" : "게임 화면 공유하기"}
+                  {screenPublisher ? "화면 공유 중" : "게임 화면 공유하기"}
                 </button>
               </div>
             </div>
