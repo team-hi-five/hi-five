@@ -4,7 +4,6 @@ import com.h5.session.dto.request.CloseSessionRequestDto;
 import com.h5.session.dto.request.ControlRequest;
 import com.h5.session.dto.request.JoinSessionRequestDto;
 import com.h5.session.service.SessionService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -35,7 +34,11 @@ public class SessionController {
     @MessageMapping("/control")
     @SendTo("/topic/game")
     public ControlRequest handleWebSocketMessage(ControlRequest controlRequest) {
+        if (controlRequest == null || controlRequest.getAction() == null) {
+            throw new IllegalArgumentException("Invalid control request");
+        }
         sessionService.processControlMessage(controlRequest);
+
         return controlRequest;
     }
 }
