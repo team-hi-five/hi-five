@@ -150,6 +150,26 @@ useEffect(() => {
     };
   }, []);
 
+  // 4. 스트림 확인용 
+  useEffect(() => {
+    const checkStream = () => {
+      if (subscriber && subscriber.stream) {
+        const stream = subscriber.stream.getMediaStream();
+        if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play()
+            .then(() => console.log('[Child] Video started playing'))
+            .catch(err => console.error('[Child] Error playing video:', err));
+        }
+      } else {
+        console.warn('Waiting for subscriber stream...');
+        setTimeout(checkStream, 500);
+      }
+    };
+  
+    checkStream();
+  }, [subscriber]);
+
   // --- 1. API를 통해 동영상 데이터 로드 ----------------
   useEffect(() => {
     const fetchLimitData = async () => {
