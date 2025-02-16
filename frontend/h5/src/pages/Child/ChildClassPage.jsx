@@ -1,17 +1,20 @@
 import "./ChildCss/ChildClassPage.css";
 import useGameStore from "../../store/gameStore";
 import { limitGamedata } from "../../api/childGameContent";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Card } from "primereact/card";
 import * as faceapi from "face-api.js";
 import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
+import { OpenVidu } from 'openvidu-browser';
+import api from "../../api/api"
+import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen"
+import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild"
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
 
-  // 동영상 재생용 ref
   const videoRef = useRef(null);
   // 웹캠 분석용 video ref
   const webcamRef = useRef(null);
@@ -36,7 +39,82 @@ function ChildReviewGamePage() {
   const [voiceResult, setVoiceResult] = useState(null);
   const [analysisCycle, setAnalysisCycle] = useState(1);
 
-  // --- 1. API를 통해 동영상 데이터 로드 ---
+  // 오픈비두
+  const [session, setSession] = useState(null);
+  const [subscriber, setSubscriber] = useState([]);
+  const [publisher, setPublisher] = useState(null)
+  // 화면공유
+  const [screenPublisher, setScreenPublisher] = useState(null);
+  const OV = useRef(new OpenVidu());
+
+  // --- 0. 오픈비두 토큰 받기 -------------------------
+    // 토큰 받기 
+    async function getToken() {
+      try {
+        const response = await api.post('/session/join', { 
+          type: 'game', 
+          childId 
+        });
+        console.log("토큰!",response.data)
+        console.log("아동 세션 ID:", response.data.sessionId)
+        return response.data;
+      } catch (error) {
+        console.error('토큰 요청 실패:', error);
+        throw error;
+      }
+    }
+
+    // 세션 초기화
+  const initializeSession = useCallback(async () => {
+    try {
+      const sessionInstance = OV.current.initSession();
+
+      // 스트림 감지
+      sessionInstance.on('streamCreated', (event) => {
+        const subscriber = sessionInstance.subscribe(event.stream, undefined);
+        setSubscriber(subscriber);  
+      });
+
+      sessionInstance.on('streamDestroyed', (event) => {
+        setSubscriber(null);  // null로 초기화
+      });
+
+      const token = await getToken();  // 여기서 위의 getToken 함수 호출
+      await sessionInstance.connect(token);
+
+      const pub = OV.current.initPublisher(undefined, {
+        audioSource: undefined,
+        videoSource: undefined,
+        publishAudio: true,
+        publishVideo: true,
+        mirror: true
+      });
+
+      await sessionInstance.publish(pub);
+      const screenPub = OV.current.initPublisher(undefined, {
+        videoSource: "screen", // 화면 공유
+        publishAudio: true, 
+      });
+  
+      await sessionInstance.publish(screenPub);
+      setScreenPublisher(screenPub);
+      
+      setSession(sessionInstance);
+      setPublisher(pub);
+
+    } catch (error) {
+      console.error('세션 초기화 오류:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    initializeSession();
+    return () => {
+      if (session) session.disconnect();
+    };
+  }, []);
+
+  // --- 1. API를 통해 동영상 데이터 로드 ----------------
   useEffect(() => {
     const fetchLimitData = async () => {
       console.log("[fetchLimitData] 호출됨 - childId:", childId);
@@ -55,6 +133,8 @@ function ChildReviewGamePage() {
         const gameData = useGameStore.getState().getCurrentGameData();
         console.log("[fetchLimitData] 현재 게임 데이터:", gameData);
         setCurrentGameData(gameData);
+
+
       } catch (error) {
         console.error("[fetchLimitData] 데이터 로드 실패:", error);
       } finally {
@@ -820,19 +900,11 @@ function ChildReviewGamePage() {
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
             <Card className="ch-game-Top-section">
-              <video
-                  ref={webcamRef}
-                  autoPlay
-                  muted
-                  style={{
-                    backgroundColor: "#000",
-                    width: "100%",
-                    height: "350px",
-                    marginTop: "4px",
-                    transform: "scaleX(-1)",
-                    borderRadius: "1%",
-                  }}
-              />
+            <ChildVideoScreen 
+              publisher={publisher}
+              session={session}
+              videoRef={webcamRef}
+            />
             </Card>
             <div className="ch-learning-middle-section"></div>
             <div className="ch-learning-bottom-section">
@@ -840,7 +912,13 @@ function ChildReviewGamePage() {
                 <img src="/child/button-left.png" alt="button-left" onClick={PrevChapter} />
                 <p> 이전 단원</p>
               </div>
-              <Card className="ch-learning-counselor-screen"> 상담사화면 </Card>
+              <Card className="ch-learning-counselor-screen">
+                <CounselorCamWithChild
+                  session={session}
+                  subscriber={subscriber}
+                  mode="subscribe"
+                />
+              </Card>
               <div className="ch-learning-button-right">
                 <img src="/child/button-right.png" alt="button-right" onClick={NextChapter} />
                 <p>다음 단원</p>
