@@ -1,51 +1,56 @@
-import { useEffect, useRef, useState } from 'react';
-import { OpenVidu } from 'openvidu-browser';
 
-function ChildScreenShare({ session }) {
-  const videoRef = useRef(null);
-  const OV = useRef(new OpenVidu());
-  const [screenPublisher, setScreenPublisher] = useState(null);
+import { useEffect, useRef } from 'react';
 
-  // 화면 공유 스트림 생성
-  const createScreenShareStream = async () => {
-    try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true
-      });
+function ScreenShareCam({ screenSubscriber, mode}) {
+    const videoRef = useRef(null);
+    const retryTimeout = useRef(null);
 
-      const screenPublisher = OV.current.initPublisher(undefined, {
-        videoSource: screenStream,
-        publishAudio: true
-      });
+    const setVideoStream = () => {
+        if (screenSubscriber && videoRef.current) {
+            const stream = screenSubscriber.stream?.getMediaStream();
+            console.log('[ScreenShareCam] setVideoStream 호출, mode:', mode, 'publisher.stream:', screenSubscriber.stream);
 
-      // 세션에 화면 공유 스트림을 전송
-      await session.publish(screenPublisher);
-      setScreenPublisher(screenPublisher);  // 상태 업데이트
-    } catch (error) {
-      console.error('화면 공유 중 오류:', error);
-    }
-  };
+            if (stream) {
+                videoRef.current.srcObject = stream;
+                videoRef.current
+                    .play()
+                    .then(() => console.log('[ScreenShareCam] video 재생 시작'))
+                    .catch((err) => console.error('[ScreenShareCam] video play 에러:', err));
+            } else {
+                console.warn('[ScreenShareCam] publisher stream이 없습니다. 300ms 후 재확인.');
+                retryTimeout.current = setTimeout(() => {
+                    setVideoStream();
+                }, 300);
+            }
+        }
+    };
 
-  // 컴포넌트가 마운트될 때 자동으로 화면 공유 시작
-  useEffect(() => {
-    createScreenShareStream();
-  }, []);
+    useEffect(() => {
+        console.log('[ScreenShareCam] useEffect 시작, publisher:', screenSubscriber, 'mode:', mode);
+        setVideoStream();
 
-  useEffect(() => {
-    if (screenPublisher && videoRef.current) {
-      const stream = screenPublisher.stream?.getMediaStream();
-      if (stream) {
-        videoRef.current.srcObject = stream;
-      }
-    }
-  }, [screenPublisher]);
+        if (screenSubscriber) {
+            console.log('[ScreenShareCam] streamPlaying 이벤트 리스너 등록');
+            screenSubscriber.on('streamPlaying', setVideoStream);
+        }
 
-  return (
-    <div className="child-screen-share">
-      <video ref={videoRef} autoPlay />
-    </div>
-  );
+        // Cleanup: 컴포넌트가 언마운트되면 재시도 및 이벤트 해제
+        return () => {
+            if (screenSubscriber && screenSubscriber.stream) {
+                console.log('[ScreenShareCam] streamPlaying 이벤트 리스너 제거');
+                screenSubscriber.off('streamPlaying', setVideoStream);
+            }
+            if (retryTimeout.current) {
+                clearTimeout(retryTimeout.current);
+            }
+        };
+    }, [screenSubscriber, mode]);
+
+    return (
+        <div className="co-share-counselor-cam" >
+            <video ref={videoRef} autoPlay muted={mode === 'publish'} />
+        </div>
+    );
 }
 
-export default ChildScreenShare;
+export default ScreenShareCam;
