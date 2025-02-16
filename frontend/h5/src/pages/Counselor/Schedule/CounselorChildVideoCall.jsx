@@ -22,18 +22,37 @@ function CounselorChildVideoCall() {
 
         // 스트림 구독 설정
         sessionInstance.on("streamCreated", (event) => {
-          // 화면 공유 스트림인지 확인
-          if (event.stream.videoType === "SCREEN") {
-            const newScreenSubscriber = sessionInstance.subscribe(event.stream, undefined);
-            setScreenSubscriber(newScreenSubscriber);
-          }
-        });
+          console.log('Stream Created Event:', event);
+          console.log('Stream Video Type:', event.stream.videoType);
 
-        sessionInstance.on("streamDestroyed", (event) => {
-          if (event.stream.videoType === "SCREEN") {
-            setScreenSubscriber(null);
-          }
-        });
+          console.log('스트림 타입들:', {
+            typeOfVideo: event.stream.typeOfVideo,
+            videoType: event.stream.videoType
+          });
+
+                  // 모든 스트림 구독 시도
+                  try {
+                    const subscriber = sessionInstance.subscribe(event.stream, undefined);
+                    console.log('구독된 스트림:', subscriber);
+                    console.log('구독된 스트림 상세 정보:', {
+                      id: subscriber.stream.streamId,
+                      hasVideo: subscriber.stream.hasVideo,
+                      hasAudio: subscriber.stream.hasAudio
+                    });
+          
+                    // 카메라 스트림 확인
+                    if (event.stream.typeOfVideo === 'CAMERA') {
+                      setPublisher(subscriber);
+                    }
+                    
+                    // 화면 공유 스트림 확인
+                    if (event.stream.typeOfVideo === 'SCREEN') {
+                      setScreenSubscriber(subscriber);
+                    }
+                  } catch (error) {
+                    console.error('스트림 구독 중 오류:', error);
+                  }
+                });
 
         // 토큰 요청 함수
         const getToken = async () => {
@@ -75,6 +94,7 @@ function CounselorChildVideoCall() {
           {screenSubscriber && (
             <div className="ch-learning-screen-share">
               <ChildScreenShare
+                subscriber={screenSubscriber} 
                 session={session}
               />
             </div>
