@@ -119,6 +119,10 @@ async function fetchChildren() {
     }
   };
 
+  useEffect(() => {
+    console.log("isModalOpen:",isModalOpen);
+  }, [isModalOpen, setIsModalOpen])
+
 
   const handleDelete = async (childId) => {
     try {
