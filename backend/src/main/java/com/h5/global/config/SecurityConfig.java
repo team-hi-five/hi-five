@@ -60,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/user/consultant/find-id", "/api/user/consultant/temp-pwd").permitAll()
                         .requestMatchers("/api/user/parent/find-id", "/api/user/parent/temp-pwd").permitAll()
+                        .requestMatchers("/api/ws").permitAll()
 
                         // 상담사만 가능
                         .requestMatchers("/api/user/consultant/change-pwd", "/api/user/consultant/get-child",
