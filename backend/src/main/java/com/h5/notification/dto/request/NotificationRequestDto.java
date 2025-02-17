@@ -4,7 +4,7 @@ import lombok.*;
 
 @Setter
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
 public class NotificationRequestDto {
     private String targetUser;
