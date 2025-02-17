@@ -9,8 +9,10 @@ import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
 import { OpenVidu } from 'openvidu-browser'
 import api from "../../api/api";
-import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen";
+// 기존 ChildVideoScreen는 사용하지 않습니다.
+// import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen";
 import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
+import ReactWebcam from "react-webcam"; // react-webcam 임포트
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
@@ -955,14 +957,9 @@ function ChildReviewGamePage() {
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
             <Card className="ch-game-Top-section">
-              {/*
-                ChildVideoScreen에서는 아동의 웹캠 스트림(일반 getUserMedia로 획득한)을 렌더링합니다.
-                오픈비두 퍼블리셔는 화면 공유 송출 용도로만 사용되며, 아동 웹캠은 여기서 사용하지 않습니다.
-              */}
-              <ChildVideoScreen
-                  publisher={publisher}
-                  session={session}
-                  videoRef={webcamRef}
+              <ReactWebcam
+                  audio={true}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </Card>
             <div className="ch-learning-middle-section"></div>
