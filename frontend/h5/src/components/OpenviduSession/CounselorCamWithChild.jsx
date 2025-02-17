@@ -14,7 +14,7 @@ function CounselorCam({ publisher, subscriber, mode }) {
             stream = subscriber.stream.getMediaStream();
         }
 
-        console.log('[CounselorCam] stream:', stream);
+        // console.log('[CounselorCam] stream:', stream);
 
         if (stream && videoRef.current) {
             videoRef.current.srcObject = stream;
@@ -22,7 +22,7 @@ function CounselorCam({ publisher, subscriber, mode }) {
                 .then(() => console.log('[CounselorCam] video 재생 시작'))
                 .catch(err => console.error('[CounselorCam] video play 에러:', err));
         } else {
-            console.warn('[CounselorCam] stream이 없습니다. 500ms 후 재확인합니다.');
+            // console.warn('[CounselorCam] stream이 없습니다. 500ms 후 재확인합니다.');
             setTimeout(() => {
                 setVideoStream();
             }, 500);
