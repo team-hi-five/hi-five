@@ -6,7 +6,9 @@ import { useSearchParams } from 'react-router-dom';
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
     const [session, setSession] = useState(null);
+    // publisher는 상담사 자신의 영상이므로 그대로 사용
     const [publisher, setPublisher] = useState(null);
+    // 화면 공유 스트림만 구독하도록 함
     const [screenSubscriber, setScreenSubscriber] = useState(null);
     const [searchParams] = useSearchParams();
     const type = searchParams.get('type');
@@ -21,54 +23,33 @@ function CounselorChildVideoCall() {
                 sessionInstance.on("streamCreated", (event) => {
                     console.log("[CounselorChildVideoCall] streamCreated 이벤트 발생");
                     console.log("[CounselorChildVideoCall] event:", event);
-
-                    // log 모든 속성 확인
                     console.log("[CounselorChildVideoCall] event.stream:", event.stream);
                     console.log("[CounselorChildVideoCall] videoSource:", event.stream.videoSource);
                     console.log("[CounselorChildVideoCall] typeOfVideo:", event.stream.typeOfVideo);
 
-                    const videoType = (event.stream.videoSource || "").toLowerCase();
-                    const typeOfVideo = event.stream.typeOfVideo;
-                    console.log("[CounselorChildVideoCall] 처리할 videoType:", videoType, ", typeOfVideo:", typeOfVideo);
-
-                    // 화면 공유 스트림 구분 처리
-                    if (videoType === "screen" || typeOfVideo === "SCREEN") {
+                    // 오직 화면 공유 스트림만 구독 (아동 페이지에서 오직 화면 공유만 퍼블리싱하므로)
+                    if ((event.stream.videoSource || "").toLowerCase() === "screen" ||
+                        event.stream.typeOfVideo === "SCREEN") {
                         console.log("[CounselorChildVideoCall] 화면 공유 스트림 감지:", event.stream.streamId);
                         const screenSub = sessionInstance.subscribe(event.stream, undefined);
                         setScreenSubscriber(screenSub);
                         console.log("[CounselorChildVideoCall] 화면 공유 스트림 구독 완료:", screenSub);
-                    }
-                    // 카메라 스트림 처리
-                    if (event.stream.typeOfVideo === 'CAMERA') {
-                        try {
-                            console.log("[CounselorChildVideoCall] 카메라 스트림 감지:", event.stream.streamId);
-                            const camSub = sessionInstance.subscribe(event.stream, undefined);
-                            setPublisher(camSub);
-                            console.log("[CounselorChildVideoCall] 카메라 스트림 구독 완료:", camSub);
-                        } catch (error) {
-                            console.error("[CounselorChildVideoCall] 카메라 스트림 구독 에러:", error);
-                        }
                     }
                 });
 
                 sessionInstance.on("streamDestroyed", (event) => {
                     console.log("[CounselorChildVideoCall] streamDestroyed 이벤트 발생");
                     console.log("[CounselorChildVideoCall] event:", event);
-                    if (
-                        event.stream.videoSource === "screen" ||
-                        event.stream.typeOfVideo === "SCREEN"
-                    ) {
+                    if ((event.stream.videoSource || "").toLowerCase() === "screen" ||
+                        event.stream.typeOfVideo === "SCREEN") {
                         console.log("[CounselorChildVideoCall] 화면 공유 스트림 제거:", event.stream.streamId);
                         setScreenSubscriber(null);
-                    } else if (event.stream.typeOfVideo === "CAMERA") {
-                        console.log("[CounselorChildVideoCall] 카메라 스트림 제거:", event.stream.streamId);
-                        setPublisher(null);
                     }
                 });
 
                 const getToken = async () => {
                     try {
-                        const response = await api.post("/session/join", { type, childId });
+                        const response = await api.post('/session/join', { type, childId });
                         console.log("[CounselorChildVideoCall] 토큰 응답:", response.data);
                         return response.data;
                     } catch (error) {
@@ -82,7 +63,7 @@ function CounselorChildVideoCall() {
                 await sessionInstance.connect(token);
                 console.log("[CounselorChildVideoCall] 세션 연결 완료");
 
-                // 내 웹캠 퍼블리셔 생성 및 publish (상담사 본인 영상 송출)
+                // 상담사 자신의 웹캠 퍼블리셔 생성 및 publish
                 const myPublisher = OV.current.initPublisher(undefined, {
                     audioSource: true,
                     videoSource: true,
@@ -102,7 +83,7 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
-    // 재구독 시도 로그 (필요 시)
+    // 재구독 시도 (필요하면 로그 확인)
     useEffect(() => {
         if (session && !screenSubscriber) {
             setTimeout(() => {
@@ -129,23 +110,21 @@ function CounselorChildVideoCall() {
                     />
                 </div>
             ) : (
-                <div
-                    style={{
-                        width: "50%",
-                        height: "100%",
-                        backgroundColor: "black",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        float: "left",
-                    }}
-                >
+                <div style={{
+                    width: "50%",
+                    height: "100%",
+                    backgroundColor: "black",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    float: "left",
+                }}>
                     <p>아동의 화면 공유가 없습니다.</p>
                 </div>
             )}
 
-            {/* 상담사 카메라 스트림 영역 */}
+            {/* 상담사 자신의 카메라 스트림 영역 */}
             {publisher && (
                 <div style={{ width: "50%", height: "100%", float: "right" }}>
                     <video
