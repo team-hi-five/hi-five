@@ -43,6 +43,7 @@ public class ChildStudyChapterEntity {
     @Column(name = "end_dttm")
     private LocalDateTime endDttm;
 
+    @Builder.Default
     @OneToMany(mappedBy = "childStudyChapterEntity")
     private Set<ChildStudyStageEntity> childStudyStageEntities = new LinkedHashSet<>();
 
