@@ -7,10 +7,10 @@ import * as faceapi from "face-api.js";
 import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
-import { OpenVidu } from 'openvidu-browser'
+import { OpenVidu } from "openvidu-browser";
 import api from "../../api/api";
-import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen";
-import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
+import ChildVideoScreen from "../../components/OpenViduSession/ChildVideoScreen";
+import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
@@ -33,8 +33,7 @@ function ChildReviewGamePage() {
   const [showContent, setShowContent] = useState(false); // 모달 확인 후 내용 보여주는 상태관리
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  // 한 사이클의 분석 결과 저장
-  // 사이클 1,2: 종합 감정 분석(표정+음성), 3: 표정 연습, 4: 말 연습
+  // 한 사이클의 분석 결과 저장 (사이클 1,2: 종합 감정 분석, 3: 표정 연습, 4: 말 연습)
   const [faceResult, setFaceResult] = useState(null);
   const [voiceResult, setVoiceResult] = useState(null);
   const [analysisCycle, setAnalysisCycle] = useState(1);
@@ -51,13 +50,13 @@ function ChildReviewGamePage() {
   //✅ 정답 여부
   const [corrected, setCorrected] = useState(false);
 
-  // 오픈비두
+  // 오픈비두 관련 (화면 공유용)
   const [session, setSession] = useState(null);
-  // 상대방 (상담사 화면)
+  // 상대방 (상담사 화면; 여기서는 아동의 화면 공유 스트림)
   const [subscriber, setSubscriber] = useState([]);
-  // 나(자신)
+  // (원래 상담사 본인 영상은 publisher로 처리되었으나, 아동 카메라는 일반 웹캠으로 처리)
   const [publisher, setPublisher] = useState(null);
-  // 화면공유 (아동 측 publish용)
+  // 화면 공유 (아동 측 publish용; getDisplayMedia로 송출됨)
   const [screenSubscriber, setscreenSubscriber] = useState(null);
   // 오픈비두 객체 (세션 초기화, 스트림 전송, 연결 등)
   const OV = useRef(new OpenVidu());
@@ -65,65 +64,52 @@ function ChildReviewGamePage() {
   // --- 0. 오픈비두 토큰 받기 -------------------------
   async function getToken() {
     try {
-      const response = await api.post('/session/join', {
-        type: 'game',
-        childId
+      const response = await api.post("/session/join", {
+        type: "game",
+        childId,
       });
       console.log("토큰!:", response.data);
       return response.data;
     } catch (error) {
-      console.error('토큰 요청 실패:', error);
+      console.error("토큰 요청 실패:", error);
       throw error;
     }
   }
 
-  // --- 1. 세션 초기화 -------------------------
+  // --- 1. 세션 초기화 (화면 공유용) -------------------------
   const initializeSession = useCallback(async () => {
     try {
       const sessionInstance = OV.current.initSession();
 
-      // 스트림 감지 (다른 참가자 웹캠)
-      sessionInstance.on('streamCreated', (event) => {
-        const subscriber = sessionInstance.subscribe(event.stream, undefined);
-        setSubscriber(subscriber);
+      // 화면 공유 스트림 및 기타(여기서는 OpenVidu로 송출되는 스트림만 구독)
+      sessionInstance.on("streamCreated", (event) => {
+        const sub = sessionInstance.subscribe(event.stream, undefined);
+        setSubscriber(sub);
       });
 
-      sessionInstance.on('streamDestroyed', (event) => {
-        setSubscriber(null);  // null로 초기화
+      sessionInstance.on("streamDestroyed", (event) => {
+        setSubscriber(null);
       });
 
       const token = await getToken();
-      // 토큰을 통해 세션과 스트림구독을 연결
       await sessionInstance.connect(token);
-
-      // 초기값 (publisher: 화면 공유 퍼블리셔 생성)
-      const pub = OV.current.initPublisher(undefined, {
-        audioSource: undefined,
-        videoSource: 'screen', // 화면 공유용 스트림 (아동은 공유할 화면을 publish)
-        publishAudio: true,
-        publishVideo: true,
-        mirror: true
-      });
-
-      await sessionInstance.publish(pub);
+      // ※ 아동 카메라는 getUserMedia로 처리하므로 여기서는 화면 공유 스트림만 퍼블리싱
       setSession(sessionInstance);
-      setPublisher(pub);
     } catch (error) {
-      console.error('세션 초기화 오류:', error);
+      console.error("세션 초기화 오류:", error);
     }
   }, []);
 
   // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
-  // 아동 페이지의 화면 공유 함수
   const createScreenShareStream = async () => {
     try {
-      console.log('1. 화면 공유 시작 시도...');
+      console.log("1. 화면 공유 시작 시도...");
       if (screenSubscriber) {
         console.log("📌 이미 화면 공유 중입니다.");
         return;
       }
 
-      // 화면 공유 스트림을 가져옴
+      // 화면 공유 스트림 가져오기
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
@@ -131,7 +117,7 @@ function ChildReviewGamePage() {
 
       // 화면 공유 스트림 퍼블리셔 생성 (videoSource를 'screen'으로 지정)
       const newScreenPublisher = OV.current.initPublisher(undefined, {
-        videoSource: 'screen',
+        videoSource: "screen",
         audioSource: true,
         publishVideo: true,
         mirror: false,
@@ -142,33 +128,20 @@ function ChildReviewGamePage() {
       setscreenSubscriber(newScreenPublisher);
 
       // 사용자가 화면 공유 중단 시 처리
-      newScreenPublisher.stream.getVideoTracks()[0].addEventListener('ended', () => {
-        console.log('사용자가 화면 공유를 중단함');
+      newScreenPublisher.stream.getVideoTracks()[0].addEventListener("ended", () => {
+        console.log("사용자가 화면 공유를 중단함");
         session.unpublish(newScreenPublisher);
         setscreenSubscriber(null);
       });
     } catch (error) {
-      console.error('❌ 화면 공유 중 오류:', error);
+      console.error("❌ 화면 공유 중 오류:", error);
       setscreenSubscriber(null);
     }
   };
 
-  // 화면 공유 시작 함수
   const startScreenShare = async () => {
     await createScreenShareStream();
   };
-
-  // **[수정]** 아동 측에서는 화면 공유 스트림을 자기가 렌더링하지 않도록 아래 useEffect를 제거 또는 주석 처리합니다.
-  /*
-  useEffect(() => {
-    if (screenSubscriber && videoRef.current) {
-      const stream = screenSubscriber.stream?.getMediaStream();
-      if (stream) {
-        videoRef.current.srcObject = stream;
-      }
-    }
-  }, [screenSubscriber]);
-  */
 
   // --- 3. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {
@@ -178,7 +151,7 @@ function ChildReviewGamePage() {
     };
   }, []);
 
-  // --- 1. API를 통해 동영상 데이터 로드 ----------------
+  // --- 4. API를 통해 동영상 데이터 로드 -------------------------
   useEffect(() => {
     const fetchLimitData = async () => {
       console.log("[fetchLimitData] 호출됨 - childId:", childId);
@@ -207,7 +180,7 @@ function ChildReviewGamePage() {
     fetchLimitData();
   }, [childId]);
 
-  // 현재데이터 변경 시 실행
+  // --- 현재 데이터 변경 시 실행 -------------------------
   useEffect(() => {
     if (currentGameData) {
       console.log("[useEffect - currentGameData] 업데이트된 currentGameData:", currentGameData);
@@ -215,7 +188,7 @@ function ChildReviewGamePage() {
     }
   }, [currentGameData]);
 
-  // --- 1. face-api 모델 로드 ---
+  // --- face-api 모델 로드 -------------------------
   useEffect(() => {
     const loadModels = async () => {
       console.log("[loadModels] 호출됨 - face-api 모델 로드 시작");
@@ -231,12 +204,12 @@ function ChildReviewGamePage() {
     loadModels();
   }, []);
 
-  // --- 3. 웹캠 스트림 시작 ----------------------------
+  // --- 일반 웹캠 스트림 시작 (아동 카메라용) -------------------------
   useEffect(() => {
     const startWebcam = async () => {
-      console.log("[startWebcam] 호출됨 - 웹캠 스트림 시작");
+      console.log("[startWebcam] 호출됨 - 일반 웹캠 스트림 시작");
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         console.log("[startWebcam] 웹캠 스트림 획득:", stream);
         if (webcamRef.current) {
           webcamRef.current.srcObject = stream;
@@ -267,7 +240,7 @@ function ChildReviewGamePage() {
           }
         }, [isStarted]);
 
-  // --- phase가 "video"이고 showContent가 true일 때 동영상 자동 재생 ---------------------
+  // --- 동영상 자동 재생 -------------------------
   useEffect(() => {
     if (phase === "video" && currentGameData && videoRef.current && showContent) {
       videoRef.current
@@ -347,7 +320,7 @@ const startRecording = async () => {
 };
 
 
-  // --- 비디오 종료 시 감정 분석 시작 ----------------------------
+  // --- 비디오 종료 시 감정 분석 시작 -------------------------
   const handleVideoEnd = () => {
     Swal.fire({
       title: "상황에 어울리는 옳은 감정과 말은 무엇일까요?",
@@ -365,7 +338,7 @@ const startRecording = async () => {
     startRecording();
   };
 
-  // --- 표정 분석 보조 함수: 평균 감정 계산 ---
+  // --- 표정 분석 보조 함수: 평균 감정 계산 -------------------------
   const computeAverageEmotion = (data) => {
     console.log("[computeAverageEmotion] 호출됨 - 감정 데이터 평균 계산 시작");
     let sum = {
@@ -839,8 +812,7 @@ const startRecording = async () => {
 
 
 
-  // --- 제어 기능 ------------------------------
-  // 정지
+  // --- 제어 기능 (비디오 정지, 다음/이전 단원) -------------------------
   const StopVideo = () => {
     console.log("[StopVideo] 호출됨 - 비디오 재생 상태 토글 및 분석 중지");
     if (videoRef.current) {
@@ -861,7 +833,6 @@ const startRecording = async () => {
     }
   };
 
-  // 다음 단원으로 이동
   const NextChapter = async () => {
     console.log("[NextChapter] 호출됨 - 다음 단원으로 이동");
     const nextStageId = currentGameData.gameStageId + 1;
@@ -887,7 +858,6 @@ const startRecording = async () => {
     setIsPlaying(false);
   };
 
-  // 이전 단원으로 이동
   const PrevChapter = async () => {
     console.log("[PrevChapter] 호출됨 - 이전 단원으로 이동");
     const prevStageId = currentGameData.gameStageId - 1;
@@ -949,19 +919,23 @@ const startRecording = async () => {
                     currentGameData?.options?.length > 0 ? (
                         <div className="option-images">
                           {currentGameData.optionImages.map((imgSrc, index) => (
-                              <div key={index}
-                                   className="learning-option-item"
-                              >
+                              <div key={index} className="learning-option-item">
                                 <img
                                     src={imgSrc}
                                     alt={`option ${index + 1}`}
                                     className="option-image"
                                 />
-                                <p className={`${
-                                    analysisCycle < 3
-                                        ? (index + 1 === currentGameData?.answer ? 'ch-learning-before-answer' : '')
-                                        : (index + 1 === currentGameData?.answer ? 'ch-learning-correct-answer' : '')
-                                }`}>
+                                <p
+                                    className={`${
+                                        analysisCycle < 3
+                                            ? index + 1 === currentGameData?.answer
+                                                ? "ch-learning-before-answer"
+                                                : ""
+                                            : index + 1 === currentGameData?.answer
+                                                ? "ch-learning-correct-answer"
+                                                : ""
+                                    }`}
+                                >
                                   {currentGameData.options[index]}
                                 </p>
                               </div>
@@ -983,11 +957,8 @@ const startRecording = async () => {
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
             <Card className="ch-game-Top-section">
-              <ChildVideoScreen
-                  publisher={publisher}
-                  session={session}
-                  videoRef={webcamRef}
-              />
+              {/* 아동 카메라는 이제 OpenVidu publisher가 아닌, 일반 웹캠 (webcamRef) 스트림으로 재생 */}
+              <ChildVideoScreen videoRef={webcamRef} />
             </Card>
             <div className="ch-learning-middle-section"></div>
             <div className="ch-learning-bottom-section">
@@ -1004,7 +975,7 @@ const startRecording = async () => {
               </button>
             )}
               </div>
-              {/* 오른쪽: 상담사 화면 영역 */}
+              {/* 오른쪽: 상담사 화면 영역 (화면 공유 스트림만 구독) */}
               <Card className="ch-learning-counselor-screen">
                 <CounselorCamWithChild
                     session={session}

@@ -6,7 +6,9 @@ import { useSearchParams } from "react-router-dom";
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
     const [session, setSession] = useState(null);
+    // 상담사 자신의 영상 (publisher)
     const [publisher, setPublisher] = useState(null);
+    // 아동의 화면 공유 스트림만 구독 (subscriber)
     const [screenSubscriber, setScreenSubscriber] = useState(null);
     const [searchParams] = useSearchParams();
     const type = searchParams.get("type");
@@ -16,82 +18,99 @@ function CounselorChildVideoCall() {
         const initSession = async () => {
             try {
                 const sessionInstance = OV.current.initSession();
+                console.log("[CounselorChildVideoCall] 세션 초기화됨:", sessionInstance);
 
-                // 스트림 생성 이벤트 (기본 이벤트: "streamCreated")
                 sessionInstance.on("streamCreated", (event) => {
-                    console.log("Stream Created Event:", event);
-                    const videoType = (event.stream.videoType || "").toLowerCase();
-                    const typeOfVideo = event.stream.typeOfVideo;
-                    console.log("Video Type:", videoType, "typeOfVideo:", typeOfVideo);
+                    console.log("[CounselorChildVideoCall] streamCreated 이벤트 발생");
+                    console.log("[CounselorChildVideoCall] event:", event);
+                    console.log("[CounselorChildVideoCall] event.stream:", event.stream);
+                    console.log(
+                        "[CounselorChildVideoCall] typeOfVideo:",
+                        event.stream.typeOfVideo
+                    );
 
-                    // 화면 공유 스트림
-                    if (videoType === "screen" || typeOfVideo === "SCREEN") {
+                    // 오직 화면 공유 스트림만 구독 (아동 페이지에서 오직 화면 공유만 퍼블리싱하므로)
+                    if (event.stream.typeOfVideo === "SCREEN") {
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 감지:",
+                            event.stream.streamId
+                        );
                         const screenSub = sessionInstance.subscribe(event.stream, undefined);
                         setScreenSubscriber(screenSub);
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 구독 완료:",
+                            screenSub
+                        );
                     }
+                });
 
-                    // 카메라 스트림
-                    if (event.stream.typeOfVideo === "CAMERA") {
-                        try {
-                            const subscriber = sessionInstance.subscribe(event.stream, undefined);
-                            setPublisher(subscriber);
-                        } catch (error) {
-                            console.error("스트림 구독 중 오류:", error);
-                        }
+                sessionInstance.on("streamDestroyed", (event) => {
+                    console.log("[CounselorChildVideoCall] streamDestroyed 이벤트 발생");
+                    console.log("[CounselorChildVideoCall] event:", event);
+                    if (event.stream.typeOfVideo === "SCREEN") {
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 제거:",
+                            event.stream.streamId
+                        );
+                        setScreenSubscriber(null);
                     }
                 });
 
                 const getToken = async () => {
                     try {
                         const response = await api.post("/session/join", { type, childId });
+                        console.log("[CounselorChildVideoCall] 토큰 응답:", response.data);
                         return response.data;
                     } catch (error) {
-                        console.error("❌ 토큰 요청 실패:", error);
+                        console.error("[CounselorChildVideoCall] 토큰 요청 실패:", error);
                         throw error;
                     }
                 };
 
                 const token = await getToken();
+                console.log("[CounselorChildVideoCall] 연결 토큰:", token);
                 await sessionInstance.connect(token);
+                console.log("[CounselorChildVideoCall] 세션 연결 완료");
 
-                // 상담사 자신의 웹캠 publisher 생성
+                // 상담사 자신의 웹캠 퍼블리셔 생성 및 publish
                 const myPublisher = OV.current.initPublisher(undefined, {
                     audioSource: true,
                     videoSource: true,
                     publishAudio: true,
                     publishVideo: true,
                 });
-
+                console.log("[CounselorChildVideoCall] 내 퍼블리셔 생성:", myPublisher);
                 await sessionInstance.publish(myPublisher);
+                console.log("[CounselorChildVideoCall] 내 퍼블리셔 publish 완료");
                 setSession(sessionInstance);
                 setPublisher(myPublisher);
             } catch (error) {
-                console.error("❌ 세션 초기화 오류:", error);
+                console.error("[CounselorChildVideoCall] 세션 초기화 오류:", error);
             }
         };
 
         initSession();
     }, [childId, type]);
 
-    // --- 추가: 주기적으로 화면 공유 스트림이 있는지 확인 (화면 재랜더링 문제 해결용) ---
+    // 재구독 효과: 세션이 연결된 상태인데 아직 화면 공유 스트림을 구독하지 않은 경우
     useEffect(() => {
-        const checkForScreenShare = () => {
-            if (session && !screenSubscriber) {
-                // session.remoteStreams는 OpenVidu가 제공하는 모든 스트림 목록
-                const remoteStreams = session.remoteStreams || [];
-                const screenStream = remoteStreams.find((stream) => {
-                    const videoType = (stream.videoType || "").toLowerCase();
-                    const typeOfVideo = stream.typeOfVideo;
-                    return videoType === "screen" || typeOfVideo === "SCREEN";
+        if (session && !screenSubscriber) {
+            const streams = session.streams;
+            if (streams && streams.forEach) {
+                streams.forEach((stream) => {
+                    if (stream.typeOfVideo === "SCREEN") {
+                        console.log(
+                            "[CounselorChildVideoCall] 재구독: 화면 공유 스트림 발견",
+                            stream.streamId
+                        );
+                        const screenSub = session.subscribe(stream, undefined);
+                        setScreenSubscriber(screenSub);
+                    }
                 });
-                if (screenStream) {
-                    const screenSub = session.subscribe(screenStream, undefined);
-                    setScreenSubscriber(screenSub);
-                }
+            } else {
+                console.log("[CounselorChildVideoCall] session.streams is undefined or not iterable");
             }
-        };
-        const intervalId = setInterval(checkForScreenShare, 1000);
-        return () => clearInterval(intervalId);
+        }
     }, [session, screenSubscriber]);
 
     return (
@@ -99,20 +118,20 @@ function CounselorChildVideoCall() {
             className="counselor-observe-container"
             style={{ width: "100%", height: "100%" }}
         >
-            {/* 아동의 화면 공유 스트림 */}
+            {/* 아동의 화면 공유 스트림 영역 */}
             {screenSubscriber ? (
                 <div
                     className="game-screen-share"
                     style={{ width: "50%", height: "100%", float: "left" }}
                 >
                     <video
-                        style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                        }}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         ref={(video) => {
                             if (video && screenSubscriber) {
+                                console.log(
+                                    "[CounselorChildVideoCall] 연결된 화면 공유 스트림:",
+                                    screenSubscriber.stream
+                                );
                                 video.srcObject = screenSubscriber.stream.getMediaStream();
                             }
                         }}
@@ -137,7 +156,7 @@ function CounselorChildVideoCall() {
                 </div>
             )}
 
-            {/* 상담사 웹캠 */}
+            {/* 상담사 자신의 카메라 스트림 영역 */}
             {publisher && (
                 <div style={{ width: "50%", height: "100%", float: "right" }}>
                     <video
