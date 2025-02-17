@@ -16,7 +16,7 @@ function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
 
   const videoRef = useRef(null);
-  // 웹캠 분석용 video ref
+  // 웹캠 분석 및 렌더링용 ref (오픈비두로 송출하지 않고 일반 웹캠 스트림 사용)
   const webcamRef = useRef(null);
   // 표정 분석 인터벌 id 저장용 ref
   const analysisIntervalRef = useRef(null);
@@ -51,13 +51,13 @@ function ChildReviewGamePage() {
   //✅ 정답 여부
   const [corrected, setCorrected] = useState(false);
 
-  // 오픈비두
+  // 오픈비두 (화면 공유용)
   const [session, setSession] = useState(null);
   // 상대방 (상담사 화면)
   const [subscriber, setSubscriber] = useState([]);
-  // 나(자신)
+  // 오픈비두 화면 공유 퍼블리셔 (아동은 자신의 화면 공유만 송출)
   const [publisher, setPublisher] = useState(null);
-  // 화면공유 (아동 측 publish용)
+  // 추가 화면 공유 (버튼 클릭 시 생성)
   const [screenSubscriber, setscreenSubscriber] = useState(null);
   // 오픈비두 객체 (세션 초기화, 스트림 전송, 연결 등)
   const OV = useRef(new OpenVidu());
@@ -96,10 +96,10 @@ function ChildReviewGamePage() {
       // 토큰을 통해 세션과 스트림구독을 연결
       await sessionInstance.connect(token);
 
-      // 초기값 (publisher: 화면 공유 퍼블리셔 생성)
+      // 오픈비두 퍼블리셔 생성: **화면 공유**를 위해 videoSource를 'screen'으로 설정
       const pub = OV.current.initPublisher(undefined, {
         audioSource: undefined,
-        videoSource: 'screen', // 화면 공유용 스트림 (아동은 공유할 화면을 publish)
+        videoSource: 'screen', // 화면 공유용 스트림 (아동은 화면 공유만 publish)
         publishAudio: true,
         publishVideo: true,
         mirror: true
@@ -158,7 +158,8 @@ function ChildReviewGamePage() {
     await createScreenShareStream();
   };
 
-  // **[수정]** 아동 측에서는 화면 공유 스트림을 자기가 렌더링하지 않도록 아래 useEffect를 제거 또는 주석 처리합니다.
+  // **[참고]** 아래 useEffect는 아동 측에서 화면 공유 스트림을 렌더링하지 않도록 하기 위한 코드로,
+  // 현재는 주석 처리 되어 있습니다.
   /*
   useEffect(() => {
     if (screenSubscriber && videoRef.current) {
@@ -232,6 +233,7 @@ function ChildReviewGamePage() {
   }, []);
 
   // --- 3. 웹캠 스트림 시작 ----------------------------
+  // 아동 웹캠은 OpenVidu를 사용하지 않고 일반 getUserMedia로 가져와 webcamRef에 할당합니다.
   useEffect(() => {
     const startWebcam = async () => {
       console.log("[startWebcam] 호출됨 - 웹캠 스트림 시작");
@@ -281,13 +283,12 @@ function ChildReviewGamePage() {
     }
   }, [phase, currentGameData, showContent]);
 
-// ---✅ 5. 녹화 시작 함수 --------------------
-// 녹화 시작 함수 - 녹화 시작과 함께 분석도 시작
+  // ---✅ 5. 녹화 시작 함수 --------------------
+  // 녹화 시작 함수 - 녹화 시작과 함께 분석도 시작
   const startRecording = async () => {
     try {
       if (webcamRef.current) {
-        // 1. 녹화 설정
-        // 수정된 코드: clone()을 사용하여 원본 스트림은 그대로 분석용으로 유지
+        // 1. 녹화 설정 (원본 스트림은 분석용으로 유지)
         const stream = webcamRef.current.srcObject;
         if (!stream) {
           console.error("웹캠 스트림이 없습니다.");
@@ -346,7 +347,6 @@ function ChildReviewGamePage() {
     }
   };
 
-
   // --- 비디오 종료 시 감정 분석 시작 ----------------------------
   const handleVideoEnd = () => {
     Swal.fire({
@@ -361,7 +361,7 @@ function ChildReviewGamePage() {
   // 녹화 시작 버튼 핸들러
   const handleStartRecording = () => {
     setAnalysisReady(true);
-    // 여기에 녹화 시작 로직 추가
+    // 녹화 시작 로직 실행
     startRecording();
   };
 
@@ -451,7 +451,6 @@ function ChildReviewGamePage() {
       }, 9000);
     });
 
-
     // 음성 인식 Promise
     const voicePromise = new Promise((resolve, reject) => {
       console.log("[voicePromise] 음성 인식 시작");
@@ -465,13 +464,7 @@ function ChildReviewGamePage() {
       recognition.lang = "ko-KR";
       recognition.interimResults = false;
       recognition.continuous = false;
-      // const voiceTimeout = setTimeout(() => {
-      //   recognition.abort();
-      //   console.log("[voicePromise] 음성 인식 시간 초과, 종료됨");
-      //   resolve("음성 인식 시간이 초과되었습니다.");
-      // }, 9000);
       recognition.onresult = (event) => {
-        // clearTimeout(voiceTimeout);
         console.log("[voicePromise] 음성 인식 결과 이벤트:", event);
         let finalResult = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -491,7 +484,6 @@ function ChildReviewGamePage() {
         resolve(voiceMsg);
       };
       recognition.onerror = (event) => {
-        // clearTimeout(voiceTimeout);
         console.error("[voicePromise] 음성 인식 오류:", event.error);
         resolve("음성 인식 실패");
       };
@@ -566,7 +558,6 @@ function ChildReviewGamePage() {
     console.log("[runFaceAnalysis] 얼굴 분석 완료, faceResult:", faceMsg);
   };
 
-
   // --- 음성 분석만 진행 (사이클 4) -----------------------------
   const runVoiceAnalysis = async () => {
     console.log("[runVoiceAnalysis] 호출됨 - 음성 분석 시작 (말 연습)");
@@ -581,13 +572,7 @@ function ChildReviewGamePage() {
       recognition.lang = "ko-KR";
       recognition.interimResults = false;
       recognition.continuous = false;
-      // const voiceTimeout = setTimeout(() => {
-      //   recognition.abort();
-      //   console.log("[runVoiceAnalysis] 음성 인식 시간 초과, 종료됨");
-      //   resolve("음성 인식 시간이 초과되었습니다.");
-      // }, 5000);
       recognition.onresult = (event) => {
-        // clearTimeout(voiceTimeout);
         console.log("[runVoiceAnalysis] 음성 인식 결과 이벤트:", event);
         let finalResult = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -607,7 +592,6 @@ function ChildReviewGamePage() {
         resolve(resultMsg);
       };
       recognition.onerror = (event) => {
-        // clearTimeout(voiceTimeout);
         console.error("[runVoiceAnalysis] 음성 인식 오류:", event.error);
         resolve("음성 인식 실패");
       };
@@ -828,17 +812,6 @@ function ChildReviewGamePage() {
     }
   };
 
-
-
-
-
-
-
-
-
-
-
-
   // --- 제어 기능 ------------------------------
   // 정지
   const StopVideo = () => {
@@ -903,7 +876,6 @@ function ChildReviewGamePage() {
     setAnalysisCycle(1);
     setIsPlaying(false);
   };
-
 
   return (
       <div className="ch-review-container">
@@ -983,6 +955,10 @@ function ChildReviewGamePage() {
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
             <Card className="ch-game-Top-section">
+              {/*
+                ChildVideoScreen에서는 아동의 웹캠 스트림(일반 getUserMedia로 획득한)을 렌더링합니다.
+                오픈비두 퍼블리셔는 화면 공유 송출 용도로만 사용되며, 아동 웹캠은 여기서 사용하지 않습니다.
+              */}
               <ChildVideoScreen
                   publisher={publisher}
                   session={session}
