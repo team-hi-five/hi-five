@@ -10,6 +10,8 @@ function CounselorChildVideoCall() {
     const [publisher, setPublisher] = useState(null);
     // 아동의 화면 공유 스트림만 구독 (subscriber)
     const [screenSubscriber, setScreenSubscriber] = useState(null);
+    // video ref for screen sharing stream
+    const screenVideoRef = useRef(null);
     const [searchParams] = useSearchParams();
     const type = searchParams.get("type");
     const childId = searchParams.get("childId");
@@ -29,7 +31,7 @@ function CounselorChildVideoCall() {
                         event.stream.typeOfVideo
                     );
 
-                    // 오직 화면 공유 스트림만 구독 (아동 페이지에서 오직 화면 공유만 퍼블리싱하므로)
+                    // 오직 화면 공유 스트림만 구독 (아동 페이지에서 화면 공유만 퍼블리싱하므로)
                     if (event.stream.typeOfVideo === "SCREEN") {
                         console.log(
                             "[CounselorChildVideoCall] 화면 공유 스트림 감지:",
@@ -92,7 +94,7 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
-    // 재구독 효과: 세션이 연결된 상태인데 아직 화면 공유 스트림을 구독하지 않은 경우
+    // 재구독 효과: 세션이 연결되어 있지만 아직 화면 공유 스트림이 구독되지 않은 경우
     useEffect(() => {
         if (session && !screenSubscriber) {
             const streams = session.streams;
@@ -108,10 +110,26 @@ function CounselorChildVideoCall() {
                     }
                 });
             } else {
-                console.log("[CounselorChildVideoCall] session.streams is undefined or not iterable");
+                console.log(
+                    "[CounselorChildVideoCall] session.streams가 undefined이거나 반복할 수 없음"
+                );
             }
         }
     }, [session, screenSubscriber]);
+
+    // 화면 공유 스트림이 업데이트될 때마다 video 요소에 srcObject를 업데이트
+    useEffect(() => {
+        if (screenSubscriber && screenVideoRef.current) {
+            const stream = screenSubscriber.stream?.getMediaStream();
+            if (stream) {
+                console.log(
+                    "[CounselorChildVideoCall] 화면 공유 스트림 업데이트, streamId:",
+                    screenSubscriber.stream.streamId
+                );
+                screenVideoRef.current.srcObject = stream;
+            }
+        }
+    }, [screenSubscriber]);
 
     return (
         <div
@@ -126,15 +144,7 @@ function CounselorChildVideoCall() {
                 >
                     <video
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        ref={(video) => {
-                            if (video && screenSubscriber) {
-                                console.log(
-                                    "[CounselorChildVideoCall] 연결된 화면 공유 스트림:",
-                                    screenSubscriber.stream
-                                );
-                                video.srcObject = screenSubscriber.stream.getMediaStream();
-                            }
-                        }}
+                        ref={screenVideoRef}
                         autoPlay
                         playsInline
                     />
