@@ -75,15 +75,14 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
                                                      @Param("year") int year,
                                                      @Param("month") int month);
 
-    @Query("SELECT g FROM GameMeetingScheduleEntity g " +
-            "WHERE g.childUserEntity.id = :childUserId " +
-            "AND g.schdlDttm <= :currentDttm " +
-            "AND FUNCTION('DATEADD', 'MINUTE', :interval, g.schdlDttm) > :currentDttm " +
-            "AND g.deleteDttm IS NULL")
+    @Query(value = "SELECT * FROM game_meeting_schedule_entity g " +
+            "WHERE g.child_user_id = :childUserId " +
+            "AND g.schdl_dttm <= :currentDttm " +
+            "AND DATE_ADD(g.schdl_dttm, INTERVAL 70 MINUTE) > :currentDttm " +
+            "AND g.delete_dttm IS NULL", nativeQuery = true)
     Optional<GameMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
-            @Param("currentDttm") LocalDateTime currentDttm,
-            @Param("interval") int interval);
+            @Param("currentDttm") LocalDateTime currentDttm);
 
 
 }
