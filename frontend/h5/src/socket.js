@@ -1,56 +1,24 @@
+import { Stomp } from '@stomp/stompjs';
+
 let stompClient;
 
 export const connectStomp = () => {
-    const ws = new WebSocket("wss://hi-five.site/api/ws");
-
     const token = sessionStorage.getItem("access_token");
 
-    ws.onopen = () => {
-        console.log("WebSocket 연결 성공");
-        // 실제 백엔드 도메인으로 host 값을 수정하세요.
-        const connectFrame =
-            "CONNECT\n" +
-            "accept-version:1.2\n" +
-            "host:hi-five.site\n" +
-            `Authorization:Bearer ${token}\n` + // JWT 토큰
-            "\n\0"; // 프레임 종료
-        ws.send(connectFrame);
-    };
+    // native WebSocket 사용 (wss:// 허용)
+    const socket = new WebSocket(`wss://hi-five.site/api/ws?accessToken=Bearer ${token}`);
 
-    ws.onmessage = (event) => {
-        console.log("STOMP 메시지 수신:", event.data);
-        // 연결 성공 메시지를 받으면 구독 시작
-        if (event.data.indexOf("CONNECTED") !== -1) {
-            const subscribeFrame =
-                "SUBSCRIBE\n" +
-                "destination:/user/queue/alarms\n" +
-                "id:sub-0\n\n\0";
-            ws.send(subscribeFrame);
-        } else {
-            // 수신된 메시지 파싱 후, PrimeReact Toast 알림 띄우기
-            try {
-                const receivedMsg = JSON.parse(event.data);
-                if (toast && toast.current) {
-                    toast.current.show({
-                        severity: "info",
-                        summary: "알림",
-                        detail: receivedMsg.detail || "새 메시지를 받았습니다.",
-                        life: 3000,
-                    });
-                }
-            } catch (e) {
-                console.error("메시지 파싱 오류:", e);
-            }
-        }
-    };
+    stompClient = Stomp.over(socket);
 
-    ws.onerror = (error) => {
-        console.error("WebSocket 에러:", error);
-    };
-
-    ws.onclose = () => {
-        console.log("WebSocket 연결 종료");
-    };
+    stompClient.connect({}, (frame) => {
+        console.log('STOMP 연결 성공:', frame);
+        stompClient.subscribe('/user/queue/alarms', (message) => {
+            console.log("STOMP 메시지 수신:", message.body);
+            // PrimeReact Toast 등으로 알림 처리
+        });
+    }, (error) => {
+        console.error("STOMP 연결 오류:", error);
+    });
 };
 
 export const sendNotification = (targetUser, message) => {
@@ -63,4 +31,3 @@ export const sendNotification = (targetUser, message) => {
         console.error('STOMP 연결이 되지 않았습니다.');
     }
 };
-
