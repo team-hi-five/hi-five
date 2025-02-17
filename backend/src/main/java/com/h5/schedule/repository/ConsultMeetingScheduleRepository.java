@@ -76,7 +76,7 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
                                                      @Param("year") int year,
                                                      @Param("month") int month);
 
-    @Query(value = "SELECT * FROM ConsultMeetingScheduleEntity c " +
+    @Query(value = "SELECT * FROM consult_meeting_schdl c " +
             "WHERE c.child_user_id = :childUserId " +
             "AND c.schdl_dttm <= :currentDttm " +
             "AND DATE_ADD(c.schdl_dttm, INTERVAL 70 MINUTE) > :currentDttm " +
@@ -84,5 +84,5 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
     Optional<ConsultMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
             @Param("currentDttm") LocalDateTime currentDttm);
-    
+
 }
