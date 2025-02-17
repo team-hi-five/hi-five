@@ -75,7 +75,7 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
                                                      @Param("year") int year,
                                                      @Param("month") int month);
 
-    @Query(value = "SELECT * FROM GameMeetingScheduleEntity g " +
+    @Query(value = "SELECT * FROM game_meeting_schdl g " +
             "WHERE g.child_user_id = :childUserId " +
             "AND g.schdl_dttm <= :currentDttm " +
             "AND DATE_ADD(g.schdl_dttm, INTERVAL 70 MINUTE) > :currentDttm " +
