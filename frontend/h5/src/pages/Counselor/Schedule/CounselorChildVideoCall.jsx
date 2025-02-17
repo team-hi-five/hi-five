@@ -1,18 +1,18 @@
 import api from "../../../api/api";
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
     const [session, setSession] = useState(null);
-    // publisher는 상담사 자신의 영상이므로 그대로 사용
+    // 상담사 자신의 영상 (publisher)
     const [publisher, setPublisher] = useState(null);
-    // 화면 공유 스트림만 구독하도록 함
+    // 아동의 화면 공유 스트림만 구독 (subscriber)
     const [screenSubscriber, setScreenSubscriber] = useState(null);
     const [searchParams] = useSearchParams();
-    const type = searchParams.get('type');
-    const childId = searchParams.get('childId');
+    const type = searchParams.get("type");
+    const childId = searchParams.get("childId");
 
     useEffect(() => {
         const initSession = async () => {
@@ -24,14 +24,23 @@ function CounselorChildVideoCall() {
                     console.log("[CounselorChildVideoCall] streamCreated 이벤트 발생");
                     console.log("[CounselorChildVideoCall] event:", event);
                     console.log("[CounselorChildVideoCall] event.stream:", event.stream);
-                    console.log("[CounselorChildVideoCall] typeOfVideo:", event.stream.typeOfVideo);
+                    console.log(
+                        "[CounselorChildVideoCall] typeOfVideo:",
+                        event.stream.typeOfVideo
+                    );
 
                     // 오직 화면 공유 스트림만 구독 (아동 페이지에서 오직 화면 공유만 퍼블리싱하므로)
                     if (event.stream.typeOfVideo === "SCREEN") {
-                        console.log("[CounselorChildVideoCall] 화면 공유 스트림 감지:", event.stream.streamId);
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 감지:",
+                            event.stream.streamId
+                        );
                         const screenSub = sessionInstance.subscribe(event.stream, undefined);
                         setScreenSubscriber(screenSub);
-                        console.log("[CounselorChildVideoCall] 화면 공유 스트림 구독 완료:", screenSub);
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 구독 완료:",
+                            screenSub
+                        );
                     }
                 });
 
@@ -39,14 +48,17 @@ function CounselorChildVideoCall() {
                     console.log("[CounselorChildVideoCall] streamDestroyed 이벤트 발생");
                     console.log("[CounselorChildVideoCall] event:", event);
                     if (event.stream.typeOfVideo === "SCREEN") {
-                        console.log("[CounselorChildVideoCall] 화면 공유 스트림 제거:", event.stream.streamId);
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 제거:",
+                            event.stream.streamId
+                        );
                         setScreenSubscriber(null);
                     }
                 });
 
                 const getToken = async () => {
                     try {
-                        const response = await api.post('/session/join', { type, childId });
+                        const response = await api.post("/session/join", { type, childId });
                         console.log("[CounselorChildVideoCall] 토큰 응답:", response.data);
                         return response.data;
                     } catch (error) {
@@ -80,32 +92,46 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
-    // 재구독 시도 효과: 세션이 연결된 상태에서 아직 화면 공유 스트림을 구독하지 않았다면,
-    // 세션 내의 이미 publish된 스트림 중 typeOfVideo === "SCREEN" 인 것을 찾아 구독
+    // 재구독 효과: 세션이 연결된 상태인데 아직 화면 공유 스트림을 구독하지 않은 경우
     useEffect(() => {
         if (session && !screenSubscriber) {
-            // OpenVidu는 session.streams를 통해 이미 publish된 스트림을 제공합니다.
-            const existingStreams = session.streams;
-            existingStreams.forEach((stream) => {
-                if (stream.typeOfVideo === "SCREEN") {
-                    console.log("[CounselorChildVideoCall] 재구독: 화면 공유 스트림 발견", stream.streamId);
-                    const screenSub = session.subscribe(stream, undefined);
-                    setScreenSubscriber(screenSub);
-                }
-            });
+            const streams = session.streams;
+            if (streams && streams.forEach) {
+                streams.forEach((stream) => {
+                    if (stream.typeOfVideo === "SCREEN") {
+                        console.log(
+                            "[CounselorChildVideoCall] 재구독: 화면 공유 스트림 발견",
+                            stream.streamId
+                        );
+                        const screenSub = session.subscribe(stream, undefined);
+                        setScreenSubscriber(screenSub);
+                    }
+                });
+            } else {
+                console.log("[CounselorChildVideoCall] session.streams is undefined or not iterable");
+            }
         }
     }, [session, screenSubscriber]);
 
     return (
-        <div className="counselor-observe-container" style={{ width: "100%", height: "100%" }}>
+        <div
+            className="counselor-observe-container"
+            style={{ width: "100%", height: "100%" }}
+        >
             {/* 아동의 화면 공유 스트림 영역 */}
             {screenSubscriber ? (
-                <div className="game-screen-share" style={{ width: "50%", height: "100%", float: "left" }}>
+                <div
+                    className="game-screen-share"
+                    style={{ width: "50%", height: "100%", float: "left" }}
+                >
                     <video
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                         ref={(video) => {
                             if (video && screenSubscriber) {
-                                console.log("[CounselorChildVideoCall] 연결된 화면 공유 스트림:", screenSubscriber.stream);
+                                console.log(
+                                    "[CounselorChildVideoCall] 연결된 화면 공유 스트림:",
+                                    screenSubscriber.stream
+                                );
                                 video.srcObject = screenSubscriber.stream.getMediaStream();
                             }
                         }}
