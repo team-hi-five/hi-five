@@ -9,48 +9,47 @@ import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
 import { OpenVidu } from "openvidu-browser";
 import api from "../../api/api";
-// 기존 ChildVideoScreen 대신 일반 <video> 태그로 대체
-// import ChildVideoScreen from "../../components/OpenViduSession/ChildVideoScreen";
+import ChildVideoScreen from "../../components/OpenViduSession/ChildVideoScreen";
 import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
 
-  // 게임 동영상 관련 videoRef (왼쪽 게임영상)
   const videoRef = useRef(null);
-  // 아동 웹캠 스트림용 ref (일반 웹캠 영상, OpenVidu 사용하지 않음)
-  const childWebcamRef = useRef(null);
-  // OpenVidu 화면 공유용 ref (아동이 화면 공유 시 송출)
-  // (화면 공유 스트림은 화면 공유 버튼 클릭 시 생성)
-  const [screenSubscriber, setScreenSubscriber] = useState(null);
-
-  // OpenVidu 세션 및 관련 상태 (오직 화면 공유용)
-  const [session, setSession] = useState(null);
-  // (아동의 웹캠은 일반 스트림으로 처리하므로 publisher 상태는 제거)
-  // const [publisher, setPublisher] = useState(null);
-
-  // 기타 게임 및 분석 관련 상태들
-  const webcamRef = useRef(null); // face-api 분석용 (필요 시 사용)
+  // 웹캠 분석용 video ref
+  const webcamRef = useRef(null);
+  // 표정 분석 인터벌 id 저장용 ref
   const analysisIntervalRef = useRef(null);
+  // 표정 분석 데이터를 동기적으로 저장하기 위한 ref
   const analysisDataRef = useRef([]);
+
   const childId = sessionStorage.getItem("childId");
   const { setChapterAndStage, getCurrentGameData } = useGameStore();
   const [gameState, setGameState] = useState(null);
   const [gameIdData, setGameIdData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentGameData, setCurrentGameData] = useState(null);
-  const [phase, setPhase] = useState("video");
-  const [showContent, setShowContent] = useState(false);
+  const [phase, setPhase] = useState("video"); // 비디오 상태관리
+  const [showContent, setShowContent] = useState(false); // 모달 확인 후 내용 보여주는 상태관리
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  // 한 사이클의 분석 결과 저장 (사이클 1,2: 종합 감정 분석, 3: 표정 연습, 4: 말 연습)
   const [faceResult, setFaceResult] = useState(null);
   const [voiceResult, setVoiceResult] = useState(null);
   const [analysisCycle, setAnalysisCycle] = useState(1);
 
-  // OpenVidu 객체
+  // 오픈비두 관련 (화면 공유용)
+  const [session, setSession] = useState(null);
+  // 상대방 (상담사 화면; 여기서는 아동의 화면 공유 스트림)
+  const [subscriber, setSubscriber] = useState([]);
+  // (원래 상담사 본인 영상은 publisher로 처리되었으나, 아동 카메라는 일반 웹캠으로 처리)
+  const [publisher, setPublisher] = useState(null);
+  // 화면 공유 (아동 측 publish용; getDisplayMedia로 송출됨)
+  const [screenSubscriber, setscreenSubscriber] = useState(null);
+  // 오픈비두 객체 (세션 초기화, 스트림 전송, 연결 등)
   const OV = useRef(new OpenVidu());
 
-  // --- 0. 오픈비두 토큰 받기 ---
+  // --- 0. 오픈비두 토큰 받기 -------------------------
   async function getToken() {
     try {
       const response = await api.post("/session/join", {
@@ -65,43 +64,31 @@ function ChildReviewGamePage() {
     }
   }
 
-  // --- 1. OpenVidu 세션 초기화 ---
-  // 여기서는 화면 공유 기능에만 사용할 세션을 연결합니다.
+  // --- 1. 세션 초기화 (화면 공유용) -------------------------
   const initializeSession = useCallback(async () => {
     try {
       const sessionInstance = OV.current.initSession();
 
-      // 화면 공유 스트림만 구독하도록 처리
+      // 화면 공유 스트림 및 기타(여기서는 OpenVidu로 송출되는 스트림만 구독)
       sessionInstance.on("streamCreated", (event) => {
-        const videoSource = (event.stream.videoSource || "").toLowerCase();
-        console.log("[ChildReviewGamePage] streamCreated 이벤트:", event);
-        if (videoSource === "screen") {
-          // 화면 공유 스트림만 구독 (아동 측에서는 화면 공유를 렌더링하지 않으므로 주석 처리 가능)
-          // 하지만 상담사에서는 이 스트림을 구독하게 됩니다.
-          // 여기서는 로그로만 남깁니다.
-          console.log("[ChildReviewGamePage] 화면 공유 스트림 감지:", event.stream.streamId);
-        }
+        const sub = sessionInstance.subscribe(event.stream, undefined);
+        setSubscriber(sub);
       });
 
       sessionInstance.on("streamDestroyed", (event) => {
-        console.log("[ChildReviewGamePage] streamDestroyed:", event);
-        // 화면 공유 스트림이 종료되면 상태 초기화
-        setScreenSubscriber(null);
+        setSubscriber(null);
       });
 
       const token = await getToken();
       await sessionInstance.connect(token);
+      // ※ 아동 카메라는 getUserMedia로 처리하므로 여기서는 화면 공유 스트림만 퍼블리싱
       setSession(sessionInstance);
-
-      // **중요**: 아동의 웹캠 영상은 OpenVidu를 통해 publish하지 않습니다.
-      // 따라서 여기서는 publish 코드를 제거합니다.
-      // 화면 공유는 별도 startScreenShare 함수에서 처리됩니다.
     } catch (error) {
       console.error("세션 초기화 오류:", error);
     }
   }, []);
 
-  // --- 2. 화면 공유 시작 함수 ---
+  // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
   const createScreenShareStream = async () => {
     try {
       console.log("1. 화면 공유 시작 시도...");
@@ -110,11 +97,13 @@ function ChildReviewGamePage() {
         return;
       }
 
+      // 화면 공유 스트림 가져오기
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
       });
 
+      // 화면 공유 스트림 퍼블리셔 생성 (videoSource를 'screen'으로 지정)
       const newScreenPublisher = OV.current.initPublisher(undefined, {
         videoSource: "screen",
         audioSource: true,
@@ -122,17 +111,19 @@ function ChildReviewGamePage() {
         mirror: false,
       });
 
+      // 화면 공유 스트림 퍼블리싱
       await session.publish(newScreenPublisher);
-      setScreenSubscriber(newScreenPublisher);
+      setscreenSubscriber(newScreenPublisher);
 
+      // 사용자가 화면 공유 중단 시 처리
       newScreenPublisher.stream.getVideoTracks()[0].addEventListener("ended", () => {
         console.log("사용자가 화면 공유를 중단함");
         session.unpublish(newScreenPublisher);
-        setScreenSubscriber(null);
+        setscreenSubscriber(null);
       });
     } catch (error) {
       console.error("❌ 화면 공유 중 오류:", error);
-      setScreenSubscriber(null);
+      setscreenSubscriber(null);
     }
   };
 
@@ -140,33 +131,15 @@ function ChildReviewGamePage() {
     await createScreenShareStream();
   };
 
-  // --- 3. 컴포넌트 마운트 시 OpenVidu 세션 초기화 ---
+  // --- 3. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {
     initializeSession();
     return () => {
       if (session) session.disconnect();
     };
-  }, [initializeSession]);
-
-  // --- 4. 아동 일반 웹캠 스트림 시작 (OpenVidu 사용하지 않음) ---
-  useEffect(() => {
-    const startChildWebcam = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        console.log("[startChildWebcam] 웹캠 스트림 획득:", stream);
-        if (childWebcamRef.current) {
-          childWebcamRef.current.srcObject = stream;
-          childWebcamRef.current.play();
-          console.log("[startChildWebcam] 웹캠 비디오 재생 시작");
-        }
-      } catch (err) {
-        console.error("[startChildWebcam] 웹캠 시작 실패:", err);
-      }
-    };
-    startChildWebcam();
   }, []);
 
-  // --- 기존 API 호출, face-api 모델 로드, 분석 관련 useEffect 등 ---
+  // --- 4. API를 통해 동영상 데이터 로드 -------------------------
   useEffect(() => {
     const fetchLimitData = async () => {
       console.log("[fetchLimitData] 호출됨 - childId:", childId);
@@ -175,6 +148,7 @@ function ChildReviewGamePage() {
         console.log("[fetchLimitData] API 호출 결과:", data);
         setGameIdData("가져온 정보", data);
         if (data) {
+          console.log("[fetchLimitData] Fetch Data:", data);
           await useGameStore.getState().fetchChapterData(data.chapter);
           setChapterAndStage(data.chapter, data.stage);
           const currentState = useGameStore.getState();
@@ -194,12 +168,15 @@ function ChildReviewGamePage() {
     fetchLimitData();
   }, [childId]);
 
+  // --- 현재 데이터 변경 시 실행 -------------------------
   useEffect(() => {
     if (currentGameData) {
       console.log("[useEffect - currentGameData] 업데이트된 currentGameData:", currentGameData);
+      console.log("[useEffect - currentGameData] currentGameData.chapterId:", currentGameData?.chapterId);
     }
   }, [currentGameData]);
 
+  // --- face-api 모델 로드 -------------------------
   useEffect(() => {
     const loadModels = async () => {
       console.log("[loadModels] 호출됨 - face-api 모델 로드 시작");
@@ -215,21 +192,26 @@ function ChildReviewGamePage() {
     loadModels();
   }, []);
 
+  // --- 일반 웹캠 스트림 시작 (아동 카메라용) -------------------------
   useEffect(() => {
-    const startWebcamForAnalysis = async () => {
+    const startWebcam = async () => {
+      console.log("[startWebcam] 호출됨 - 일반 웹캠 스트림 시작");
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        console.log("[startWebcam] 웹캠 스트림 획득:", stream);
         if (webcamRef.current) {
           webcamRef.current.srcObject = stream;
           webcamRef.current.play();
+          console.log("[startWebcam] 웹캠 비디오 재생 시작");
         }
       } catch (err) {
-        console.error("[startWebcamForAnalysis] 웹캠 시작 실패:", err);
+        console.error("[startWebcam] 웹캠 시작 실패:", err);
       }
     };
-    startWebcamForAnalysis();
+    startWebcam();
   }, []);
 
+  // --- 시작 버튼 누른 후 모달 실행 -------------------------
   useEffect(() => {
     console.log("[useEffect - 시작 모달] 호출됨 - 시작 버튼 모달 실행");
     Swal.fire({
@@ -246,26 +228,59 @@ function ChildReviewGamePage() {
     });
   }, []);
 
+  // --- 동영상 자동 재생 -------------------------
   useEffect(() => {
     if (phase === "video" && currentGameData && videoRef.current && showContent) {
-      videoRef.current.play()
-          .then(() => console.log("새 단원 동영상 자동 재생됨"))
-          .catch((error) => console.error("자동 재생 실패:", error));
+      videoRef.current
+          .play()
+          .then(() => {
+            console.log("새 단원 동영상이 자동 재생됩니다.");
+          })
+          .catch((error) => {
+            console.error("자동 재생 실패:", error);
+          });
     }
   }, [phase, currentGameData, showContent]);
 
-  // 이하 분석 관련 코드(동시 분석, 표정 분석, 음성 분석) 기존 코드 유지
+  // --- 모달을 통한 분석 전 분기 처리 -------------------------
+  useEffect(() => {
+    if (phase === "analysisModal") {
+      console.log("[useEffect - analysisModal] 현재 phase:", phase, "analysisCycle:", analysisCycle);
+      if (analysisCycle === 1 || analysisCycle === 2) {
+        setPhase("analysis");
+        runConcurrentAnalysis();
+      } else if (analysisCycle === 3) {
+        setPhase("analysis");
+        runFaceAnalysis();
+      } else if (analysisCycle === 4) {
+        setPhase("analysis");
+        runVoiceAnalysis();
+      }
+    }
+  }, [phase, analysisCycle]);
+
+  // --- 비디오 종료 시 감정 분석 시작 -------------------------
   const handleVideoEnd = () => {
     console.log("[handleVideoEnd] 호출됨 - 비디오 종료, phase 변경 -> analysisModal");
     setPhase("analysisModal");
   };
 
+  // --- 표정 분석 보조 함수: 평균 감정 계산 -------------------------
   const computeAverageEmotion = (data) => {
     console.log("[computeAverageEmotion] 호출됨 - 감정 데이터 평균 계산 시작");
-    let sum = { neutral: 0, happy: 0, sad: 0, angry: 0, fearful: 0, disgusted: 0, surprised: 0 };
+    let sum = {
+      neutral: 0,
+      happy: 0,
+      sad: 0,
+      angry: 0,
+      fearful: 0,
+      disgusted: 0,
+      surprised: 0,
+    };
     let count = 0;
     data.forEach((item, dataIndex) => {
       item.emotions.forEach((emotionObj, emotionIndex) => {
+        console.log(`[computeAverageEmotion] dataIndex ${dataIndex}, emotionIndex ${emotionIndex}:`, emotionObj);
         Object.keys(sum).forEach((key) => {
           sum[key] += emotionObj[key] || 0;
         });
@@ -284,8 +299,9 @@ function ChildReviewGamePage() {
     return avg;
   };
 
+  // --- 동시 분석 실행 함수 (표정+음성) -------------------------
   const runConcurrentAnalysis = async () => {
-    console.log("[runConcurrentAnalysis] 호출됨 - 동시 분석 시작 (표정+음성)");
+    console.log("[runConcurrentAnalysis] 호출됨 - 동시 분석 시작 (표정 및 음성)");
     const facePromise = new Promise((resolve) => {
       console.log("[facePromise] 표정 분석 시작: 9초간 분석 시작");
       analysisDataRef.current = [];
@@ -298,7 +314,10 @@ function ChildReviewGamePage() {
           console.log("[facePromise] 감지 결과:", detections);
           if (detections.length > 0) {
             const emotions = detections.map((det) => det.expressions);
-            analysisDataRef.current.push({ timestamp: new Date().toISOString(), emotions });
+            analysisDataRef.current.push({
+              timestamp: new Date().toISOString(),
+              emotions,
+            });
             console.log("[facePromise] 현재 분석 데이터:", analysisDataRef.current);
           }
         }
@@ -389,6 +408,7 @@ function ChildReviewGamePage() {
     }
   };
 
+  // --- 얼굴(표정) 분석만 진행 (사이클 3) -------------------------
   const runFaceAnalysis = async () => {
     console.log("[runFaceAnalysis] 호출됨 - 얼굴 분석 시작 (표정 연습)");
     const faceMsg = await new Promise((resolve) => {
@@ -443,6 +463,7 @@ function ChildReviewGamePage() {
     console.log("[runFaceAnalysis] 얼굴 분석 완료, faceResult:", faceMsg);
   };
 
+  // --- 음성 분석만 진행 (사이클 4) -------------------------
   const runVoiceAnalysis = async () => {
     console.log("[runVoiceAnalysis] 호출됨 - 음성 분석 시작 (말 연습)");
     const voiceMsg = await new Promise((resolve, reject) => {
@@ -494,6 +515,7 @@ function ChildReviewGamePage() {
     console.log("[runVoiceAnalysis] 음성 분석 완료, voiceResult:", voiceMsg);
   };
 
+  // --- 결과 표시 후 다음 사이클 또는 다음 영상으로 전환 -------------------------
   useEffect(() => {
     if (phase === "analysisResult") {
       console.log("[useEffect - analysisResult] phase:", phase, "analysisCycle:", analysisCycle);
@@ -690,8 +712,9 @@ function ChildReviewGamePage() {
     }
   }, [phase, analysisCycle, faceResult, voiceResult, currentGameData?.gameStageId]);
 
+  // --- 제어 기능 (비디오 정지, 다음/이전 단원) -------------------------
   const StopVideo = () => {
-    console.log("[StopVideo] 호출됨 - 비디오 재생/정지 토글 및 분석 중지");
+    console.log("[StopVideo] 호출됨 - 비디오 재생 상태 토글 및 분석 중지");
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -759,15 +782,18 @@ function ChildReviewGamePage() {
             {currentGameData ? (
                 <>
                   <h2>
-                    {currentGameData?.chapterId ?? ""}단계 {currentGameData?.gameStageId ?? ""}단원
+                    {currentGameData?.chapterId ?? ""}단계{" "}
+                    {currentGameData?.gameStageId ?? ""}단원
                   </h2>
                   <h3>{currentGameData?.situation ?? ""}</h3>
+
                   <video
                       ref={videoRef}
                       src={currentGameData?.gameVideo ?? ""}
                       onEnded={handleVideoEnd}
                       className="ch-gameVideo"
                   />
+                  {/* 비디오 종료 후 출력 메세지 */}
                   <Card className="ch-learning-message-screen">
                     <div className="learning-message">
                       {phase === "analysis" && <h3>분석 중입니다...</h3>}
@@ -785,18 +811,30 @@ function ChildReviewGamePage() {
                           )}
                     </div>
                   </Card>
+
+                  {/* 선택지 버튼 영역 */}
                   <div className="ch-game-button">
                     {currentGameData?.optionImages?.length > 0 &&
                     currentGameData?.options?.length > 0 ? (
                         <div className="option-images">
                           {currentGameData.optionImages.map((imgSrc, index) => (
                               <div key={index} className="learning-option-item">
-                                <img src={imgSrc} alt={`option ${index + 1}`} className="option-image" />
-                                <p className={`${
-                                    analysisCycle < 3
-                                        ? index + 1 === currentGameData?.answer ? "ch-learning-before-answer" : ""
-                                        : index + 1 === currentGameData?.answer ? "ch-learning-correct-answer" : ""
-                                }`}>
+                                <img
+                                    src={imgSrc}
+                                    alt={`option ${index + 1}`}
+                                    className="option-image"
+                                />
+                                <p
+                                    className={`${
+                                        analysisCycle < 3
+                                            ? index + 1 === currentGameData?.answer
+                                                ? "ch-learning-before-answer"
+                                                : ""
+                                            : index + 1 === currentGameData?.answer
+                                                ? "ch-learning-correct-answer"
+                                                : ""
+                                    }`}
+                                >
                                   {currentGameData.options[index]}
                                 </p>
                               </div>
@@ -811,14 +849,15 @@ function ChildReviewGamePage() {
                 <h2>게임 데이터를 불러오는 중...</h2>
             )}
           </Card>
+          <div>{/* 추가 버튼 영역 */}</div>
         </div>
 
-        {/* 오른쪽: 아동 웹캠 및 상담사 화면 영역 */}
+        {/* 오른쪽: 웹캠 및 아동 화면 영역 */}
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
             <Card className="ch-game-Top-section">
-              {/* 아동 웹캠 영상: 일반 웹캠으로 getUserMedia 사용 */}
-              <video ref={childWebcamRef} autoPlay muted style={{ width: "100%" }} />
+              {/* 아동 카메라는 이제 OpenVidu publisher가 아닌, 일반 웹캠 (webcamRef) 스트림으로 재생 */}
+              <ChildVideoScreen videoRef={webcamRef} />
             </Card>
             <div className="ch-learning-middle-section"></div>
             <div className="ch-learning-bottom-section">
@@ -826,15 +865,23 @@ function ChildReviewGamePage() {
                 <img src="/child/button-left.png" alt="button-left" onClick={PrevChapter} />
                 <p> 이전 단원</p>
               </div>
-              {/* 오른쪽: 상담사 화면 영역 (화면 공유 스트림은 상담사 페이지에서 구독됨) */}
+              {/* 오른쪽: 상담사 화면 영역 (화면 공유 스트림만 구독) */}
               <Card className="ch-learning-counselor-screen">
-                <CounselorCamWithChild session={session} subscriber={subscriber} mode="subscribe" />
+                <CounselorCamWithChild
+                    session={session}
+                    subscriber={subscriber}
+                    mode="subscribe"
+                />
               </Card>
               <div className="ch-learning-button-right">
                 <img src="/child/button-right.png" alt="button-right" onClick={NextChapter} />
                 <p>다음 단원</p>
                 <BsStopBtnFill onClick={StopVideo} className="ch-learning-stop-icon" />
-                <button onClick={startScreenShare} disabled={screenSubscriber !== null} className="game-screen-share-button">
+                <button
+                    onClick={startScreenShare}
+                    disabled={screenSubscriber !== null}
+                    className="game-screen-share-button"
+                >
                   {screenSubscriber ? "화면 공유 중" : "게임 화면 공유하기"}
                 </button>
               </div>
