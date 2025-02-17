@@ -7,10 +7,10 @@ import * as faceapi from "face-api.js";
 import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
-import { OpenVidu } from 'openvidu-browser';
+import { OpenVidu } from "openvidu-browser";
 import api from "../../api/api";
-import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen";
-import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
+import ChildVideoScreen from "../../components/OpenViduSession/ChildVideoScreen";
+import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
@@ -53,14 +53,14 @@ function ChildReviewGamePage() {
   // --- 0. 오픈비두 토큰 받기 -------------------------
   async function getToken() {
     try {
-      const response = await api.post('/session/join', {
-        type: 'game',
-        childId
+      const response = await api.post("/session/join", {
+        type: "game",
+        childId,
       });
       console.log("토큰!:", response.data);
       return response.data;
     } catch (error) {
-      console.error('토큰 요청 실패:', error);
+      console.error("토큰 요청 실패:", error);
       throw error;
     }
   }
@@ -71,41 +71,42 @@ function ChildReviewGamePage() {
       const sessionInstance = OV.current.initSession();
 
       // 스트림 감지 (다른 참가자 웹캠)
-      sessionInstance.on('streamCreated', (event) => {
+      sessionInstance.on("streamCreated", (event) => {
         const subscriber = sessionInstance.subscribe(event.stream, undefined);
         setSubscriber(subscriber);
       });
 
-      sessionInstance.on('streamDestroyed', (event) => {
-        setSubscriber(null);  // null로 초기화
+      sessionInstance.on("streamDestroyed", (event) => {
+        setSubscriber(null); // null로 초기화
       });
 
       const token = await getToken();
       // 토큰을 통해 세션과 스트림구독을 연결
       await sessionInstance.connect(token);
 
-      // 초기값 (publisher: 화면 공유 퍼블리셔 생성)
+      // **수정 부분**
+      // 아동의 웹캠 영상을 퍼블리셔로 생성하여 오른쪽 위에 항상 캠 영상이 보이도록 함.
+      // 화면 공유용이 아니라 기본 웹캠 영상을 사용합니다.
       const pub = OV.current.initPublisher(undefined, {
-        audioSource: undefined,
-        videoSource: 'screen', // 화면 공유용 스트림 (아동은 공유할 화면을 publish)
+        // videoSource 옵션 제거 → 기본적으로 웹캠 영상 사용
         publishAudio: true,
         publishVideo: true,
-        mirror: true
+        mirror: true,
       });
 
       await sessionInstance.publish(pub);
       setSession(sessionInstance);
       setPublisher(pub);
     } catch (error) {
-      console.error('세션 초기화 오류:', error);
+      console.error("세션 초기화 오류:", error);
     }
   }, []);
 
-  // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
+  // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행되던 함수) -------------------------
   // 아동 페이지의 화면 공유 함수
   const createScreenShareStream = async () => {
     try {
-      console.log('1. 화면 공유 시작 시도...');
+      console.log("1. 화면 공유 시작 시도...");
       if (screenSubscriber) {
         console.log("📌 이미 화면 공유 중입니다.");
         return;
@@ -119,7 +120,7 @@ function ChildReviewGamePage() {
 
       // 화면 공유 스트림 퍼블리셔 생성 (videoSource를 'screen'으로 지정)
       const newScreenPublisher = OV.current.initPublisher(undefined, {
-        videoSource: 'screen',
+        videoSource: "screen",
         audioSource: true,
         publishVideo: true,
         mirror: false,
@@ -130,13 +131,13 @@ function ChildReviewGamePage() {
       setscreenSubscriber(newScreenPublisher);
 
       // 사용자가 화면 공유 중단 시 처리
-      newScreenPublisher.stream.getVideoTracks()[0].addEventListener('ended', () => {
-        console.log('사용자가 화면 공유를 중단함');
+      newScreenPublisher.stream.getVideoTracks()[0].addEventListener("ended", () => {
+        console.log("사용자가 화면 공유를 중단함");
         session.unpublish(newScreenPublisher);
         setscreenSubscriber(null);
       });
     } catch (error) {
-      console.error('❌ 화면 공유 중 오류:', error);
+      console.error("❌ 화면 공유 중 오류:", error);
       setscreenSubscriber(null);
     }
   };
@@ -850,19 +851,23 @@ function ChildReviewGamePage() {
                     currentGameData?.options?.length > 0 ? (
                         <div className="option-images">
                           {currentGameData.optionImages.map((imgSrc, index) => (
-                              <div key={index}
-                                   className="learning-option-item"
-                              >
+                              <div key={index} className="learning-option-item">
                                 <img
                                     src={imgSrc}
                                     alt={`option ${index + 1}`}
                                     className="option-image"
                                 />
-                                <p className={`${
-                                    analysisCycle < 3
-                                        ? (index + 1 === currentGameData?.answer ? 'ch-learning-before-answer' : '')
-                                        : (index + 1 === currentGameData?.answer ? 'ch-learning-correct-answer' : '')
-                                }`}>
+                                <p
+                                    className={`${
+                                        analysisCycle < 3
+                                            ? index + 1 === currentGameData?.answer
+                                                ? "ch-learning-before-answer"
+                                                : ""
+                                            : index + 1 === currentGameData?.answer
+                                                ? "ch-learning-correct-answer"
+                                                : ""
+                                    }`}
+                                >
                                   {currentGameData.options[index]}
                                 </p>
                               </div>
