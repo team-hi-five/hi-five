@@ -1,7 +1,7 @@
 import api from "../../../api/api";
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from 'react-router-dom';
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
@@ -9,8 +9,8 @@ function CounselorChildVideoCall() {
     const [publisher, setPublisher] = useState(null);
     const [screenSubscriber, setScreenSubscriber] = useState(null);
     const [searchParams] = useSearchParams();
-    const type = searchParams.get("type");
-    const childId = searchParams.get("childId");
+    const type = searchParams.get('type');
+    const childId = searchParams.get('childId');
 
     useEffect(() => {
         const initSession = async () => {

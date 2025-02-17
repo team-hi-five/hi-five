@@ -9,8 +9,8 @@ import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
 import { OpenVidu } from 'openvidu-browser';
 import api from "../../api/api";
-import ChildVideoScreen from "../../components/OpenViduSession/ChildVideoScreen";
-import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
+import ChildVideoScreen from "../../components/OpenviduSession/ChildVideoScreen";
+import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
@@ -84,10 +84,10 @@ function ChildReviewGamePage() {
       // 토큰을 통해 세션과 스트림구독을 연결
       await sessionInstance.connect(token);
 
-      // **수정 부분**
-      // 아동의 웹캠 영상을 퍼블리셔로 생성하여 오른쪽 위에 항상 캠 영상이 보이도록 함.
+      // 초기값 (publisher: 화면 공유 퍼블리셔 생성)
       const pub = OV.current.initPublisher(undefined, {
-        // videoSource 옵션 제거 → 기본 웹캠 영상 사용
+        audioSource: undefined,
+        videoSource: 'screen', // 화면 공유용 스트림 (아동은 공유할 화면을 publish)
         publishAudio: true,
         publishVideo: true,
         mirror: true
@@ -101,7 +101,7 @@ function ChildReviewGamePage() {
     }
   }, []);
 
-  // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행되던 함수) -------------------------
+  // --- 2. 화면 공유 시작 함수 (버튼 클릭 시 실행) -------------------------
   // 아동 페이지의 화면 공유 함수
   const createScreenShareStream = async () => {
     try {
@@ -165,13 +165,6 @@ function ChildReviewGamePage() {
       if (session) session.disconnect();
     };
   }, []);
-
-  // **[추가]** 세션 연결 후 자동으로 화면 공유 시작 (버튼 누르지 않아도)
-  useEffect(() => {
-    if (session && !screenSubscriber) {
-      startScreenShare();
-    }
-  }, [session, screenSubscriber]);
 
   // --- 1. API를 통해 동영상 데이터 로드 ----------------
   useEffect(() => {
