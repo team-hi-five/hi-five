@@ -140,7 +140,6 @@ function ChildMainPage() {
               </div>
             </div>
           </Card>
-          <button onClick={() => navigate(`/child/test`)}>웹캠테스트</button>
         </div>
       </div>
     </div>
