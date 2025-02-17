@@ -34,11 +34,11 @@ function ChildReviewGamePage() {
   const [voiceResult, setVoiceResult] = useState(null);
   const [analysisCycle, setAnalysisCycle] = useState(1);
 
-  // OpenVidu states
+  // OpenVidu 상태
   const [session, setSession] = useState(null);
   const [subscriber, setSubscriber] = useState([]);
   const [publisher, setPublisher] = useState(null); // 웹캠 퍼블리셔
-  const [screenSubscriber, setScreenSubscriber] = useState(null); // 화면 공유 퍼블리셔 구독
+  const [screenSubscriber, setScreenSubscriber] = useState(null); // 화면 공유 퍼블리셔의 스트림 구독 (상담사 쪽에서 사용)
   const OV = useRef(new OpenVidu());
 
   async function getToken() {
@@ -52,7 +52,7 @@ function ChildReviewGamePage() {
     }
   }
 
-  // 초기 세션 생성: 웹캠 퍼블리셔를 생성합니다.
+  // [수정] 초기 퍼블리셔 생성 시 videoSource 옵션을 제거하여 기본 웹캠 영상으로 생성합니다.
   const initializeSession = useCallback(async () => {
     try {
       const sessionInstance = OV.current.initSession();
@@ -80,7 +80,7 @@ function ChildReviewGamePage() {
       const token = await getToken();
       await sessionInstance.connect(token);
 
-      // 웹캠 퍼블리셔 생성 (기본 영상 → 웹캠)
+      // [수정] 화면 공유용이 아니라 기본 웹캠 영상으로 퍼블리셔 생성
       const webcamPub = OV.current.initPublisher(undefined, {
         publishAudio: true,
         publishVideo: true,
@@ -94,7 +94,7 @@ function ChildReviewGamePage() {
     }
   }, []);
 
-  // 화면 공유 시작: 별도의 화면 공유 퍼블리셔 생성
+  // 화면 공유 시작: 별도의 화면 공유 퍼블리셔 생성 (이 부분은 그대로 유지)
   const createScreenShareStream = async () => {
     try {
       console.log("1. 화면 공유 시작 시도...");
@@ -129,7 +129,6 @@ function ChildReviewGamePage() {
     await createScreenShareStream();
   };
 
-  // 마운트 시 세션 초기화
   useEffect(() => {
     initializeSession();
     return () => {
@@ -137,7 +136,6 @@ function ChildReviewGamePage() {
     };
   }, []);
 
-  // API 데이터 로드
   useEffect(() => {
     const fetchLimitData = async () => {
       try {
@@ -167,7 +165,6 @@ function ChildReviewGamePage() {
     }
   }, [currentGameData]);
 
-  // face-api 모델 로드
   useEffect(() => {
     const loadModels = async () => {
       const MODEL_URL = "/models";
@@ -182,7 +179,6 @@ function ChildReviewGamePage() {
     loadModels();
   }, []);
 
-  // 웹캠 스트림 (분석용)
   useEffect(() => {
     const startWebcam = async () => {
       try {
@@ -198,7 +194,6 @@ function ChildReviewGamePage() {
     startWebcam();
   }, []);
 
-  // 시작 모달
   useEffect(() => {
     Swal.fire({
       title: "감정아! 같이 공부해 볼까?",
@@ -213,7 +208,6 @@ function ChildReviewGamePage() {
     });
   }, []);
 
-  // 동영상 자동 재생
   useEffect(() => {
     if (phase === "video" && currentGameData && videoRef.current && showContent) {
       videoRef.current.play().catch((error) => {
@@ -222,7 +216,6 @@ function ChildReviewGamePage() {
     }
   }, [phase, currentGameData, showContent]);
 
-  // 분석 모달 (분석 방식 전환)
   useEffect(() => {
     if (phase === "analysisModal") {
       if (analysisCycle === 1 || analysisCycle === 2) {
@@ -408,7 +401,7 @@ function ChildReviewGamePage() {
       const voiceTimeout = setTimeout(() => {
         recognition.abort();
         resolve("음성 인식 시간이 초과되었습니다.");
-      }, 5000);
+      }, 9000);
       recognition.onresult = (event) => {
         clearTimeout(voiceTimeout);
         let finalResult = "";
@@ -436,187 +429,14 @@ function ChildReviewGamePage() {
     setPhase("analysisResult");
   };
 
+  // 자동으로 화면 공유 시작 (한 번만 실행)
+  const autoScreenShareStarted = useRef(false);
   useEffect(() => {
-    if (phase === "analysisResult") {
-      if (analysisCycle === 1 || analysisCycle === 2) {
-        Swal.fire({
-          title: `분석 결과예요!`,
-          html: `<p>표정 분석: ${faceResult}</p><p>음성 인식: ${voiceResult}</p>`,
-          imageUrl: "/child/character/againCh.png",
-          imageWidth: 200,
-          imageHeight: 200,
-          showConfirmButton: true,
-          confirmButtonText: "다음으로"
-        }).then((result) => {
-          if (result.isConfirmed) {
-            if (analysisCycle === 1) {
-              if (faceResult.includes("정답") && voiceResult.includes("정답")) {
-                Swal.fire({
-                  title: "이제 표정 연습을 해볼까요?",
-                  text: "거울을 보면서 천천히 따라해보세요!",
-                  imageUrl: "/child/character/againCh.png",
-                  imageWidth: 200,
-                  imageHeight: 200,
-                  timer: 3000,
-                  showConfirmButton: false
-                }).then(() => {
-                  setAnalysisCycle(3);
-                  setFaceResult(null);
-                  setVoiceResult(null);
-                  setPhase("analysisModal");
-                });
-              } else {
-                Swal.fire({
-                  title: "한 번 더 연습해볼까요?",
-                  text: "다시 한 번 표정과 말을 해보세요!",
-                  imageUrl: "/child/character/againCh.png",
-                  imageWidth: 200,
-                  imageHeight: 200,
-                  timer: 3000,
-                  showConfirmButton: false
-                }).then(() => {
-                  setAnalysisCycle(2);
-                  setFaceResult(null);
-                  setVoiceResult(null);
-                  setPhase("analysisModal");
-                });
-              }
-            } else if (analysisCycle === 2) {
-              Swal.fire({
-                title: "이제 표정 연습을 해볼까요?",
-                text: "거울을 보면서 천천히 따라해보세요!",
-                imageUrl: "/child/character/againCh.png",
-                imageWidth: 200,
-                imageHeight: 200,
-                timer: 3000,
-                showConfirmButton: false
-              }).then(() => {
-                setAnalysisCycle(3);
-                setFaceResult(null);
-                setVoiceResult(null);
-                setPhase("analysisModal");
-              });
-            }
-          }
-        });
-      } else if (analysisCycle === 3) {
-        Swal.fire({
-          title: "표정 분석 결과",
-          html: `<p>${faceResult}</p>`,
-          imageUrl: "/child/character/againCh.png",
-          imageWidth: 200,
-          imageHeight: 200,
-          timer: 3000,
-          showConfirmButton: false
-        }).then(() => {
-          Swal.fire({
-            title: "이제 말 연습을 해볼까요?",
-            text: "아래 글자를 천천히 따라해보세요!",
-            imageUrl: "/child/character/againCh.png",
-            imageWidth: 200,
-            imageHeight: 200,
-            timer: 3000,
-            showConfirmButton: false
-          }).then(() => {
-            setAnalysisCycle(4);
-            setFaceResult(null);
-            setPhase("analysisModal");
-          });
-        });
-      } else if (analysisCycle === 4) {
-        Swal.fire({
-          title: "다시 연습해볼까요?",
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonText: "연습 다시하기",
-          cancelButtonText: "다음으로",
-          allowOutsideClick: false
-        }).then((result) => {
-          if (result.isConfirmed) {
-            setAnalysisCycle(3);
-            setFaceResult(null);
-            setVoiceResult(null);
-            setPhase("analysisModal");
-          } else if (result.dismiss === Swal.DismissReason.cancel) {
-            Swal.fire({
-              html: `
-                <style>
-                  .flip-card {
-                    perspective: 1000px;
-                    width: 200px;
-                    height: 300px;
-                    margin: 0 auto;
-                  }
-                  .flip-card-inner {
-                    position: relative;
-                    width: 100%;
-                    height: 100%;
-                    text-align: center;
-                    transition: transform 0.6s;
-                    transform-style: preserve-3d;
-                  }
-                  .flip-card-front, .flip-card-back {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    backface-visibility: hidden;
-                  }
-                  .flip-card-back {
-                    transform: rotateY(180deg);
-                  }
-                </style>
-                <div class="flip-card">
-                  <div class="flip-card-inner">
-                    <div class="flip-card-front">
-                      <img src="${currentGameData.cardFront}" alt="card front" style="width: 200px; height: 300px; object-fit: contain;" />
-                    </div>
-                    <div class="flip-card-back">
-                      <img src="${currentGameData.cardBack}" alt="card back" style="width: 200px; height: 300px; object-fit: contain;" />
-                    </div>
-                  </div>
-                </div>
-              `,
-              showConfirmButton: false,
-              timer: 2000,
-              didOpen: () => {
-                setTimeout(() => {
-                  const card = document.querySelector(".flip-card-inner");
-                  card.style.transform = "rotateY(180deg)";
-                }, 4000);
-              }
-            }).then(() => {
-              if (currentGameData.gameStageId === 5) {
-                Swal.fire({
-                  title: "정말 잘했어요!",
-                  text: "모든 단원을 완료했어요!",
-                  imageUrl: "/child/character/againCh.png",
-                  imageWidth: 200,
-                  imageHeight: 200,
-                  showConfirmButton: true,
-                });
-              } else {
-                Swal.fire({
-                  title: "정말 잘했어요!",
-                  text: "다음 단원으로 이동할까요?",
-                  imageUrl: "/child/character/againCh.png",
-                  imageWidth: 200,
-                  imageHeight: 200,
-                  timer: 3000,
-                  showConfirmButton: false,
-                }).then(async () => {
-                  await NextChapter();
-                  setAnalysisCycle(1);
-                  setFaceResult(null);
-                  setVoiceResult(null);
-                  setPhase("video");
-                });
-              }
-            });
-          }
-        });
-      }
+    if (session && !screenSubscriber && !autoScreenShareStarted.current) {
+      autoScreenShareStarted.current = true;
+      startScreenShare();
     }
-  }, [phase, analysisCycle, faceResult, voiceResult, currentGameData?.gameStageId]);
+  }, [session, screenSubscriber]);
 
   const StopVideo = () => {
     if (videoRef.current) {
@@ -673,21 +493,27 @@ function ChildReviewGamePage() {
           <Card className="ch-game-screen-container">
             {currentGameData ? (
                 <>
-                  <h2>{currentGameData?.chapterId ?? ""}단계 {currentGameData?.gameStageId ?? ""}단원</h2>
+                  <h2>
+                    {currentGameData?.chapterId ?? ""}단계{" "}
+                    {currentGameData?.gameStageId ?? ""}단원
+                  </h2>
                   <h3>{currentGameData?.situation ?? ""}</h3>
                   <video ref={videoRef} src={currentGameData?.gameVideo ?? ""} onEnded={handleVideoEnd} className="ch-gameVideo" />
                   <Card className="ch-learning-message-screen">
                     <div className="learning-message">
                       {phase === "analysis" && <h3>분석 중입니다...</h3>}
-                      {phase === "analysisResult" && analysisCycle > 2 && analysisCycle !== 1 && analysisCycle !== 2 && (
-                          <div>
-                            {analysisCycle === 3 ? (
-                                <h3>표정 분석 결과: {faceResult}</h3>
-                            ) : analysisCycle === 4 ? (
-                                <h3>음성 분석 결과: {voiceResult}</h3>
-                            ) : null}
-                          </div>
-                      )}
+                      {phase === "analysisResult" &&
+                          analysisCycle > 2 &&
+                          analysisCycle !== 1 &&
+                          analysisCycle !== 2 && (
+                              <div>
+                                {analysisCycle === 3 ? (
+                                    <h3>표정 분석 결과: {faceResult}</h3>
+                                ) : analysisCycle === 4 ? (
+                                    <h3>음성 분석 결과: {voiceResult}</h3>
+                                ) : null}
+                              </div>
+                          )}
                     </div>
                   </Card>
                   <div className="ch-game-button">

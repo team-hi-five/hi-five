@@ -93,21 +93,23 @@ function CounselorChildVideoCall() {
                     />
                 </div>
             ) : (
-                <div style={{
-                    width: "50%",
-                    height: "100%",
-                    backgroundColor: "black",
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    float: "left"
-                }}>
+                <div
+                    style={{
+                        width: "50%",
+                        height: "100%",
+                        backgroundColor: "black",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        float: "left",
+                    }}
+                >
                     <p>아동의 화면 공유가 없습니다.</p>
                 </div>
             )}
 
-            {/* 아동의 웹캠 (또는 상담사의 웹캠) */}
+            {/* 아동의 웹캠 (또는 상담사 자신의 웹캠) */}
             {publisher && (
                 <div style={{ width: "50%", height: "100%", float: "right" }}>
                     <video
