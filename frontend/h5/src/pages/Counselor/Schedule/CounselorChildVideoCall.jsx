@@ -133,7 +133,7 @@ function CounselorChildVideoCall() {
     const handleEndChapter = () => {
         sendSignal("end-chapter", "end-chapter")
         Swal.fire({
-            title: "상담사 선생님이 수업을 시작했어요!",
+            title: "수업이 종료되었습니다! <br> 수고하셨습니다!",
             imageUrl: "/child/character/againCh.png",
             imageWidth: 200,
             imageHeight: 200,
