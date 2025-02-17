@@ -71,15 +71,19 @@ public class ChildUserEntity {
     @Column(name = "delete_dttm")
     private String deleteDttm;
 
+    @Builder.Default
     @OneToMany(mappedBy = "childUserEntity")
     private Set<ChildGameChapterEntity> childGameChapterEntities = new LinkedHashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "childUserEntity")
     private Set<ChildStudyChapterEntity> childStudyChapterEntities = new LinkedHashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "childUserEntity")
     private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "childUserEntity")
     private Set<StatisticEntity> statisticEntities = new LinkedHashSet<>();
 
