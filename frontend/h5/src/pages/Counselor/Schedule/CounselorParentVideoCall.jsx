@@ -6,6 +6,7 @@ import api from '../../../api/api.jsx';
 import { useSearchParams } from 'react-router-dom';
 import "../Css/CounselorParentVideoCall.css"
 import { FaVideo, FaMicrophone, FaPhoneSlash, FaMicrophoneSlash } from "react-icons/fa";
+import {sendAlarm} from "../../../api/alarm.jsx";
 
 function CounselorParentVideoCallPage() {
   const [searchParams] = useSearchParams();
@@ -199,25 +200,91 @@ function CounselorParentVideoCallPage() {
     initializeSession();
   }, [type, childId, role]);
 
-   // -------------------- 버튼 ----------------------
-    const toggleVideo = useCallback(() => {
-      ownPublisher?.publishVideo(!ownPublisher.stream.videoActive);
-    }, [ownPublisher]);
+  // -------------------- 버튼 ----------------------
+  const toggleVideo = useCallback(() => {
+    ownPublisher?.publishVideo(!ownPublisher.stream.videoActive);
+  }, [ownPublisher]);
 
-    // 오디오 ON/OFF
-    const toggleAudio = useCallback(() => {
-      ownPublisher?.publishAudio(!ownPublisher.stream.audioActive);
-      setIsAudioEnabled(!isAudioEnabled);
-    }, [ownPublisher]);
+  // 오디오 ON/OFF
+  const toggleAudio = useCallback(() => {
+    ownPublisher?.publishAudio(!ownPublisher.stream.audioActive);
+    setIsAudioEnabled(!isAudioEnabled);
+  }, [ownPublisher]);
 
-    // 세션 종료
-    const leaveSessionInternal = useCallback(() => {
-      if (session) {
-        session.disconnect();
+  // 세션 종료
+  const leaveSessionInternal = useCallback(() => {
+    if (session) {
+      session.disconnect();
+    }
+    OV.current = null;
+    setSession(null);
+  }, [session]);
+
+  // **************************************************************************************************************** //
+  // 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람
+  const isOtherParticipantAbsent = () => {
+    if (!session) {
+      console.log("[isOtherParticipantAbsent] 세션이 아직 초기화되지 않았습니다.");
+      return false; // 세션이 없으면 아직 판단할 수 없음
+    }
+
+    let childStreamExists = false;
+
+    if (session.streams && typeof session.streams.forEach === "function") {
+      session.streams.forEach((stream) => {
+        if (stream.typeOfVideo === "SCREEN") {
+          childStreamExists = true;
+        }
+      });
+    } else {
+      console.log("[isOtherParticipantAbsent] session.streams가 없거나 순회할 수 없습니다.");
+    }
+
+    if (!childStreamExists) {
+      console.log("[isOtherParticipantAbsent] 상대방(아동의 화면 공유 스트림)이 세션에 존재하지 않습니다.");
+    } else {
+      console.log("[isOtherParticipantAbsent] 아동의 화면 공유 스트림이 확인되었습니다.");
+    }
+
+    return !childStreamExists;
+  };
+
+  useEffect(() => {
+    const checkAbsence = async () => {
+      if (isOtherParticipantAbsent()) {
+        console.log("[checkAbsence] 상대방이 없습니다. 알람 전송 시작...");
+        // 알람 전송에 필요한 데이터(alarmDto)를 구성합니다.
+
+        let alarmDto;
+        if (role === 'consultant') {
+          alarmDto = {
+            toUserId: Number(childId),
+            senderRole: "ROLE_CONSULTANT",
+            sessionType: type,
+          };
+        } else {
+          alarmDto = {
+            toUserId: Number(childId),
+            senderRole: "ROLE_PARENT",
+            sessionType: type,
+          };
+        }
+
+        try {
+          const response = await sendAlarm(alarmDto);
+          console.log("[checkAbsence] 알람 전송 성공:", response);
+        } catch (error) {
+          console.error("[checkAbsence] 알람 전송 실패:", error);
+        }
       }
-      OV.current = null;
-      setSession(null);
-    }, [session]);
+    };
+
+    // 5초마다 체크 (원하는 시간 간격으로 변경 가능)
+    const intervalId = setInterval(checkAbsence, 10000);
+    return () => clearInterval(intervalId);
+  }, [session, childId]);
+  // 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람
+  // **************************************************************************************************************** //
 
   // -------------------- 렌더링 ----------------------
   if (role === 'consultant') {

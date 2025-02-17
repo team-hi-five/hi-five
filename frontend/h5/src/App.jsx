@@ -58,7 +58,7 @@ function App() {
 
   return (
       <>
-        <Toast ref={toast} />
+        <Toast ref={toast} position="bottom-right"/>
         <Router>
           <Routes>
             {/* 루트와 로그인 관련 경로는 로그인 페이지 또는 HomeRedirect 컴포넌트로 처리할 수 있음 */}
