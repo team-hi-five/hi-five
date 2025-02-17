@@ -1,6 +1,7 @@
 package com.h5.schedule.repository;
 
 import com.h5.schedule.entity.ConsultMeetingScheduleEntity;
+import com.h5.schedule.entity.GameMeetingScheduleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -75,16 +76,13 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
                                                      @Param("year") int year,
                                                      @Param("month") int month);
 
-
-    @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
-            "WHERE c.childUserEntity.id = :childUserId " +
-            "AND c.schdlDttm <= :currentDttm " +
-            "AND FUNCTION('DATEADD', 'MINUTE', :interval, c.schdlDttm) > :currentDttm " +
-            "AND c.deleteDttm IS NULL")
+    @Query(value = "SELECT * FROM ConsultMeetingScheduleEntity c " +
+            "WHERE c.child_user_id = :childUserId " +
+            "AND c.schdl_dttm <= :currentDttm " +
+            "AND DATE_ADD(c.schdl_dttm, INTERVAL 70 MINUTE) > :currentDttm " +
+            "AND c.delete_dttm IS NULL", nativeQuery = true)
     Optional<ConsultMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
-            @Param("currentDttm") LocalDateTime currentDttm,
-            @Param("interval") int interval);
-
-
+            @Param("currentDttm") LocalDateTime currentDttm);
+    
 }
