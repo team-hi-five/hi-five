@@ -31,6 +31,7 @@ public class Center {
     @Column(name = "center_contact", nullable = false, length = 30)
     private String centerContact;
 
+    @Builder.Default
     @OneToMany(mappedBy = "center")
     private Set<ConsultantUserEntity> consultantUserEntities = new LinkedHashSet<>();
 
