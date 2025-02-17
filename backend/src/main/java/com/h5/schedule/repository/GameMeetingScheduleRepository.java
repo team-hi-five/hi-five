@@ -77,11 +77,12 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
 
     @Query("SELECT g FROM GameMeetingScheduleEntity g " +
             "WHERE g.childUserEntity.id = :childUserId " +
-            "AND DATE(g.schdlDttm) = :today " +
+            "AND g.schdlDttm <= :currentDttm " +
+            "AND FUNCTION('DATEADD', 'MINUTE', 70, g.schdlDttm) > :currentDttm " +
             "AND g.deleteDttm IS NULL")
-    Optional<GameMeetingScheduleEntity> findTodaySchedulesByChildId(
+    Optional<GameMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
-            @Param("today") LocalDate today);
+            @Param("today") LocalDateTime currentDateTime);
 
 }
 

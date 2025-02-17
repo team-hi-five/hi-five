@@ -77,10 +77,12 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
 
     @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.childUserEntity.id = :childUserId " +
-            "AND DATE(c.schdlDttm) = :today " +
+            "AND c.schdlDttm <= :currentDttm " +
+            "AND FUNCTION('DATEADD', 'MINUTE', 70, c.schdlDttm) > :currentDttm " +
             "AND c.deleteDttm IS NULL")
-    Optional<ConsultMeetingScheduleEntity> findTodaySchedulesByChildId(
+    Optional<ConsultMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
-            @Param("today") LocalDate today);
+            @Param("currentDttm") LocalDateTime currentDttm);
+
 
 }
