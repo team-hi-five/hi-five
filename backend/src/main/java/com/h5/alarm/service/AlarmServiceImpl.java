@@ -6,15 +6,19 @@ import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.parent.repository.ParentUserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Transactional
 public class AlarmServiceImpl implements AlarmService {
 
     private final SimpMessagingTemplate messagingTemplate;
@@ -27,6 +31,9 @@ public class AlarmServiceImpl implements AlarmService {
         boolean isGame = "game".equals(alarmRequestDto.getSessionType());
         boolean isConsultantSender = "ROLE_CONSULTANT".equals(alarmRequestDto.getSenderRole());
 
+        log.info("getSessionType: {}, getSenderRole: {} ", alarmRequestDto.getSessionType(), alarmRequestDto.getSenderRole());
+        log.info("isGame: {}, isConsultantSender: {}", isGame, isConsultantSender);
+
         String message;
         String toUserEmail;
 
@@ -36,10 +43,9 @@ public class AlarmServiceImpl implements AlarmService {
                     : "상담사가 기다리고 있습니다!";
             toUserEmail = getParentEmail(alarmRequestDto.getToUserId());
         } else {
-            String childUserName = getChildUserName(alarmRequestDto.getSenderUserId());
             message = isGame
-                    ? childUserName + " 이(가) 기다리고 있습니다!"
-                    : childUserName + " 학부모님이 기다리고 있습니다!";
+                    ? "아이가 기다리고 있습니다!"
+                    : "학부모님이 기다리고 있습니다!";
             toUserEmail = getConsultantEmail(alarmRequestDto.getToUserId());
         }
 
@@ -62,16 +68,13 @@ public class AlarmServiceImpl implements AlarmService {
                 .getEmail();
     }
 
-    private String getConsultantEmail(int consultantUserId) {
+    private String getConsultantEmail(int childUserId) {
+        int consultantUserId = childUserRepository.findById(childUserId)
+                .orElseThrow(UserNotFoundException::new)
+                .getConsultantUserEntity().getId();
         return consultantUserRepository.findById(consultantUserId)
                 .orElseThrow(UserNotFoundException::new)
                 .getEmail();
-    }
-
-    private String getChildUserName(int childUserId) {
-        return childUserRepository.findById(childUserId)
-                .orElseThrow(UserNotFoundException::new)
-                .getName();
     }
 
 }
