@@ -32,6 +32,7 @@ public class ChildGameStageEntity {
     @JoinColumn(name = "user_chapter_id", nullable = false)
     private ChildGameChapterEntity childGameChapterEntity;
 
+    @Builder.Default
     @OneToMany(mappedBy = "childGameStageEntity")
     private Set<GameLogEntity> gameLogEntities = new LinkedHashSet<>();
 

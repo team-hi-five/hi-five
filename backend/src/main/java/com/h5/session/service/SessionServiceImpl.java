@@ -73,7 +73,7 @@ public class SessionServiceImpl implements SessionService {
         LocalDateTime currentDttm = LocalDateTime.now();
 
         if ("game".equals(type)) {
-            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
+            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm, 70)
                     .orElseThrow(ScheduleNotFoundException::new);
             int scheduleId = gameMeetingScheduleEntity.getId();
 
@@ -87,7 +87,7 @@ public class SessionServiceImpl implements SessionService {
             return openViduService.createConnection(sessionId);
 
         }else if("consult".equals(type)) {
-            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
+            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm, 70)
                     .orElseThrow(ScheduleNotFoundException::new);
             int scheduleId = consultMeetingScheduleEntity.getId();
 

@@ -40,9 +40,11 @@ public class ChildStudyStageEntity {
     @Column(name = "end_dttm")
     private LocalDateTime endDttm;
 
+    @Builder.Default
     @OneToMany(mappedBy = "childStudyStageEntity")
     private Set<StudyTextLogEntity> studyTextLogEntities = new LinkedHashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "childStudyStageEntity")
     private Set<StudyVideoLogEntity> studyVideoLogEntities = new LinkedHashSet<>();
 

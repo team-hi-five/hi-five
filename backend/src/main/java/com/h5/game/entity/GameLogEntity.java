@@ -26,6 +26,7 @@ public class GameLogEntity {
     @Column(name = "selected_opt", nullable = false)
     private Integer selectedOpt;
 
+    @Builder.Default
     @NotNull
     @Column(name = "corrected", nullable = false)
     private Boolean corrected = false;
@@ -34,6 +35,7 @@ public class GameLogEntity {
     @Column(name = "submit_dttm", nullable = false)
     private LocalDateTime submitDttm;
 
+    @Builder.Default
     @NotNull
     @Column(name = "consulted", nullable = false)
     private Boolean consulted = false;

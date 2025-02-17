@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -78,11 +79,12 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
     @Query("SELECT c FROM ConsultMeetingScheduleEntity c " +
             "WHERE c.childUserEntity.id = :childUserId " +
             "AND c.schdlDttm <= :currentDttm " +
-            "AND FUNCTION('DATEADD', 'MINUTE', 70, c.schdlDttm) > :currentDttm " +
+            "AND FUNCTION('DATEADD', 'MINUTE', :interval, c.schdlDttm) > :currentDttm " +
             "AND c.deleteDttm IS NULL")
     Optional<ConsultMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
-            @Param("currentDttm") LocalDateTime currentDttm);
+            @Param("currentDttm") LocalDateTime currentDttm,
+            @Param("interval") int interval);
 
 
 }

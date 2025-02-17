@@ -9,6 +9,10 @@ import lombok.*;
 @Builder
 public class QnaSearchRequestDto {
     private String keyword;
+
+    @Builder.Default
     private int pageNumber = 0;
+
+    @Builder.Default
     private int pageSize = 10;
 }
