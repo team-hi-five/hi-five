@@ -1,235 +1,149 @@
-import api from "../../../api/api";
-import { useState, useEffect, useRef } from "react";
-import { OpenVidu } from "openvidu-browser";
-import { useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2";
+import { useNavigate, useParams } from "react-router-dom";
+import "./ChildCss/ChildMainPage.css";
+import { Card } from "primereact/card";
+import ChildMainBackground from "../../../components/Child/ChildMainBackground";
+import useChildIdstore from "../../../store/childIdStore";
+// import useGameStore from "../../store/gameStore";
+// import { limitGamedata } from "../../api/childGameContent";
 
-function CounselorChildVideoCall() {
-    const OV = useRef(new OpenVidu());
-    const [session, setSession] = useState(null);
-    // 상담사 자신의 영상 (publisher)
-    const [publisher, setPublisher] = useState(null);
-    // 아동의 화면 공유 스트림만 구독 (subscriber)
-    const [screenSubscriber, setScreenSubscriber] = useState(null);
-    const [searchParams] = useSearchParams();
-    const type = searchParams.get("type");
-    const childId = searchParams.get("childId");
+//✅ api 호출과 변수 관리에 필요한 import ✅
+import { getParentChildren } from "/src/api/userParent";
+import { useState, useEffect } from "react";
+//❌ api 호출과 변수 관리에 필요한한 import ❌
+
+function ChildMainPage() {
+    console.log("ChildReviewGamePage rendered");
+    const navigate = useNavigate();
+    const { childId } = useParams();
+
+    //✅ zustand 스토어의 setChildId,setChildName 가져오기 ✅
+    const { setChildName, setChildId } = useChildIdstore();
+
+    //✅ api 호출, 호출된 data 중 childId와 일치하는 아이 이름 꺼내오기 ✅
+    const [ingredientsList, setIngredientsList] = useState([]);
 
     useEffect(() => {
-        const initSession = async () => {
+        // console.log("현재저장된 아동아이디:", sessionStorage.childId);
+        async function getChildName() {
             try {
-                const sessionInstance = OV.current.initSession();
-                console.log("[CounselorChildVideoCall] 세션 초기화됨:", sessionInstance);
+                const childrenData = await getParentChildren();
+                setIngredientsList(childrenData);
+                const matchedChild = childrenData.find(
+                    (child) => String(child.childUserId) === String(childId)
+                );
+                if (matchedChild) {
+                    // Zustand 스토어에 childId와 childName 저장
+                    setChildId(childId);
+                    setChildName(matchedChild.childUserName);
 
-                sessionInstance.on("streamCreated", (event) => {
-                    console.log("[CounselorChildVideoCall] streamCreated 이벤트 발생");
-                    console.log("[CounselorChildVideoCall] event:", event);
-                    console.log("[CounselorChildVideoCall] event.stream:", event.stream);
-                    console.log(
-                        "[CounselorChildVideoCall] typeOfVideo:",
-                        event.stream.typeOfVideo
-                    );
-
-                    // 오직 화면 공유 스트림만 구독 (아동 페이지에서 오직 화면 공유만 퍼블리싱하므로)
-                    if (event.stream.typeOfVideo === "SCREEN") {
-                        console.log(
-                            "[CounselorChildVideoCall] 화면 공유 스트림 감지:",
-                            event.stream.streamId
-                        );
-                        const screenSub = sessionInstance.subscribe(event.stream, undefined);
-                        setScreenSubscriber(screenSub);
-                        console.log(
-                            "[CounselorChildVideoCall] 화면 공유 스트림 구독 완료:",
-                            screenSub
-                        );
-                    }
-                });
-
-                sessionInstance.on("streamDestroyed", (event) => {
-                    console.log("[CounselorChildVideoCall] streamDestroyed 이벤트 발생");
-                    console.log("[CounselorChildVideoCall] event:", event);
-                    if (event.stream.typeOfVideo === "SCREEN") {
-                        console.log(
-                            "[CounselorChildVideoCall] 화면 공유 스트림 제거:",
-                            event.stream.streamId
-                        );
-                        setScreenSubscriber(null);
-                    }
-                });
-
-                const getToken = async () => {
-                    try {
-                        const response = await api.post("/session/join", { type, childId });
-                        console.log("[CounselorChildVideoCall] 토큰 응답:", response.data);
-                        return response.data;
-                    } catch (error) {
-                        console.error("[CounselorChildVideoCall] 토큰 요청 실패:", error);
-                        throw error;
-                    }
-                };
-
-                const token = await getToken();
-                console.log("[CounselorChildVideoCall] 연결 토큰:", token);
-                await sessionInstance.connect(token);
-                console.log("[CounselorChildVideoCall] 세션 연결 완료");
-
-                // 상담사 자신의 웹캠 퍼블리셔 생성 및 publish
-                const myPublisher = OV.current.initPublisher(undefined, {
-                    audioSource: true,
-                    videoSource: true,
-                    publishAudio: true,
-                    publishVideo: true,
-                });
-                console.log("[CounselorChildVideoCall] 내 퍼블리셔 생성:", myPublisher);
-                await sessionInstance.publish(myPublisher);
-                console.log("[CounselorChildVideoCall] 내 퍼블리셔 publish 완료");
-                setSession(sessionInstance);
-                setPublisher(myPublisher);
+                    console.log("✅ 선택된 아동 이름:", matchedChild.childUserName);
+                } else {
+                    console.log("⚠️ 일치하는 아동을 찾을 수 없습니다.");
+                    // navigate("/error");
+                }
             } catch (error) {
-                console.error("[CounselorChildVideoCall] 세션 초기화 오류:", error);
-            }
-        };
-
-        initSession();
-    }, [childId, type]);
-
-    // 재구독 효과: 세션이 연결된 상태인데 아직 화면 공유 스트림을 구독하지 않은 경우
-    useEffect(() => {
-        if (session && !screenSubscriber) {
-            const streams = session.streams;
-            if (streams && streams.forEach) {
-                streams.forEach((stream) => {
-                    if (stream.typeOfVideo === "SCREEN") {
-                        console.log(
-                            "[CounselorChildVideoCall] 재구독: 화면 공유 스트림 발견",
-                            stream.streamId
-                        );
-                        const screenSub = session.subscribe(stream, undefined);
-                        setScreenSubscriber(screenSub);
-                    }
-                });
-            } else {
-                console.log("[CounselorChildVideoCall] session.streams is undefined or not iterable");
+                console.error("❌ 아이 목록 불러오기 실패:", error);
+                // navigate("/error");
             }
         }
-    }, [session, screenSubscriber]);
+        getChildName();
+    }, [childId, setChildId, setChildName, navigate]);
+    //❌ api 호출, 호출된 data 중 childId와 일치하는 아이 이름 꺼내오기기 ❌
 
-    const sendSignal = (data, type) => {
-        session
-            .signal({
-                data: data, // 전송할 메시지
-                to: [],     // 빈 배열이면 모든 참가자에게 전송
-                type: type, // 메시지 타입
-            })
-            .then(() => {
-                console.log('Message successfully sent');
-            })
-            .catch((error) => {
-                console.error('Signal error:', error);
-            });
-    };
+    // Zustand 스토어에서 childName 가져오기
+    const { childName } = useChildIdstore();
 
-    const handleStartChapter = () => {
-        sendSignal("start-chapter", "start-chapter")
-    };
-
-    const handlePreviousStage = () => {
-        sendSignal("previous-stage", "previous-stage")
-    };
-
-    const handleStartRecording = () => {
-        sendSignal("record-start", "record-start")
-    };
-
-    const handleStopRecording = () => {
-        sendSignal("record-stop", "record-stop")
-    };
-
-    const handleNextStage = () => {
-        sendSignal("next-stage", "next-stage")
-    };
-
-    const handleEndChapter = () => {
-        sendSignal("end-chapter", "end-chapter")
-        Swal.fire({
-            title: "수업이 종료되었습니다! <br> 수고하셨습니다!",
-            imageUrl: "/child/character/againCh.png",
-            imageWidth: 200,
-            imageHeight: 200,
-            showConfirmButton: false,
-            timer: 2000, // 2초 후 자동 닫힘
-        })
-    };
+    // 스테이지, 챕터 limitGameData API 호출
+    // const handleLimitClick = async () => {
+    //   try {
+    //     console.log("1. 학습 제한 데이터 불러오는 중...");
+    //     const data = await limitGamedata(childId);
+    //     if (data) {
+    //       console.log("2. 학습 제한 데이터:", data);
+    //       await useGameStore.getState().fetchChapterData(data.chapter);
+    //       navigate(`/child/${childId}/todayclass`, {
+    //         state: {
+    //           stageId: data.stage,
+    //           chapterId: data.chapter,
+    //         },
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.error("데이터 로드 실패:", error);
+    //   }
+    // };
 
     return (
-        <div
-            className="counselor-observe-container"
-            style={{ width: "100%", height: "100%" }}
-        >
-            {/* 아동의 화면 공유 스트림 영역 */}
-            {screenSubscriber ? (
-                <div
-                    className="game-screen-share"
-                    style={{ width: "50%", height: "100%", float: "left" }}
-                >
-                    <video
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        ref={(video) => {
-                            if (video && screenSubscriber) {
-                                console.log(
-                                    "[CounselorChildVideoCall] 연결된 화면 공유 스트림:",
-                                    screenSubscriber.stream
-                                );
-                                video.srcObject = screenSubscriber.stream.getMediaStream();
-                            }
-                        }}
-                        autoPlay
-                        playsInline
-                    />
-                </div>
-            ) : (
-                <div
-                    style={{
-                        width: "50%",
-                        height: "100%",
-                        backgroundColor: "black",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        float: "left",
-                    }}
-                >
-                    <p>아동의 화면 공유가 없습니다.</p>
-                </div>
-            )}
+        <div className="ch-main-container">
+            {/* <ChildMainBackground /> */}
+            {/* <Outlet/> */}
+            <ChildMainBackground />
+            <div className="ch-main-foreground">
+                <Card className="ch-login-state">
+                    안녕! <p className="ch-childName"> {childName || "아동 없음"}</p>{" "}
+                    감정아 오늘은 어떤 감정을 만나볼까?
+                </Card>
 
-            {/* 상담사 자신의 카메라 스트림 영역 */}
-            {publisher && (
-                <div style={{ width: "50%", height: "100%", float: "right" }}>
-                    <video
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        ref={(video) => {
-                            if (video && publisher) {
-                                video.srcObject = publisher.stream.getMediaStream();
-                            }
-                        }}
-                        autoPlay
-                        muted
-                        playsInline
-                    />
+                <div className="ch-menu-container">
+                    {/* <Card className="ch-class" onClick={handleLimitClick}> */}
+                    <Card className="ch-class" onClick={()=>navigate(`/child/${childId}/todayclass`)}>
+                        <div className="ch-class-wrapper">
+                            <div className="ch-today-class-img">
+                                <img src="/child/main/today-class-img.png" alt="todayImg" />
+                            </div>
+                            <div className="ch-today-class-content">
+                                <h1>오늘의 수업</h1>
+                                <p>선생님과 함께하는 감정게임!</p>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card
+                        className="ch-review"
+                        onClick={() => navigate(`/child/${childId}/review`)}
+                    >
+                        <div className="ch-review-wrapper">
+                            <div className="ch-review-img">
+                                <img src="/child/main/review-img.png" alt="" />
+                            </div>
+                            <div className="ch-review-content">
+                                <h1>감정놀이 복습</h1>
+                                <p>혼자서 다시해봐요~!</p>
+                            </div>
+                        </div>
+                    </Card>
+                    <Card
+                        className="ch-cardmain"
+                        onClick={() => navigate(`/child/${childId}/cardmain`)}
+                    >
+                        <div className="ch-cardmain-wrapper">
+                            <div className="ch-cardmain-page-img">
+                                <img src="/child/main/card-list-img.png" alt="" />
+                            </div>
+                            <div className="ch-cardmain-page-content">
+                                <h1>카드상자</h1>
+                                <p>내가 모은 카드, 한번 볼까요?</p>
+                            </div>
+                        </div>
+                    </Card>
+                    <Card
+                        className="ch-chatbot"
+                        onClick={() => navigate(`/child/${childId}/chatbot`)}
+                    >
+                        <div className="ch-chatbot-wrapper">
+                            <div className="ch-chatbot-page-img">
+                                <img src="/child/main/chat-img.png" alt="" />
+                            </div>
+                            <div className="ch-chatbot-page-content">
+                                <h1>마음이 챗봇</h1>
+                                <p>마음이랑 이야기해요~!</p>
+                            </div>
+                        </div>
+                    </Card>
                 </div>
-            )}
-            <div>
-                <button onClick={handleStartChapter}>학습 시작</button>
-                <button onClick={handlePreviousStage}>이전 단원</button>
-                <button onClick={handleStartRecording}>녹화 시작</button>
-                <button onClick={handleStopRecording}>녹화 중지</button>
-                <button onClick={handleNextStage}>다음 단원</button>
-                <button onClick={handleEndChapter}>학습 종료</button>
             </div>
         </div>
     );
 }
 
-export default CounselorChildVideoCall;
+export default ChildMainPage;
