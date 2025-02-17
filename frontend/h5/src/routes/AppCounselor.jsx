@@ -12,6 +12,7 @@ import CounselorChildVideoCall from "../pages/Counselor/Schedule/CounselorChildV
 import CounselorParentVideoCallPage from "../pages/Counselor/Schedule/CounselorParentVideoCall";
 import CounselorBoardEditPage from "../pages/Counselor/Board/CounselorBoardEditPage.jsx";
 import NotFoundPage from "/src/pages/Error/NotFoundPage";
+import ParentVideoMultiplePage from "/src/pages/Parent/Child/ParentVideoMultiplePage"
 
 function AppCounselor(){
     return(
@@ -27,6 +28,7 @@ function AppCounselor(){
             <Route path="/board/notice/write" element={<CounselorBoardNoticeWritePage />} />
             <Route path="/board/faq/write" element={<CounselorBoardFaqWritePage />} />
             <Route path="/board/:type/edit/:no" element={<CounselorBoardEditPage />}/>
+            <Route path="/child/video/multiple" element={<ParentVideoMultiplePage />} />
             {/* <Route path="/video" element={<CounselorVideoPage />} />
             <Route path="/meeting" element={<CounselorMeetingPage />} />
              */}

@@ -568,7 +568,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
 
   const handleVideoSearch = () => {
     window.open(
-      '/parent/child/video/multiple',
+      '/counselor/child/video/multiple',
       '_blank',
       'left=0,top=0,width=' + screen.width + ',height=' + screen.height
     );
