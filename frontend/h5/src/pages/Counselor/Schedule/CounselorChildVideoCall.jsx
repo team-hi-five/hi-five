@@ -2,6 +2,7 @@ import api from "../../../api/api";
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
 import { useSearchParams } from "react-router-dom";
+import Swal from "sweetalert2";
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
@@ -109,11 +110,11 @@ function CounselorChildVideoCall() {
             });
     };
 
-    const handleStartLearning = () => {
+    const handleStartChapter = () => {
         sendSignal("start-chapter", "start-chapter")
     };
 
-    const handlePreviousUnit = () => {
+    const handlePreviousStage = () => {
         sendSignal("previous-stage", "previous-stage")
     };
 
@@ -125,12 +126,20 @@ function CounselorChildVideoCall() {
         sendSignal("record-stop", "record-stop")
     };
 
-    const handleNextUnit = () => {
+    const handleNextStage = () => {
         sendSignal("next-stage", "next-stage")
     };
 
-    const handleEndLearning = () => {
+    const handleEndChapter = () => {
         sendSignal("end-chapter", "end-chapter")
+        Swal.fire({
+            title: "상담사 선생님이 수업을 시작했어요!",
+            imageUrl: "/child/character/againCh.png",
+            imageWidth: 200,
+            imageHeight: 200,
+            showConfirmButton: false,
+            timer: 2000, // 2초 후 자동 닫힘
+        })
     };
 
     return (
@@ -193,12 +202,12 @@ function CounselorChildVideoCall() {
                 </div>
             )}
             <div>
-                <button onClick={handleStartLearning}>학습 시작</button>
-                <button onClick={handlePreviousUnit}>이전 단원</button>
+                <button onClick={handleStartChapter}>학습 시작</button>
+                <button onClick={handlePreviousStage}>이전 단원</button>
                 <button onClick={handleStartRecording}>녹화 시작</button>
                 <button onClick={handleStopRecording}>녹화 중지</button>
-                <button onClick={handleNextUnit}>다음 단원</button>
-                <button onClick={handleEndLearning}>학습 종료</button>
+                <button onClick={handleNextStage}>다음 단원</button>
+                <button onClick={handleEndChapter}>학습 종료</button>
             </div>
         </div>
     );

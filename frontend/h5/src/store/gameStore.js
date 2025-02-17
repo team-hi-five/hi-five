@@ -37,6 +37,9 @@ const useGameStore = create((set, get) => ({
   // 현재 챕터와 스테이지 인덱스를 기반으로 데이터 반환
   getCurrentGameData: () => {
     const { chapterData, currentChapter, currentStageIndex } = get();
+    console.log("chapterData: ", chapterData);
+    console.log("currentChapter: ", currentChapter);
+    console.log("currentStageIndex: ", currentStageIndex);
     return chapterData[currentChapter]?.[currentStageIndex] || null;
   },
 
