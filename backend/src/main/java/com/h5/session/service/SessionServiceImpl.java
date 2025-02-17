@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +29,7 @@ public class SessionServiceImpl implements SessionService {
     private final OpenViduService openViduService;
     private final ConsultSessionRepository consultSessionRepository;
 
-    public String startMeeting(String type, int scheduleId) {
+    private String startMeeting(String type, int scheduleId) {
 
         if("game".equals(type)){
             GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findById(scheduleId)
@@ -68,10 +70,10 @@ public class SessionServiceImpl implements SessionService {
         int childId = joinSessionRequestDto.getChildId();
         String type = joinSessionRequestDto.getType();
 
-        LocalDate today = LocalDate.now();
+        LocalDateTime currentDttm = LocalDateTime.now();
 
         if ("game".equals(type)) {
-            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findTodaySchedulesByChildId(childId, today)
+            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
                     .orElseThrow(ScheduleNotFoundException::new);
             int scheduleId = gameMeetingScheduleEntity.getId();
 
@@ -85,7 +87,7 @@ public class SessionServiceImpl implements SessionService {
             return openViduService.createConnection(sessionId);
 
         }else if("consult".equals(type)) {
-            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findTodaySchedulesByChildId(childId, today)
+            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
                     .orElseThrow(ScheduleNotFoundException::new);
             int scheduleId = consultMeetingScheduleEntity.getId();
 
