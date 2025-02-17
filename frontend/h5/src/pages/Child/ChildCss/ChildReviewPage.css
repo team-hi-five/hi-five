@@ -1,9 +1,53 @@
-.ch-child-game-list-container{
-    background: linear-gradient(to bottom, #DEF0FF, #FFFFFF 100%);
-    min-height: 100vh;
-    width: 200%;
-    margin: 30;
-    padding: 0;
-    Top:40
-}
+/* ChildReviewPage.css */
+.ch-child-game-list-container {
+    position: relative;
+    height: 120vh;
+    width: 100vh;
+    flex-direction: column;  
+    justify-content: center; 
+    align-items: center;
+    padding-top: 5rem;  
+  }
+  
+  .swiper {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    left: 50%;
+    top: 38%;
+    margin-left: -150px;
+    margin-top: -150px;
+  }
+  
+  .swiper-slide {
+    background-position: center;
+    background-size: cover;
+  }
+  
+  /* ChildGameList 카드가 잘 보이도록 조정 */
+  .swiper-slide .ch-game-chapter-card {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .swiper-slide img {
+    display: block;
+    width: 100%;
+  }
+  
+  /* 큐브 효과를 위한 추가 스타일 */
+  .swiper-cube-shadow {
+    background: rgba(0, 0, 0, 0.2);
+  }
 
+  .ch-chpater-list-title {
+    text-align: center;
+    margin-bottom: 2rem;  /* 제목과 Swiper 사이 간격 */
+    font-size: 2.8rem;   /* 글자 크기 */
+    font-family: "Jua";
+    top: 4rem;
+    position: absolute; 
+    width: 180%;
+    z-index: 1;
+    color: #2d2b2b;
+  }
