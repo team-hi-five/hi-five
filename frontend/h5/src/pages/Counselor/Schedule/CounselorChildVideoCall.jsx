@@ -24,12 +24,10 @@ function CounselorChildVideoCall() {
                     console.log("[CounselorChildVideoCall] streamCreated 이벤트 발생");
                     console.log("[CounselorChildVideoCall] event:", event);
                     console.log("[CounselorChildVideoCall] event.stream:", event.stream);
-                    console.log("[CounselorChildVideoCall] videoSource:", event.stream.videoSource);
                     console.log("[CounselorChildVideoCall] typeOfVideo:", event.stream.typeOfVideo);
 
                     // 오직 화면 공유 스트림만 구독 (아동 페이지에서 오직 화면 공유만 퍼블리싱하므로)
-                    if ((event.stream.videoSource || "").toLowerCase() === "screen" ||
-                        event.stream.typeOfVideo === "SCREEN") {
+                    if (event.stream.typeOfVideo === "SCREEN") {
                         console.log("[CounselorChildVideoCall] 화면 공유 스트림 감지:", event.stream.streamId);
                         const screenSub = sessionInstance.subscribe(event.stream, undefined);
                         setScreenSubscriber(screenSub);
@@ -40,8 +38,7 @@ function CounselorChildVideoCall() {
                 sessionInstance.on("streamDestroyed", (event) => {
                     console.log("[CounselorChildVideoCall] streamDestroyed 이벤트 발생");
                     console.log("[CounselorChildVideoCall] event:", event);
-                    if ((event.stream.videoSource || "").toLowerCase() === "screen" ||
-                        event.stream.typeOfVideo === "SCREEN") {
+                    if (event.stream.typeOfVideo === "SCREEN") {
                         console.log("[CounselorChildVideoCall] 화면 공유 스트림 제거:", event.stream.streamId);
                         setScreenSubscriber(null);
                     }
@@ -83,12 +80,19 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
-    // 재구독 시도 (필요하면 로그 확인)
+    // 재구독 시도 효과: 세션이 연결된 상태에서 아직 화면 공유 스트림을 구독하지 않았다면,
+    // 세션 내의 이미 publish된 스트림 중 typeOfVideo === "SCREEN" 인 것을 찾아 구독
     useEffect(() => {
         if (session && !screenSubscriber) {
-            setTimeout(() => {
-                console.log("[CounselorChildVideoCall] 재구독 시도: session은 연결되어 있으나 screenSubscriber가 없음");
-            }, 1000);
+            // OpenVidu는 session.streams를 통해 이미 publish된 스트림을 제공합니다.
+            const existingStreams = session.streams;
+            existingStreams.forEach((stream) => {
+                if (stream.typeOfVideo === "SCREEN") {
+                    console.log("[CounselorChildVideoCall] 재구독: 화면 공유 스트림 발견", stream.streamId);
+                    const screenSub = session.subscribe(stream, undefined);
+                    setScreenSubscriber(screenSub);
+                }
+            });
         }
     }, [session, screenSubscriber]);
 
@@ -110,16 +114,18 @@ function CounselorChildVideoCall() {
                     />
                 </div>
             ) : (
-                <div style={{
-                    width: "50%",
-                    height: "100%",
-                    backgroundColor: "black",
-                    color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    float: "left",
-                }}>
+                <div
+                    style={{
+                        width: "50%",
+                        height: "100%",
+                        backgroundColor: "black",
+                        color: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        float: "left",
+                    }}
+                >
                     <p>아동의 화면 공유가 없습니다.</p>
                 </div>
             )}
