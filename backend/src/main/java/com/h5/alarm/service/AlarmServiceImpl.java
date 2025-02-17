@@ -63,7 +63,7 @@ public class AlarmServiceImpl implements AlarmService {
         String targetSessionId = sessionChannelInterceptor.getSessionIdForUser(targetUsername);
 
         if (targetSessionId == null) {
-            System.out.println("대상 사용자(" + targetUsername + ")의 sessionId를 찾을 수 없습니다.");
+            log.info("대상 사용자(" + targetUsername + ")의 sessionId를 찾을 수 없습니다.");
             return;
         }
 
