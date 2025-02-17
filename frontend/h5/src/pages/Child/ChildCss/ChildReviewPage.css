@@ -1,6 +1,9 @@
 .ch-child-game-list-container{
     background: linear-gradient(to bottom, #DEF0FF, #FFFFFF 100%);
     min-height: 100vh;
-    margin: 0;
+    width: 200%;
+    margin: 30;
     padding: 0;
+    Top:40
 }
+

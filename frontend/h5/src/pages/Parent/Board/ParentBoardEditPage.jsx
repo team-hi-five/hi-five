@@ -5,11 +5,9 @@ import { Editor } from "primereact/editor";
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
-import { updateNotice } from "../../../api/boardNotice";
 import { uploadFile, getFileUrl, deleteFile, TBL_TYPES } from "../../../api/file";
 import { base64ToFile, extractAndReplaceEditorImages } from "../../../store/boardStore";
 import "../../Counselor/Css/CounselorBoardNoticeWritePage.css";
-import {  updateFaq} from "../../../api/boardFaq.jsx";
 import {getQnaDetail, updateQna} from "../../../api/boardQna.jsx";
 
 function ParentBoardEditPage() {
@@ -23,7 +21,6 @@ function ParentBoardEditPage() {
     // 폼 상태 (초기값은 전달된 데이터가 있으면 사용)
     const [title, setTitle] = useState(initialData ? initialData.title : "");
     const [text, setText] = useState(initialData ? initialData.content : "");
-    const [faqType, setFaqType] = useState(initialData ? initialData.content : "");
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const toast = useRef(null);
@@ -201,7 +198,7 @@ function ParentBoardEditPage() {
             }
 
             await SingleButtonAlert("게시글이 수정되었습니다.");
-            navigate("/counselor/board");
+            navigate("/parent/board");
         } catch (error) {
             console.error("수정 실패:", error);
             await SingleButtonAlert(error.response?.data?.message || "수정에 실패했습니다.");
