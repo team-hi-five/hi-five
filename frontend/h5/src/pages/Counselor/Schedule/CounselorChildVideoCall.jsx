@@ -2,6 +2,7 @@ import api from "../../../api/api";
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
 import { useSearchParams } from "react-router-dom";
+import Swal from "sweetalert2";
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
@@ -113,6 +114,53 @@ function CounselorChildVideoCall() {
         }
     }, [session, screenSubscriber]);
 
+    const sendSignal = (data, type) => {
+        session
+            .signal({
+                data: data, // 전송할 메시지
+                to: [],     // 빈 배열이면 모든 참가자에게 전송
+                type: type, // 메시지 타입
+            })
+            .then(() => {
+                console.log('Message successfully sent');
+            })
+            .catch((error) => {
+                console.error('Signal error:', error);
+            });
+    };
+
+    const handleStartChapter = () => {
+        sendSignal("start-chapter", "start-chapter")
+    };
+
+    const handlePreviousStage = () => {
+        sendSignal("previous-stage", "previous-stage")
+    };
+
+    const handleStartRecording = () => {
+        sendSignal("record-start", "record-start")
+    };
+
+    const handleStopRecording = () => {
+        sendSignal("record-stop", "record-stop")
+    };
+
+    const handleNextStage = () => {
+        sendSignal("next-stage", "next-stage")
+    };
+
+    const handleEndChapter = () => {
+        sendSignal("end-chapter", "end-chapter")
+        Swal.fire({
+            title: "수업이 종료되었습니다! <br> 수고하셨습니다!",
+            imageUrl: "/child/character/againCh.png",
+            imageWidth: 200,
+            imageHeight: 200,
+            showConfirmButton: false,
+            timer: 2000, // 2초 후 자동 닫힘
+        })
+    };
+
     return (
         <div
             className="counselor-observe-container"
@@ -172,6 +220,14 @@ function CounselorChildVideoCall() {
                     />
                 </div>
             )}
+            <div>
+                <button onClick={handleStartChapter}>학습 시작</button>
+                <button onClick={handlePreviousStage}>이전 단원</button>
+                <button onClick={handleStartRecording}>녹화 시작</button>
+                <button onClick={handleStopRecording}>녹화 중지</button>
+                <button onClick={handleNextStage}>다음 단원</button>
+                <button onClick={handleEndChapter}>학습 종료</button>
+            </div>
         </div>
     );
 }

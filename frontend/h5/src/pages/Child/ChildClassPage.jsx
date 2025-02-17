@@ -839,17 +839,21 @@ const startRecording = async () => {
     console.log("[NextChapter] 현재 단원:", currentGameData.gameStageId, "다음 단원:", nextStageId);
     if (nextStageId > 5) {
       Swal.fire({
-        title: `${currentGameData.chapterId}단계 마지막이에요!`,
+        title: `${currentChapter}단계 마지막이에요!`,
         imageUrl: "/child/character/againCh.png",
         imageWidth: 200,
         imageHeight: 200,
-        confirmButtonText: "확인"
+        confirmButtonText: "확인",
       });
       console.log("[NextChapter] 마지막 단원 도달 - 이동 불가");
       return;
     }
-    setChapterAndStage(currentGameData.chapterId, nextStageId);
-    console.log("[NextChapter] 단원 설정 업데이트:", currentGameData.chapterId, nextStageId);
+    resetAnalysisState();
+
+    // setChapterAndStage는 1-based gameStageId를 받으므로, nextStageIndex + 1로 전달
+    useGameStore.getState().setChapterAndStage(currentChapter, nextStageIndex + 1);
+    console.log("[NextChapter] 단원 설정 업데이트:", currentChapter, nextStageIndex + 1);
+
     const gameData = await useGameStore.getState().getCurrentGameData();
     console.log("[NextChapter] 업데이트된 게임 데이터:", gameData);
     setCurrentGameData(gameData);
@@ -866,8 +870,14 @@ const startRecording = async () => {
       setChapterAndStage(currentGameData.chapterId, prevStageId);
       console.log("[PrevChapter] 단원 설정 업데이트:", currentGameData.chapterId, prevStageId);
     }
+    const newStageIndex = currentStageIndex - 1;
+    // setChapterAndStage는 1-based gameStageId를 받으므로, newStageIndex + 1로 전달
+    resetAnalysisState();
+    useGameStore.getState().setChapterAndStage(currentChapter, newStageIndex + 1);
+    console.log("[PreviousChapter] 단원 설정 업데이트:", currentChapter, newStageIndex + 1);
+
     const gameData = await useGameStore.getState().getCurrentGameData();
-    console.log("[PrevChapter] 업데이트된 게임 데이터:", gameData);
+    console.log("[PreviousChapter] 업데이트된 게임 데이터:", gameData);
     setCurrentGameData(gameData);
     setPhase("video");
     setAnalysisCycle(1);
@@ -963,7 +973,7 @@ const startRecording = async () => {
             <div className="ch-learning-middle-section"></div>
             <div className="ch-learning-bottom-section">
               <div className="ch-learning-button-left">
-                <img src="/child/button-left.png" alt="button-left" onClick={PrevChapter} />
+                <img src="/child/button-left.png" alt="button-left" />
                 <p> 이전 단원</p>
                 {!isStarted && (
               <button
@@ -984,9 +994,9 @@ const startRecording = async () => {
                 />
               </Card>
               <div className="ch-learning-button-right">
-                <img src="/child/button-right.png" alt="button-right" onClick={NextChapter} />
+                <img src="/child/button-right.png" alt="button-right" />
                 <p>다음 단원</p>
-                <BsStopBtnFill onClick={StopVideo} className="ch-learning-stop-icon" />
+                <BsStopBtnFill className="ch-learning-stop-icon" />
                 <button
                     onClick={startScreenShare}
                     disabled={screenSubscriber !== null}
