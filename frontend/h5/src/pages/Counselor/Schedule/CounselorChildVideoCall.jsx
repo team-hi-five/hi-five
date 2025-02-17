@@ -204,6 +204,10 @@ function CounselorChildVideoCall() {
         sendSignal("next-stage", "next-stage");
     };
 
+    const handleStopVideo = () => {
+        sendSignal("stop-video", "stop-video");
+    };
+
     const handleEndChapter = () => {
         sendSignal("end-chapter", "end-chapter");
         Swal.fire({
@@ -212,8 +216,10 @@ function CounselorChildVideoCall() {
             imageWidth: 200,
             imageHeight: 200,
             showConfirmButton: false,
-            timer: 2000, // 2초 후 자동 닫힘
+            timer: 5000, // 2초 후 자동 닫힘
         });
+        session.disconnect();
+        window.close();
     };
 
     return (
@@ -282,6 +288,7 @@ function CounselorChildVideoCall() {
                 <button onClick={handleStopRecording}>녹화 중지</button>
                 <button onClick={handleNextStage}>다음 단원</button>
                 <button onClick={handleEndChapter}>학습 종료</button>
+                <button onClick={handleStopVideo}>동영상 재생/정지</button>
             </div>
         </div>
     );
