@@ -78,8 +78,6 @@ public class AlarmServiceImpl implements AlarmService {
                 alarmDto,
                 headerAccessor.getMessageHeaders()
         );
-
-        messagingTemplate.convertAndSendToUser(alarmDto.getToUserEmail(), "/queue/alarms", alarmDto);
     }
 
     private String getParentEmail(int childUserId) {
