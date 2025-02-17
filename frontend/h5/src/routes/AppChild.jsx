@@ -6,6 +6,7 @@ import ChildReviewGamePage from "../pages/Child/ChildReviewGamePage";
 import ChildCardMainPage from "../pages/Child/ChildCard/ChildCardMainPage";
 import ChildChatbotPage from "../pages/Child/ChildChatbotPage";
 import ChildCardDetailsPage from "../pages/Child/ChildCard/ChildCardDetailsPage";
+import NotFoundPage from "/src/pages/Error/NotFoundPage";
 
 function AppChild() {
   return (
@@ -23,6 +24,7 @@ function AppChild() {
         element={<ChildCardDetailsPage />}
       />
       <Route path=":childId/chatbot" element={<ChildChatbotPage />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

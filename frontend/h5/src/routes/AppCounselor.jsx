@@ -11,7 +11,7 @@ import CounselorBoardFaqWritePage from "../pages/Counselor/Board/CounselorBoardF
 import CounselorChildVideoCall from "../pages/Counselor/Schedule/CounselorChildVideoCall"
 import CounselorParentVideoCallPage from "../pages/Counselor/Schedule/CounselorParentVideoCall";
 import CounselorBoardEditPage from "../pages/Counselor/Board/CounselorBoardEditPage.jsx";
-
+import NotFoundPage from "/src/pages/Error/NotFoundPage";
 
 function AppCounselor(){
     return(
@@ -30,6 +30,7 @@ function AppCounselor(){
             {/* <Route path="/video" element={<CounselorVideoPage />} />
             <Route path="/meeting" element={<CounselorMeetingPage />} />
              */}
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
     
     )
