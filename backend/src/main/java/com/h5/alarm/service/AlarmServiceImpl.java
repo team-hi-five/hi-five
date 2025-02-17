@@ -4,12 +4,15 @@ import com.h5.alarm.dto.AlarmDto;
 import com.h5.alarm.dto.request.AlarmRequestDto;
 import com.h5.child.repository.ChildUserRepository;
 import com.h5.consultant.repository.ConsultantUserRepository;
+import com.h5.global.config.SessionChannelInterceptor;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.parent.repository.ParentUserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +28,7 @@ public class AlarmServiceImpl implements AlarmService {
     private final ParentUserRepository parentUserRepository;
     private final ConsultantUserRepository consultantUserRepository;
     private final ChildUserRepository childUserRepository;
+    private final SessionChannelInterceptor sessionChannelInterceptor;
 
     @Override
     public void sendAlarm(AlarmRequestDto alarmRequestDto) {
@@ -54,6 +58,26 @@ public class AlarmServiceImpl implements AlarmService {
                 .toUserEmail(toUserEmail)
                 .time(LocalDateTime.now())
                 .build();
+
+        String targetUsername = alarmDto.getToUserEmail();
+        String targetSessionId = sessionChannelInterceptor.getSessionIdForUser(targetUsername);
+
+        if (targetSessionId == null) {
+            System.out.println("대상 사용자(" + targetUsername + ")의 sessionId를 찾을 수 없습니다.");
+            return;
+        }
+
+        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+        headerAccessor.setSessionId(targetSessionId);
+        headerAccessor.setLeaveMutable(true);
+        headerAccessor.setHeader("simpSessionId", targetSessionId);
+
+        messagingTemplate.convertAndSendToUser(
+                targetUsername,
+                "/queue/alarms",
+                alarmDto,
+                headerAccessor.getMessageHeaders()
+        );
 
         messagingTemplate.convertAndSendToUser(alarmDto.getToUserEmail(), "/queue/alarms", alarmDto);
     }
