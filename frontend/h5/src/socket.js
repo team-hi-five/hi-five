@@ -1,29 +1,43 @@
-import SockJS from 'sockjs-client';
-import { Client } from '@stomp/stompjs';
+// socket.js
+import { Stomp } from '@stomp/stompjs';
 
 let stompClient;
 
-export const connectStomp = () => {
-    const socket = new SockJS('https://hi-five.site/api/ws');
-    stompClient = new Client({
-        webSocketFactory: () => socket,
-        reconnectDelay: 5000,
-        onConnect: () => {
-            console.log('STOMP 연결 성공!');
-            stompClient.subscribe('/user/queue/notifications', (message) => {
-                console.log('알림 수신: ', message.body);
-                alert('새 알림: ' + message.body);
-            });
-        },
-        onStompError: (frame) => {
-            console.error('STOMP 오류: ', frame);
-        }
+export const connectStomp = (onMessageCallback) => {
+    const token = sessionStorage.getItem("access_token");
+    const socket = new WebSocket(`wss://hi-five.site/api/ws?accessToken=Bearer ${token}`);
+    stompClient = Stomp.over(socket);
+
+    stompClient.reconnectDelay = 5000;
+    stompClient.heartbeat.outgoing = 20000;
+    stompClient.heartbeat.incoming = 0;
+
+    stompClient.connect({}, (frame) => {
+        console.log('STOMP 연결 성공:', frame);
+
+        // /user/queue/alarms 구독
+        stompClient.subscribe('/user/queue/alarms', (message) => {
+            console.log("STOMP 메시지 수신:", message.body);
+            // 콜백 함수에 메시지를 넘겨주어, React 컴포넌트 쪽에서 처리하게 함
+            if (onMessageCallback) {
+                onMessageCallback(message.body);
+            }
+        });
+
+    }, (error) => {
+        console.error("STOMP 연결 오류:", error);
     });
-
-    stompClient.activate();
-
-    return stompClient;
 };
+
+// socket.js
+export const disconnectStomp = () => {
+    if (stompClient && stompClient.connected) {
+        stompClient.disconnect(() => {
+            console.log("STOMP 연결 종료");
+        });
+    }
+};
+
 
 export const sendNotification = (targetUser, message) => {
     if (stompClient && stompClient.connected) {
@@ -35,4 +49,3 @@ export const sendNotification = (targetUser, message) => {
         console.error('STOMP 연결이 되지 않았습니다.');
     }
 };
-

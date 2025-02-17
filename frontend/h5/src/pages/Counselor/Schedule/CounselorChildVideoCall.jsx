@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
 import { useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
+import { sendAlarm } from "../../../api/alarm.jsx";
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
@@ -114,6 +115,60 @@ function CounselorChildVideoCall() {
         }
     }, [session, screenSubscriber]);
 
+    // 상대방(아동의 화면 공유 스트림)이 없는지 체크하는 함수
+    const isOtherParticipantAbsent = () => {
+        if (!session) {
+            console.log("[isOtherParticipantAbsent] 세션이 아직 초기화되지 않았습니다.");
+            return false; // 세션이 없으면 아직 판단할 수 없음
+        }
+
+        let childStreamExists = false;
+
+        if (session.streams && typeof session.streams.forEach === "function") {
+            session.streams.forEach((stream) => {
+                if (stream.typeOfVideo === "SCREEN") {
+                    childStreamExists = true;
+                }
+            });
+        } else {
+            console.log("[isOtherParticipantAbsent] session.streams가 없거나 순회할 수 없습니다.");
+        }
+
+        if (!childStreamExists) {
+            console.log("[isOtherParticipantAbsent] 상대방(아동의 화면 공유 스트림)이 세션에 존재하지 않습니다.");
+        } else {
+            console.log("[isOtherParticipantAbsent] 아동의 화면 공유 스트림이 확인되었습니다.");
+        }
+
+        return !childStreamExists;
+    };
+
+    useEffect(() => {
+        const checkAbsence = async () => {
+            if (isOtherParticipantAbsent()) {
+                console.log("[checkAbsence] 상대방이 없습니다. 알람 전송 시작...");
+                // 알람 전송에 필요한 데이터(alarmDto)를 구성합니다.
+                const alarmDto = {
+                    toUserId: Number(childId),
+                    senderRole: "ROLE_CONSULTANT",
+                    sessionType: type,
+                };
+
+                try {
+                    const response = await sendAlarm(alarmDto);
+                    console.log("[checkAbsence] 알람 전송 성공:", response);
+                } catch (error) {
+                    console.error("[checkAbsence] 알람 전송 실패:", error);
+                }
+            }
+        };
+
+        // 5초마다 체크 (원하는 시간 간격으로 변경 가능)
+        const intervalId = setInterval(checkAbsence, 10000);
+        return () => clearInterval(intervalId);
+    }, [session, childId]);
+
+
     const sendSignal = (data, type) => {
         session
             .signal({
@@ -122,35 +177,35 @@ function CounselorChildVideoCall() {
                 type: type, // 메시지 타입
             })
             .then(() => {
-                console.log('Message successfully sent');
+                console.log("Message successfully sent");
             })
             .catch((error) => {
-                console.error('Signal error:', error);
+                console.error("Signal error:", error);
             });
     };
 
     const handleStartChapter = () => {
-        sendSignal("start-chapter", "start-chapter")
+        sendSignal("start-chapter", "start-chapter");
     };
 
     const handlePreviousStage = () => {
-        sendSignal("previous-stage", "previous-stage")
+        sendSignal("previous-stage", "previous-stage");
     };
 
     const handleStartRecording = () => {
-        sendSignal("record-start", "record-start")
+        sendSignal("record-start", "record-start");
     };
 
     const handleStopRecording = () => {
-        sendSignal("record-stop", "record-stop")
+        sendSignal("record-stop", "record-stop");
     };
 
     const handleNextStage = () => {
-        sendSignal("next-stage", "next-stage")
+        sendSignal("next-stage", "next-stage");
     };
 
     const handleEndChapter = () => {
-        sendSignal("end-chapter", "end-chapter")
+        sendSignal("end-chapter", "end-chapter");
         Swal.fire({
             title: "수업이 종료되었습니다! <br> 수고하셨습니다!",
             imageUrl: "/child/character/againCh.png",
@@ -158,7 +213,7 @@ function CounselorChildVideoCall() {
             imageHeight: 200,
             showConfirmButton: false,
             timer: 2000, // 2초 후 자동 닫힘
-        })
+        });
     };
 
     return (

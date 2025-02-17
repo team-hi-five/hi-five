@@ -7,7 +7,7 @@ import * as faceapi from "face-api.js";
 import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
 import { BsStopBtnFill } from "react-icons/bs";
-import { OpenVidu } from "openvidu-browser";
+import { OpenVidu } from 'openvidu-browser';
 import api from "../../api/api";
 import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
 import Webcam from "react-webcam";
@@ -49,14 +49,14 @@ function ChildReviewGamePage() {
   // --- 0. 오픈비두 토큰 받기 -------------------------
   async function getToken() {
     try {
-      const response = await api.post("/session/join", {
-        type: "game",
-        childId,
+      const response = await api.post('/session/join', {
+        type: 'game',
+        childId
       });
       console.log("토큰!:", response.data);
       return response.data;
     } catch (error) {
-      console.error("토큰 요청 실패:", error);
+      console.error('토큰 요청 실패:', error);
       throw error;
     }
   }
@@ -71,11 +71,12 @@ function ChildReviewGamePage() {
         setSubscriber(subscriber);
       });
 
-      sessionInstance.on("streamDestroyed", (event) => {
-        setSubscriber(null);
+      sessionInstance.on('streamDestroyed', (event) => {
+        setSubscriber(null);  // null로 초기화
       });
 
       const token = await getToken();
+      // 토큰을 통해 세션과 스트림구독을 연결
       await sessionInstance.connect(token);
 
       // 화면 공유 퍼블리셔 생성 (child는 화면 공유만 OpenVidu로 publish)
@@ -91,20 +92,20 @@ function ChildReviewGamePage() {
       setSession(sessionInstance);
       setPublisher(pub);
     } catch (error) {
-      console.error("세션 초기화 오류:", error);
+      console.error('세션 초기화 오류:', error);
     }
   }, []);
 
   // --- 2. 화면 공유 시작 함수 -------------------------
   const createScreenShareStream = async () => {
     try {
-      console.log("1. 화면 공유 시작 시도...");
+      console.log('1. 화면 공유 시작 시도...');
       if (screenSubscriber) {
         console.log("이미 화면 공유 중입니다.");
         return;
       }
       const newScreenPublisher = OV.current.initPublisher(undefined, {
-        videoSource: "screen",
+        videoSource: 'screen',
         audioSource: true,
         publishVideo: true,
         mirror: false,
@@ -123,9 +124,22 @@ function ChildReviewGamePage() {
     }
   };
 
+  // 화면 공유 시작 함수
   const startScreenShare = async () => {
     await createScreenShareStream();
   };
+
+  // **[수정]** 아동 측에서는 화면 공유 스트림을 자기가 렌더링하지 않도록 아래 useEffect를 제거 또는 주석 처리합니다.
+  /*
+  useEffect(() => {
+    if (screenSubscriber && videoRef.current) {
+      const stream = screenSubscriber.stream?.getMediaStream();
+      if (stream) {
+        videoRef.current.srcObject = stream;
+      }
+    }
+  }, [screenSubscriber]);
+  */
 
   // --- 3. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {
@@ -898,6 +912,89 @@ function ChildReviewGamePage() {
   }, [session, currentGameData, isRecording, isStarted]);
 
 
+// resetAnalysisState 함수에서는 취소 플래그를 true로 설정한 후,
+// recognition 취소 및 인터벌 정리만 수행합니다.
+  const resetAnalysisState = () => {
+    console.log("분석 취소 요청!");
+    // 현재 진행 중인 분석 작업들을 중단하기 위해 취소 플래그를 true로 설정합니다.
+    analysisCanceledRef.current = true;
+
+    // 진행 중인 얼굴 분석 인터벌 클리어
+    if (analysisIntervalRef.current) {
+      clearInterval(analysisIntervalRef.current);
+      analysisIntervalRef.current = null;
+    }
+
+    // SpeechRecognition 인스턴스 취소 (아래 recognitionRef를 사용)
+    if (recognitionRef.current) {
+      recognitionRef.current.abort();
+      recognitionRef.current = null;
+    }
+
+    // 분석 데이터 및 결과 초기화
+    analysisDataRef.current = [];
+    setFaceResult(null);
+    setVoiceResult(null);
+    setAnalysisCycle(1);
+    setPhase("video");
+    Swal.close();
+  };
+
+  // **************************************************************************************************************** //
+  // 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람
+  const isOtherParticipantAbsent = () => {
+    if (!session) {
+      console.log("[isOtherParticipantAbsent] 세션이 아직 초기화되지 않았습니다.");
+      return false; // 세션이 없으면 아직 판단할 수 없음
+    }
+
+    let childStreamExists = false;
+
+    if (session.streams && typeof session.streams.forEach === "function") {
+      session.streams.forEach((stream) => {
+        if (stream.typeOfVideo === "SCREEN") {
+          childStreamExists = true;
+        }
+      });
+    } else {
+      console.log("[isOtherParticipantAbsent] session.streams가 없거나 순회할 수 없습니다.");
+    }
+
+    if (!childStreamExists) {
+      console.log("[isOtherParticipantAbsent] 상대방(아동의 화면 공유 스트림)이 세션에 존재하지 않습니다.");
+    } else {
+      console.log("[isOtherParticipantAbsent] 아동의 화면 공유 스트림이 확인되었습니다.");
+    }
+
+    return !childStreamExists;
+  };
+
+  useEffect(() => {
+    const checkAbsence = async () => {
+      if (isOtherParticipantAbsent()) {
+        console.log("[checkAbsence] 상대방이 없습니다. 알람 전송 시작...");
+        // 알람 전송에 필요한 데이터(alarmDto)를 구성합니다.
+        const alarmDto = {
+          toUserId: Number(childId),
+          senderRole: "ROLE_PARENT",
+          sessionType: "game",
+        };
+
+        try {
+          const response = await sendAlarm(alarmDto);
+          console.log("[checkAbsence] 알람 전송 성공:", response);
+        } catch (error) {
+          console.error("[checkAbsence] 알람 전송 실패:", error);
+        }
+      }
+    };
+
+    // 5초마다 체크 (원하는 시간 간격으로 변경 가능)
+    const intervalId = setInterval(checkAbsence, 10000);
+    return () => clearInterval(intervalId);
+  }, [session, childId]);
+  // 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람
+  // **************************************************************************************************************** //
 
   return (
       <div className="ch-review-container">
@@ -1009,7 +1106,6 @@ function ChildReviewGamePage() {
                 <p>다음 단원</p>
                 <BsStopBtnFill onClick={StopVideo} className="ch-learning-stop-icon" />
                 <button
-                    onClick={startScreenShare}
                     disabled={screenSubscriber !== null}
                     className="game-screen-share-button"
                 >
