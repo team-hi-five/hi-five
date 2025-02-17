@@ -73,7 +73,7 @@ public class SessionServiceImpl implements SessionService {
         LocalDateTime currentDttm = LocalDateTime.now();
 
         if ("game".equals(type)) {
-            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm, 70)
+            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
                     .orElseThrow(ScheduleNotFoundException::new);
             int scheduleId = gameMeetingScheduleEntity.getId();
 
