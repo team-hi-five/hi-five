@@ -94,6 +94,45 @@ function CounselorChildVideoCall() {
         return () => clearInterval(intervalId);
     }, [session, screenSubscriber]);
 
+    const sendSignal = (data, type) => {
+        session
+            .signal({
+                data: data, // 전송할 메시지
+                to: [],     // 빈 배열이면 모든 참가자에게 전송
+                type: type, // 메시지 타입
+            })
+            .then(() => {
+                console.log('Message successfully sent');
+            })
+            .catch((error) => {
+                console.error('Signal error:', error);
+            });
+    };
+
+    const handleStartLearning = () => {
+        sendSignal("start-chapter", "start-chapter")
+    };
+
+    const handlePreviousUnit = () => {
+        sendSignal("previous-stage", "previous-stage")
+    };
+
+    const handleStartRecording = () => {
+        sendSignal("record-start", "record-start")
+    };
+
+    const handleStopRecording = () => {
+        sendSignal("record-stop", "record-stop")
+    };
+
+    const handleNextUnit = () => {
+        sendSignal("next-stage", "next-stage")
+    };
+
+    const handleEndLearning = () => {
+        sendSignal("end-chapter", "end-chapter")
+    };
+
     return (
         <div
             className="counselor-observe-container"
@@ -153,6 +192,14 @@ function CounselorChildVideoCall() {
                     />
                 </div>
             )}
+            <div>
+                <button onClick={handleStartLearning}>학습 시작</button>
+                <button onClick={handlePreviousUnit}>이전 단원</button>
+                <button onClick={handleStartRecording}>녹화 시작</button>
+                <button onClick={handleStopRecording}>녹화 중지</button>
+                <button onClick={handleNextUnit}>다음 단원</button>
+                <button onClick={handleEndLearning}>학습 종료</button>
+            </div>
         </div>
     );
 }

@@ -741,27 +741,63 @@ function ChildReviewGamePage() {
     }
   }, [phase, analysisCycle, faceResult, voiceResult, currentGameData?.gameStageId]);
 
-  // --- 제어 기능 ------------------------------
+  // --- 제어 기능 (시그널 수신) ------------------------------
+  useEffect(() => {
+    if (session) {
+      const signalHandler = (event) => {
+        console.log("Received signal:", event.data);
+        console.log("From:", event.from);
+        console.log("Type:", event.type);
+
+        // 전달받은 시그널 타입에 따라 분기하여 처리합니다.
+        switch (event.type) {
+          case "start-chapter":
+            // 학습 시작 시 처리 로직
+            console.log("수신: 학습 시작");
+            // 예: 화면 초기화, 상태 업데이트 등
+            break;
+          case "previous-stage":
+            // 이전 단원으로 이동 시 처리 로직
+            console.log("수신: 이전 단원으로 이동");
+            // 예: 단원 상태 업데이트 등
+            break;
+          case "record-start":
+            // 녹화 시작 시 처리 로직
+            console.log("수신: 녹화 시작");
+            // 예: UI 상태 업데이트, 녹화 시작 표시 등
+            break;
+          case "record-stop":
+            // 녹화 중지 시 처리 로직
+            console.log("수신: 녹화 중지");
+            // 예: UI 상태 업데이트, 녹화 중지 표시 등
+            break;
+          case "next-stage":
+            // 다음 단원으로 이동 시 처리 로직
+            console.log("수신: 다음 단원으로 이동");
+            // 예: 단원 상태 업데이트 등
+            break;
+          case "end-chapter":
+            // 학습 종료 시 처리 로직
+            console.log("수신: 학습 종료");
+            // 예: 세션 종료, 화면 전환 등
+            break;
+          default:
+            console.log("알 수 없는 시그널 타입:", event.type);
+        }
+      };
+
+      // 세션에서 시그널 이벤트 등록
+      session.on("signal", signalHandler);
+
+      // 컴포넌트 unmount 시 이벤트 핸들러 제거
+      return () => {
+        session.off("signal", signalHandler);
+      };
+    }
+  }, [session]);
+
+
   // 정지
-  const StopVideo = () => {
-    console.log("[StopVideo] 호출됨 - 비디오 재생 상태 토글 및 분석 중지");
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-        setIsPlaying(false);
-        console.log("[StopVideo] 비디오 정지");
-      } else {
-        videoRef.current.play();
-        setIsPlaying(true);
-        console.log("[StopVideo] 비디오 재생");
-      }
-    }
-    if (analysisIntervalRef.current) {
-      clearInterval(analysisIntervalRef.current);
-      analysisIntervalRef.current = null;
-      console.log("[StopVideo] 진행 중인 분석 인터벌 중지");
-    }
-  };
 
   // 다음 단원으로 이동
   const NextChapter = async () => {
@@ -783,23 +819,6 @@ function ChildReviewGamePage() {
     console.log("[NextChapter] 단원 설정 업데이트:", currentGameData.chapterId, nextStageId);
     const gameData = await useGameStore.getState().getCurrentGameData();
     console.log("[NextChapter] 업데이트된 게임 데이터:", gameData);
-    setCurrentGameData(gameData);
-    setPhase("video");
-    setAnalysisCycle(1);
-    setIsPlaying(false);
-  };
-
-  // 이전 단원으로 이동
-  const PrevChapter = async () => {
-    console.log("[PrevChapter] 호출됨 - 이전 단원으로 이동");
-    const prevStageId = currentGameData.gameStageId - 1;
-    console.log("[PrevChapter] 현재 단원:", currentGameData.gameStageId, "이전 단원:", prevStageId);
-    if (prevStageId > 0) {
-      setChapterAndStage(currentGameData.chapterId, prevStageId);
-      console.log("[PrevChapter] 단원 설정 업데이트:", currentGameData.chapterId, prevStageId);
-    }
-    const gameData = await useGameStore.getState().getCurrentGameData();
-    console.log("[PrevChapter] 업데이트된 게임 데이터:", gameData);
     setCurrentGameData(gameData);
     setPhase("video");
     setAnalysisCycle(1);
@@ -893,7 +912,7 @@ function ChildReviewGamePage() {
             <div className="ch-learning-middle-section"></div>
             <div className="ch-learning-bottom-section">
               <div className="ch-learning-button-left">
-                <img src="/child/button-left.png" alt="button-left" onClick={PrevChapter} />
+                <img src="/child/button-left.png" alt="button-left" />
                 <p> 이전 단원</p>
               </div>
               {/* 오른쪽: 상담사 화면 영역 */}
@@ -905,9 +924,9 @@ function ChildReviewGamePage() {
                 />
               </Card>
               <div className="ch-learning-button-right">
-                <img src="/child/button-right.png" alt="button-right" onClick={NextChapter} />
+                <img src="/child/button-right.png" alt="button-right" />
                 <p>다음 단원</p>
-                <BsStopBtnFill onClick={StopVideo} className="ch-learning-stop-icon" />
+                <BsStopBtnFill className="ch-learning-stop-icon" />
                 <button
                     onClick={startScreenShare}
                     disabled={screenSubscriber !== null}
