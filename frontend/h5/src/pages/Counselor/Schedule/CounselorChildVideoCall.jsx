@@ -149,10 +149,9 @@ function CounselorChildVideoCall() {
                 console.log("[checkAbsence] 상대방이 없습니다. 알람 전송 시작...");
                 // 알람 전송에 필요한 데이터(alarmDto)를 구성합니다.
                 const alarmDto = {
-                    toUserId: Number(childId), // 아동의 ID (childId를 숫자로 변환)
-                    senderUserId: 0,         // 상담사 본인의 ID (예시: 1234, 실제 값으로 대체)
-                    senderRole: "ROLE_CONSULTANT",    // 상담사 역할
-                    sessionType: type,          // 세션 타입 (예: "videoCall" 등, 상황에 맞게)
+                    toUserId: Number(childId),
+                    senderRole: "ROLE_CONSULTANT",
+                    sessionType: type,
                 };
 
                 try {
