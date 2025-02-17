@@ -10,15 +10,14 @@ import { BsStopBtnFill } from "react-icons/bs";
 import { OpenVidu } from "openvidu-browser";
 import api from "../../api/api";
 import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
-
 import Webcam from "react-webcam";
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
 
-  // react-webcam의 ref로 사용 (내부 video 엘리먼트는 ref.current.video)
+  // react-webcam의 ref (내부 video 엘리먼트는 ref.current.video)
   const webcamRef = useRef(null);
-  // OpenVidu 화면 공유 관련 ref, session 등은 그대로 유지
+  // OpenVidu 관련 ref
   const videoRef = useRef(null);
   const analysisIntervalRef = useRef(null);
   const analysisDataRef = useRef([]);
@@ -41,7 +40,6 @@ function ChildReviewGamePage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recorder, setRecorder] = useState(null);
   const [analysisReady, setAnalysisReady] = useState(false);
-  const [corrected, setCorrected] = useState(false);
   const [session, setSession] = useState(null);
   const [subscriber, setSubscriber] = useState([]);
   const [publisher, setPublisher] = useState(null);
@@ -184,8 +182,6 @@ function ChildReviewGamePage() {
     loadModels();
   }, []);
 
-  // ※ react-webcam를 사용하므로 getUserMedia 관련 useEffect는 제거합니다.
-
   // --- 6. 시작 버튼 누른 후 모달 실행 ---------------------
   useEffect(() => {
     if (isStarted) {
@@ -203,7 +199,7 @@ function ChildReviewGamePage() {
     }
   }, [isStarted]);
 
-  // --- phase가 "video"이고 showContent가 true일 때 동영상 자동 재생 ---------------------
+  // --- 7. phase가 "video"이고 showContent가 true일 때 동영상 자동 재생 ---------------------
   useEffect(() => {
     if (phase === "video" && currentGameData && videoRef.current && showContent) {
       videoRef.current
@@ -216,6 +212,8 @@ function ChildReviewGamePage() {
           });
     }
   }, [phase, currentGameData, showContent]);
+
+
 
   // --- 녹화 시작 함수 (녹화와 분석 함께) --------------------
   const startRecording = async () => {
@@ -316,6 +314,8 @@ function ChildReviewGamePage() {
     return avg;
   };
 
+  //
+  //
   // --- 동시 분석 (표정 + 음성) ------------------
   const runConcurrentAnalysis = async () => {
     console.log("[runConcurrentAnalysis] 시작");
@@ -411,7 +411,13 @@ function ChildReviewGamePage() {
       console.error("[runConcurrentAnalysis] 오류:", error);
     }
   };
+  //
+  //
+  //
 
+  //
+  //
+  //
   // --- 얼굴 분석만 (표정 연습) ------------------
   const runFaceAnalysis = async () => {
     console.log("[runFaceAnalysis] 시작");
@@ -460,7 +466,13 @@ function ChildReviewGamePage() {
     setFaceResult(faceMsg);
     setPhase("analysisResult");
   };
+  //
+  //
+  //
 
+  //
+  //
+  //
   // --- 음성 분석만 (말 연습) ------------------
   const runVoiceAnalysis = async () => {
     console.log("[runVoiceAnalysis] 시작");
@@ -499,8 +511,15 @@ function ChildReviewGamePage() {
     setVoiceResult(voiceMsg);
     setPhase("analysisResult");
   };
+  //
+  //
+  //
 
-  // --- 녹화 및 분석 중지 ------------------
+
+  //
+  //
+  //
+  // --- 녹화 중지 및 분석  ------------------
   const stopRecording = async () => {
     try {
       if (recorder) {
@@ -529,7 +548,6 @@ function ChildReviewGamePage() {
         }).then((result) => {
           if (result.isConfirmed) {
             if (analysisCycle === 1) {
-              // 예시: 정답/오답에 따라 다른 모달 호출
               Swal.fire({
                 title: "이제 표정 연습을 해볼까요?",
                 text: "거울을 보면서 천천히 따라해보세요!",
@@ -688,8 +706,14 @@ function ChildReviewGamePage() {
       });
     }
   };
+  //
+  //
+  //
 
-  // --- 제어 기능 ------------------------------
+  //
+  //
+  //
+  //비디오 중지
   const StopVideo = () => {
     console.log("[StopVideo] 호출됨");
     if (videoRef.current) {
@@ -706,9 +730,20 @@ function ChildReviewGamePage() {
       analysisIntervalRef.current = null;
     }
   };
+  //
+  //
+  //
 
+  //
+  //
+  //
+  // 수정된 NextChapter 함수 (currentGameData 체크 추가)
   const NextChapter = async () => {
     console.log("[NextChapter] 호출됨");
+    if (!currentGameData) {
+      console.error("NextChapter: currentGameData가 없습니다.");
+      return;
+    }
     const nextStageId = currentGameData.gameStageId + 1;
     if (nextStageId > 5) {
       Swal.fire({
@@ -727,19 +762,35 @@ function ChildReviewGamePage() {
     setAnalysisCycle(1);
     setIsPlaying(false);
   };
+  //
+  //
+  //
 
+  //
+  //
+  //
+  // 수정된 PrevChapter 함수 (currentGameData 체크 추가)
   const PrevChapter = async () => {
     console.log("[PrevChapter] 호출됨");
-    const prevStageId = currentGameData.gameStageId - 1;
-    if (prevStageId > 0) {
-      setChapterAndStage(currentGameData.chapterId, prevStageId);
+    if (!currentGameData) {
+      console.error("PrevChapter: currentGameData가 없습니다.");
+      return;
     }
+    const prevStageId = currentGameData.gameStageId - 1;
+    if (prevStageId < 1) {
+      console.warn("이전 단원이 없습니다.");
+      return;
+    }
+    setChapterAndStage(currentGameData.chapterId, prevStageId);
     const gameData = await useGameStore.getState().getCurrentGameData();
     setCurrentGameData(gameData);
     setPhase("video");
     setAnalysisCycle(1);
     setIsPlaying(false);
   };
+  //
+  //
+  //
 
   // --- 게임 데이터 저장 ------------------
   useEffect(() => {
@@ -784,6 +835,69 @@ function ChildReviewGamePage() {
 
     sendGameData();
   }, [voiceResult, currentGameData, analysisCycle]);
+
+
+
+  // --- 8. 시그널 이벤트 리스너 추가 (counselor에서 보내는 시그널 수신) ---
+  useEffect(() => {
+    if (session) {
+      const signalHandler = (event) => {
+        console.log("[ChildReviewGamePage] Received signal:", event);
+        switch (event.type) {
+          case "start-chapter":
+            if (!isStarted) {
+              setIsStarted(true);
+            }
+            break;
+          case "previous-stage":
+            if (currentGameData) {
+              PrevChapter();
+            } else {
+              console.warn("currentGameData가 없어 이전 단원으로 이동할 수 없습니다.");
+            }
+            break;
+          case "next-stage":
+            if (currentGameData) {
+              NextChapter();
+            } else {
+              console.warn("currentGameData가 없어 다음 단원으로 이동할 수 없습니다.");
+            }
+            break;
+          case "record-start":
+            if (!isRecording) {
+              handleStartRecording();
+            }
+            break;
+          case "record-stop":
+            if (isRecording) {
+              stopRecording();
+            }
+            break;
+          case "end-chapter":
+            Swal.fire({
+              title: "수업이 종료되었습니다! <br> 수고하셨습니다!",
+              imageUrl: "/child/character/againCh.png",
+              imageWidth: 200,
+              imageHeight: 200,
+              showConfirmButton: false,
+              timer: 2000,
+            });
+            break;
+          default:
+            console.warn("처리되지 않은 시그널 타입:", event.type);
+            break;
+        }
+      };
+
+      session.on("signal", signalHandler);
+
+      return () => {
+        session.off("signal", signalHandler);
+      };
+    }
+  }, [session, currentGameData, isRecording, isStarted]);
+
+
 
   return (
       <div className="ch-review-container">
