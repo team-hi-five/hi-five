@@ -1,7 +1,7 @@
 import api from "../../../api/api";
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from 'react-router-dom';
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
@@ -9,40 +9,45 @@ function CounselorChildVideoCall() {
     const [publisher, setPublisher] = useState(null);
     const [screenSubscriber, setScreenSubscriber] = useState(null);
     const [searchParams] = useSearchParams();
-    const type = searchParams.get("type");
-    const childId = searchParams.get("childId");
+    const type = searchParams.get('type');
+    const childId = searchParams.get('childId');
 
     useEffect(() => {
         const initSession = async () => {
             try {
                 const sessionInstance = OV.current.initSession();
 
+                // 스트림 생성 이벤트 (기본 이벤트 이름: "streamCreated")
                 sessionInstance.on("streamCreated", (event) => {
                     console.log("Stream Created Event:", event);
                     const videoType = (event.stream.videoType || "").toLowerCase();
                     const typeOfVideo = event.stream.typeOfVideo;
-                    // 화면 공유 스트림 구분
+                    console.log("Video Type:", videoType, "typeOfVideo:", typeOfVideo);
+
+                    // 화면 공유 스트림 (화면 캡처 스트림)
                     if (videoType === "screen" || typeOfVideo === "SCREEN") {
                         const screenSub = sessionInstance.subscribe(event.stream, undefined);
                         setScreenSubscriber(screenSub);
                     }
-                    // 카메라(웹캠) 스트림
-                    if (event.stream.typeOfVideo === "CAMERA") {
+
+                    // 카메라 스트림 (CAMERA)
+                    if (event.stream.typeOfVideo === 'CAMERA') {
                         try {
                             const subscriber = sessionInstance.subscribe(event.stream, undefined);
                             setPublisher(subscriber);
                         } catch (error) {
-                            console.error("스트림 구독 중 오류:", error);
+                            console.error('스트림 구독 중 오류:', error);
                         }
                     }
                 });
 
+                // 토큰 요청 함수
                 const getToken = async () => {
                     try {
-                        const response = await api.post("/session/join", { type, childId });
+                        const response = await api.post('/session/join', { type, childId });
                         return response.data;
                     } catch (error) {
-                        console.error("❌ 토큰 요청 실패:", error);
+                        console.error('❌ 토큰 요청 실패:', error);
                         throw error;
                     }
                 };
@@ -50,13 +55,14 @@ function CounselorChildVideoCall() {
                 const token = await getToken();
                 await sessionInstance.connect(token);
 
-                // 상담사 자신의 웹캠 퍼블리셔 (자신의 영상 송출)
+                // 상담사 웹캠 퍼블리싱 (자신의 영상 송출)
                 const myPublisher = OV.current.initPublisher(undefined, {
                     audioSource: true,
                     videoSource: true,
                     publishAudio: true,
                     publishVideo: true,
                 });
+
                 await sessionInstance.publish(myPublisher);
                 setSession(sessionInstance);
                 setPublisher(myPublisher);
@@ -68,10 +74,15 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
+    // [추가] 만약 상담사가 먼저 연결되어 screenSubscriber가 아직 없다면,
+    // 재구독 시도를 위한 워크어라운드 (1초 후 재확인)
     useEffect(() => {
         if (session && !screenSubscriber) {
             setTimeout(() => {
-                console.log("재구독 시도: session 연결되었으나 screenSubscriber가 없음");
+                console.log("재구독 시도: session은 연결되어 있으나 screenSubscriber가 없음");
+                // 만약 이미 publish된 화면 공유 스트림이 있다면 subscribe 처리
+                // (OpenVidu의 경우 streamCreated 이벤트가 다시 발생하지 않을 수 있으므로 워크어라운드)
+                // 이 부분은 환경에 따라 추가 수정이 필요할 수 있습니다.
             }, 1000);
         }
     }, [session, screenSubscriber]);
@@ -93,23 +104,21 @@ function CounselorChildVideoCall() {
                     />
                 </div>
             ) : (
-                <div
-                    style={{
-                        width: "50%",
-                        height: "100%",
-                        backgroundColor: "black",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        float: "left",
-                    }}
-                >
+                <div style={{
+                    width: "50%",
+                    height: "100%",
+                    backgroundColor: "black",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    float: "left"
+                }}>
                     <p>아동의 화면 공유가 없습니다.</p>
                 </div>
             )}
 
-            {/* 아동의 웹캠 (또는 상담사 자신의 웹캠) */}
+            {/* 상담사 웹캠 */}
             {publisher && (
                 <div style={{ width: "50%", height: "100%", float: "right" }}>
                     <video
