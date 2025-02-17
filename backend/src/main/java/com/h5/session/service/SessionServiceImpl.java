@@ -87,7 +87,7 @@ public class SessionServiceImpl implements SessionService {
             return openViduService.createConnection(sessionId);
 
         }else if("consult".equals(type)) {
-            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm, 70)
+            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
                     .orElseThrow(ScheduleNotFoundException::new);
             int scheduleId = consultMeetingScheduleEntity.getId();
 
