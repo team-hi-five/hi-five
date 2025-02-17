@@ -25,6 +25,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/api/ws")
                 .setAllowedOrigins("https://hi-five.site")
+                .setAllowedOrigins("https://localhost:8080")
                 .addInterceptors(customHandshakeInterceptor);
 //                .withSockJS();
     }
