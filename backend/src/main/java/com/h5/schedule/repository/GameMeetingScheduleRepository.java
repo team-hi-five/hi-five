@@ -82,7 +82,7 @@ public interface GameMeetingScheduleRepository extends JpaRepository<GameMeeting
             "AND g.deleteDttm IS NULL")
     Optional<GameMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
-            @Param("today") LocalDateTime currentDateTime);
+            @Param("today") LocalDateTime currentDttm);
 
 }
 
