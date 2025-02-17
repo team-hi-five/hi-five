@@ -13,10 +13,11 @@ import AppParent from "./routes/AppParent";
 import AppCounselor from "./routes/AppCounselor";
 import AuthRoutes from "./routes/AuthRoutes";
 import ProtectedRoute from "/src/routes/ProtectedRoute";
-import {useEffect} from "react";
-import {useUserStore} from "./store/userStore.js";
-import {getUserInfo} from "/src/api/authService.jsx";
-// import NotificationToast from './components/common/NotificationToast.jsx';
+import { useEffect } from "react";
+import { useUserStore } from "./store/userStore.js";
+import { getUserInfo } from "/src/api/authService.jsx";
+import UnauthorizedPage from "/src/pages/Error/UnauthorizedPage";
+import NotFoundPage from "/src/pages/Error/NotFoundPage";
 
 function App() {
   const { setUserName, setUserRole } = useUserStore();
@@ -39,18 +40,16 @@ function App() {
     fetchData();
   }, [setUserName, setUserRole]);
 
-
   return (
     <Router>
-      {/* <NotificationToast/> */}
       <Routes>
+        {/* 루트와 로그인 관련 경로는 로그인 페이지 또는 HomeRedirect 컴포넌트로 처리할 수 있음 */}
         <Route path="/" element={<LoginPage />} />
         <Route path="/login/*" element={<AuthRoutes />} />
 
-        {/* 아동 페이지 */}
+        {/* 아동 페이지 (권한 검사는 보통 학부모 계정에서 진행) */}
         <Route path="/child" element={<ChildLayout />}>
           <Route index element={<ChildMainPage />} />
-          {/* 아동 하위 경로 */}
           <Route path="/child/*" element={<AppChild />} />
         </Route>
 
@@ -65,6 +64,12 @@ function App() {
           <Route path="/counselor" element={<CounselorMainPage />} />
           <Route path="/counselor/*" element={<AppCounselor />} />
         </Route>
+
+        {/* 권한이 없는 경우 표시할 페이지 */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+        {/* 존재하지 않는 경로로 접근한 경우 (404 Not Found) */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );
