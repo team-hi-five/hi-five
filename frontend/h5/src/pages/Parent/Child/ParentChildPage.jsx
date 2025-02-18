@@ -619,12 +619,28 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
   };
 
   const handleVideoSearch = () => {
+    const formatDate = (date) => {
+      if (!date) return "";
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+  
+    const formattedDateVideo1 = formatDate(dateVideo1);
+    const formattedDateVideo2 = formatDate(dateVideo2);
+    const childUserId = selectedChild ? selectedChild.childUserId : "";
+    
+    // URL 쿼리 파라미터로 날짜 정보를 추가
+    const queryParams = `?dateVideo1=${formattedDateVideo1}&dateVideo2=${formattedDateVideo2}&childUserId=${childUserId}`;
+  
     window.open(
-      '/parent/child/video/multiple',
+      '/parent/child/video/multiple' + queryParams,
       '_blank',
-      'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+      `left=0,top=0,width=${screen.width},height=${screen.height}`
     );
   };
+  
   
 
   return (

@@ -164,3 +164,9 @@
        max-width: 100%;
    }
 }
+
+.highlight {
+  background-color: #ffc107;
+  border-radius: 50%;
+  color: #fff;
+}
