@@ -233,7 +233,7 @@ const CounselorMainPage = () => {
               <div className="co_notice_header">
                 <p className="co_notice_title">새소식</p>
                 <div className="co_notice_line"></div>
-                <button className="co_notice_line_end" onClick={() => navigate('/counselor/board')}>
+                <button className="co_notice_line_end" onClick={() => navigate('/parent/board')}>
                   <i className="pi pi-plus"></i>
                   더보기
                 </button>

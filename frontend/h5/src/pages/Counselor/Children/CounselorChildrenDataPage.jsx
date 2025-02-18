@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Chart } from "primereact/chart";
 import { Calendar } from "primereact/calendar";
-import ParentHeader from "/src/components/Parent/ParentHeader";
 import ChatBotData from "/src/components/common/ChatBotData";
 import Footer from "/src/components/common/Footer";
 import "/src/pages/Parent/ParentCss/ParentChildPage.css";
+import CounselorHeader from "../../../components/Counselor/CounselorHeader";
 import { getChildEmotionData, getChatBotDate, getVideoDate } from "/src/api/childData";
 import { useUserStore } from "/src/store/userStore";
 
@@ -345,7 +345,7 @@ function CounselorChildrenDataPage() {
 
   return (
     <div className="pa-page">
-      <ParentHeader />
+      <CounselorHeader />
 
       {/* 감정 분석 영역 */}
       <div className="pa-container">
