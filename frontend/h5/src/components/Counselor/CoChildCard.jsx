@@ -26,7 +26,7 @@ const CoChildCard = ({ id, childName, age, parentName, imageUrl, gender, birthDa
   const handleStatusClick = () => {
     // childName을 state로 전달하면서 페이지 이동
     useUserStore.getState().setChildData(id, childName);
-    navigate('/counselor/children/data', { state: { selectedChild: childName } });
+    navigate('/counselor/children/data');
   };
 
 
