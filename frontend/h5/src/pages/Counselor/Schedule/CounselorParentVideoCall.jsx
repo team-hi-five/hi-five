@@ -232,7 +232,7 @@ function CounselorParentVideoCallPage() {
 
     if (session.streams && typeof session.streams.forEach === "function") {
       session.streams.forEach((stream) => {
-        if (stream.typeOfVideo === "SCREEN") {
+        if (stream.typeOfVideo === "VIDEO") {
           childStreamExists = true;
         }
       });
