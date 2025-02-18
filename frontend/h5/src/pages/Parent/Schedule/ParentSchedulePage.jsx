@@ -7,7 +7,6 @@ import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
 import '../ParentCss/ParentSchedulePage.css';
 import { getScheduledDatesByParent, getParentScheduleList } from "/src/api/schedule";
-import {useUserStore} from "../../../store/userStore.js";
 
 addLocale('ko', {
     firstDayOfWeek: 0,
@@ -125,42 +124,6 @@ function ParentSchedulePage() {
 
 
     const [schedules] = useState([
-        {
-            time: "11:00 ~ 12:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-30",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "11:00 ~ 12:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-29",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "14:00 ~ 15:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-31",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "15:00 ~ 16:00",
-            counselor: "박성원",
-            counsultation_target: "김도로롱",
-            counsultation_type: "아동학습현황상담",
-            date: "2025-02-15",
-            isLoading: false,
-            isCompleted: false
-        },
         ].sort((a, b) => {
         const timeA = a.time.split('~')[0].trim();
         const timeB = b.time.split('~')[0].trim();

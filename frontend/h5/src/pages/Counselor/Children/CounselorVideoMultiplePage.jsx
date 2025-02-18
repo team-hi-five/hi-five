@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { getVideoDate } from "/src/api/childData";
 import "/src/pages/Parent/ParentCss/ParentVideoMultiplePage.css";
 
-function ParentVideoMultiplePage() {
+function CounselorVideoMultiplePage() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
 
@@ -211,4 +211,4 @@ function ParentVideoMultiplePage() {
   );
 }
 
-export default ParentVideoMultiplePage;
+export default CounselorVideoMultiplePage;
