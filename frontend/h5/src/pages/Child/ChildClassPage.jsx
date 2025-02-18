@@ -1184,6 +1184,14 @@ function ChildClassPage() {
                       onPlay={sendStartStage}
                       onEnded={handleVideoEnd}
                       className="ch-gameVideo"
+                      style={{
+                        backgroundColor: "#000",
+                        width: "100%",
+                        height: "18rem",
+                        marginTop: "4px",
+                        transform: "scaleX(-1)",
+                        borderRadius: "1%"
+                      }}
                   />
                   <Card className="ch-learning-message-screen">
                     <div className="learning-message">
