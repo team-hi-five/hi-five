@@ -134,17 +134,6 @@ function ChildReviewGamePage() {
     await createScreenShareStream();
   };
 
-  // **[수정]** 아동 측에서는 화면 공유 스트림을 자기가 렌더링하지 않도록 아래 useEffect를 제거 또는 주석 처리합니다.
-  /*
-  useEffect(() => {
-    if (screenSubscriber && videoRef.current) {
-      const stream = screenSubscriber.stream?.getMediaStream();
-      if (stream) {
-        videoRef.current.srcObject = stream;
-      }
-    }
-  }, [screenSubscriber]);
-  */
 
   // --- 3. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {
