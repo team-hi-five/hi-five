@@ -11,7 +11,6 @@ import { OpenVidu } from 'openvidu-browser';
 import api from "../../api/api";
 import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
 import Webcam from "react-webcam";
-import {send} from "vite";
 import {sendAlarm} from "../../api/alarm.jsx";
 
 function ChildReviewGamePage() {
