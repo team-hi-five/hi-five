@@ -35,7 +35,7 @@ public class GameController {
     }
 
     @PostMapping("/save-log")
-    public ResponseEntity<?> saveGameLog(SaveGameLogRequestDto saveGameLogRequestDto) {
+    public ResponseEntity<?> saveGameLog(@RequestBody SaveGameLogRequestDto saveGameLogRequestDto) {
         return ResponseEntity.ok(gameService.saveGameLog(saveGameLogRequestDto));
     }
 }
