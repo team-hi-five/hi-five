@@ -123,7 +123,7 @@ function CounselorChildVideoCall() {
     const isOtherParticipantAbsent = () => {
         if (!session) {
             console.log("[isOtherParticipantAbsent] 세션이 아직 초기화되지 않았습니다.");
-            return false; // 세션이 없으면 아직 판단할 수 없음
+            return false;
         }
 
         let childStreamExists = false;
@@ -167,9 +167,7 @@ function CounselorChildVideoCall() {
             }
         };
 
-        // 5초마다 체크 (원하는 시간 간격으로 변경 가능)
-        const intervalId = setInterval(checkAbsence, 10000);
-        return () => clearInterval(intervalId);
+        checkAbsence();
     }, [session, childId]);
 
 

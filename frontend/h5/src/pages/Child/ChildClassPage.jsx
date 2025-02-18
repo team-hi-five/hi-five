@@ -11,6 +11,8 @@ import { OpenVidu } from 'openvidu-browser';
 import api from "../../api/api";
 import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
 import Webcam from "react-webcam";
+import {send} from "vite";
+import {sendAlarm} from "../../api/alarm.jsx";
 
 function ChildReviewGamePage() {
   console.log("[ChildReviewGamePage] Component mounted");
@@ -990,8 +992,7 @@ function ChildReviewGamePage() {
     };
 
     // 5초마다 체크 (원하는 시간 간격으로 변경 가능)
-    const intervalId = setInterval(checkAbsence, 10000);
-    return () => clearInterval(intervalId);
+    checkAbsence();
   }, [session, childId]);
   // 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람
   // **************************************************************************************************************** //
