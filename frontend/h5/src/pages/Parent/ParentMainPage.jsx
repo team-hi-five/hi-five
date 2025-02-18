@@ -80,7 +80,7 @@ const CounselorMainPage = () => {
     }
     else{
         window.open(
-          `/child/${useUserStore.getState().childUserId}`,
+          `/child/${useUserStore.getState().childData.childUserId}`,
           'ChildMainPage',
           'left=0,top=0,width=' + screen.width + ',height=' + screen.height
         );

@@ -362,7 +362,7 @@ function CounselorBoardDetailPage() {
                 <div className="co-detail-buttons">
                   {(type === "notice" || type === "faq") && (
                       <button
-                          onClick={() => navigate(`/parent/board/${type}/edit/${no}`, { state: { postData } })}
+                          onClick={() => navigate(`/counselor/board/${type}/edit/${no}`, { state: { postData } })}
                           className="co-detail-edit-btn"
                       >
                         수정
