@@ -10,7 +10,7 @@ import { createQna } from "../../../api/boardQna";
 import { uploadFile, TBL_TYPES } from "../../../api/file";
 import "/src/pages/Parent/ParentCss/ParentBoardWritePage.css";
 import { extractAndReplaceEditorImages } from "../../../store/boardStore";
-import {updateNotice} from "../../../api/boardNotice.jsx";
+import {createNotice} from "../../../api/boardNotice.jsx";
 
 "/src/store/boardStore.js"
 
@@ -92,7 +92,7 @@ function ParentBoardWritePage() {
             finalContent = finalContent.replace(item.placeholder, uploadedUrl);
           }
         });
-        await updateNotice(qnaId, title, finalContent);
+        await createNotice(qnaId, title, finalContent);
       }
 
       // 3. 파일 업로드 (첨부파일)

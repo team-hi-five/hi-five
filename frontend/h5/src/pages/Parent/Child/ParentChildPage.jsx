@@ -125,10 +125,20 @@ function ParentChildPage() {
         };
         fetchEmotionData();
       }, 300);
-
-      return () => clearTimeout(timeoutId);
+  
+      const timer = setTimeout(() => {
+        const today = new Date();
+        setCurrentMonth(today);
+      }, 2000);
+  
+      // cleanup 함수에서 두 타이머 모두 클리어
+      return () => {
+        clearTimeout(timeoutId);
+        clearTimeout(timer);
+      };
     }
   }, [selectedChild, analyzeEmotionData]);
+  
 
   const renderEmotionCard = () => (
     <div className="pa-card-right">
@@ -322,6 +332,15 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
     }, 300); // 필요한 경우 타이밍 조절
   }, [videoDates2, currentMonth, highlightScheduledDatesInDOM]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const today = new Date();
+      setCurrentMonth(today);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [dateChatBot]);
+  
+
   const handleViewDateChangeForChatBot = (e) => {
     handleMonthChange(e, "chatbot");
     setCurrentMonth(e.value);
@@ -360,16 +379,8 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
 
     // 1) 모든 상태 초기화
     setEmotionData(null);
-    setChatBotDates([]);
-    setVideoDates1([]);
-    setVideoDates2([]);
     setAnalysisResult("");
     setAnalysisError("");
-
-    // 2) 데이터 다시 로딩
-    fetchChatBotDate(dateChatBot);
-    fetchVideoDates(dateVideo1, 1);
-    fetchVideoDates(dateVideo2, 2);
 
     // 감정 데이터 로딩
     const timeoutId = setTimeout(() => {
@@ -390,11 +401,6 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
     return () => clearTimeout(timeoutId);
   }, [
     selectedChild,
-    dateChatBot,
-    dateVideo1,
-    dateVideo2,
-    fetchChatBotDate,
-    fetchVideoDates,
     analyzeEmotionData,
   ]);
 
@@ -613,12 +619,28 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
   };
 
   const handleVideoSearch = () => {
+    const formatDate = (date) => {
+      if (!date) return "";
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+  
+    const formattedDateVideo1 = formatDate(dateVideo1);
+    const formattedDateVideo2 = formatDate(dateVideo2);
+    const childUserId = selectedChild ? selectedChild.childUserId : "";
+    
+    // URL 쿼리 파라미터로 날짜 정보를 추가
+    const queryParams = `?dateVideo1=${formattedDateVideo1}&dateVideo2=${formattedDateVideo2}&childUserId=${childUserId}`;
+  
     window.open(
-      '/parent/child/video/multiple',
+      '/parent/child/video/multiple' + queryParams,
       '_blank',
-      'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+      `left=0,top=0,width=${screen.width},height=${screen.height}`
     );
   };
+  
   
 
   return (

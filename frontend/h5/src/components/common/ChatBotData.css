@@ -89,3 +89,10 @@
     margin-right: 10px;
   }
   
+  .no-chat-data {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #999;
+    padding: 20px;
+  }
+  
