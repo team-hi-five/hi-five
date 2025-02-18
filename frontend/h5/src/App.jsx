@@ -44,7 +44,7 @@ function App() {
               severity: 'info',
               summary: '알림',
               detail: alarmDto.message,
-              life: 5000, // 5초 후 자동 닫힘
+              // life: 5000, // 5초 후 자동 닫힘
             });
           });
         }

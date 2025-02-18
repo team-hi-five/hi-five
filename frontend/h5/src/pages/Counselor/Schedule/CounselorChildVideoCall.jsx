@@ -1,9 +1,13 @@
 import api from "../../../api/api";
+import "./CounselorChildVideoCall.css"
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
 import { useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { sendAlarm } from "../../../api/alarm.jsx";
+import { ImExit } from "react-icons/im";
+import { MdNavigateNext, MdNavigateBefore, MdOutlineNotStarted } from "react-icons/md";
+import { PiRecordFill, PiRecord } from "react-icons/pi";
 
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
@@ -119,7 +123,7 @@ function CounselorChildVideoCall() {
     const isOtherParticipantAbsent = () => {
         if (!session) {
             console.log("[isOtherParticipantAbsent] 세션이 아직 초기화되지 않았습니다.");
-            return false; // 세션이 없으면 아직 판단할 수 없음
+            return false;
         }
 
         let childStreamExists = false;
@@ -163,9 +167,7 @@ function CounselorChildVideoCall() {
             }
         };
 
-        // 5초마다 체크 (원하는 시간 간격으로 변경 가능)
-        const intervalId = setInterval(checkAbsence, 10000);
-        return () => clearInterval(intervalId);
+        checkAbsence();
     }, [session, childId]);
 
 
@@ -223,62 +225,87 @@ function CounselorChildVideoCall() {
     };
 
     return (
-        <div
-            className="counselor-observe-container"
-            style={{ width: "100%", height: "100%" }}
-        >
-            {/* 아동의 화면 공유 스트림 영역 */}
-            {screenSubscriber ? (
-                <div
-                    className="game-screen-share"
-                    style={{ width: "50%", height: "100%", float: "left" }}
-                >
-                    <video
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        ref={(video) => {
-                            if (video && screenSubscriber) {
-                                console.log(
-                                    "[CounselorChildVideoCall] 연결된 화면 공유 스트림:",
-                                    screenSubscriber.stream
-                                );
-                                video.srcObject = screenSubscriber.stream.getMediaStream();
-                            }
-                        }}
-                        autoPlay
-                        playsInline
-                    />
+        <div className="co-consultation-child-page">
+            <img src="/logo.png" alt="로고" className='co-logoo' />
+            <div className="co-video-layout">
+            {/* 아동의 화면 공유 스트림 영역 */} 
+                <div className="co-child-main-video-container">
+                    {screenSubscriber ? (
+                        <video
+                            className="co-main-video-container"
+                            ref={(video) => {
+                                if (video && screenSubscriber) {
+                                    console.log(
+                                        "[CounselorChildVideoCall] 연결된 화면 공유 스트림:",
+                                        screenSubscriber.stream
+                                    );
+                                    video.srcObject = screenSubscriber.stream.getMediaStream();
+                                }
+                            }}
+                            autoPlay
+                            playsInline
+                        />
+                ) : (
+                    <div className="co-error">
+                        <p>아동의 화면 공유가 없습니다.</p>
+                    </div>
+                )}
+                    <h3 className="co-learning-child-title">아동 게임 공유 화면</h3>
                 </div>
-            ) : (
-                <div
-                    style={{
-                        width: "50%",
-                        height: "100%",
-                        backgroundColor: "black",
-                        color: "white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        float: "left",
-                    }}
-                >
-                    <p>아동의 화면 공유가 없습니다.</p>
-                </div>
-            )}
 
             {/* 상담사 자신의 카메라 스트림 영역 */}
-            {publisher && (
-                <div style={{ width: "50%", height: "100%", float: "right" }}>
-                    <video
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        ref={(video) => {
-                            if (video && publisher) {
-                                video.srcObject = publisher.stream.getMediaStream();
-                            }
-                        }}
-                        autoPlay
-                        muted
-                        playsInline
-                    />
+            <div className="co-self-participant-video">
+                <div className="co-participatn-coun-container">
+                {publisher && (
+                        <video
+                            className="co-slef-participant-video"
+                            ref={(video) => {
+                                if (video && publisher) {
+                                    video.srcObject = publisher.stream.getMediaStream();
+                                }
+                            }}
+                            autoPlay
+                            muted
+                            playsInline
+                        />
+                    )}
+                    <h3>상담사 화면</h3>
+                </div>
+            </div>
+        </div>
+            <div className="co-button-controls">
+                <div>
+                    <button  className="web-control-btn" onClick={handleStartChapter}>
+                    <MdOutlineNotStarted/></button>
+                    <p>학습 시작</p>
+                </div>
+                
+                <div>
+                    <button  className="web-control-btn" onClick={handlePreviousStage}>
+                    <MdNavigateBefore /></button>
+                    <p>이전 단원</p>
+                </div>
+                    
+                <div>
+                <button  className="web-control-btn" onClick={handleStartRecording}>
+                <PiRecord /></button>
+                <p>녹화 시작</p>
+                </div>
+                
+                <div>   
+                    <button  className="web-record-btn" onClick={handleStopRecording}>
+                    <PiRecordFill /></button>
+                    <p>녹화 중지</p>
+                </div>
+                <div>
+                    <button  className="web-control-btn" onClick={handleNextStage}>
+                    <MdNavigateNext /></button>
+                    <p>다음 단원</p>
+                </div>
+                <div>
+                    <button  className="web-co-end-call" onClick={handleEndChapter}>
+                    <ImExit/></button>
+                    <p>학습 종료</p>
                 </div>
             )}
             <div>
