@@ -8,11 +8,11 @@ import stringSimilarity from "string-similarity";
 import SwAl from "sweetalert2";
 import { OpenVidu } from 'openvidu-browser';
 import api from "../../api/api";
-import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
+import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
 import Webcam from "react-webcam";
 import {sendAlarm} from "../../api/alarm.jsx";
-import {endChapter, saveGameData, startChapter, startStage} from "../../api/childGame.jsx";
-import {TBL_TYPES, uploadFile} from "../../api/file.jsx";
+import {endChapter, saveGameData, startChapter, startStage} from "../../api/childGame";
+import {TBL_TYPES, uploadFile} from "../../api/file";
 
 function ChildClassPage() {
   // react-webcam의 ref (내부 video 엘리먼트는 ref.current.video)
