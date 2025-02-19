@@ -11,14 +11,25 @@ function Header() {
   // 뒤로가기 경로 막을 곳
   const preventBackPaths = [`/child/${childId}`, "/child/todayclass"];
 
+
   const handleBack = () => {
+
+
+    if (preventBackPaths.includes(location.pathname)) {
+      return;
+    }
+  
+    // 경로에서 chapterId 추출 (예: /child/2/review/1)
+    const pathParts = location.pathname.split('/'); 
+    const chapterId = pathParts[pathParts.length - 1];
+    console.log("현재 경로:", location.pathname);
     if (preventBackPaths.includes(location.pathname)) {
       return;
     }
     // 복습 리스트 하위 게임 페이지
-    else if (location.pathname.startsWith(`/child/${childId}/review/game`)) {
+    else if (location.pathname.startsWith(`/child/${childId}/review/${chapterId}`)) {
       // 리뷰 게임에서는 리뷰 페이지로
-      navigate(`/child/${childId}/review}`);
+      navigate(`/child/${childId}/review`);
     }
     // 카드 리스트 하위 게임 페이지
     else if (
