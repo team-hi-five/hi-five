@@ -478,7 +478,7 @@ function ChildReviewGamePage() {
                 style={{
                   backgroundColor: "#000",
                   width: "100%",
-                  height: "18rem",
+                  height: "20rem",
                   marginTop: "4px",
                   transform: "scaleX(-1)",
                   borderRadius: "1%",
