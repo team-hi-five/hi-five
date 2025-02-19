@@ -46,7 +46,7 @@ public class FaqServiceImpl implements FaqService {
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
-        if(!"ROLE_CONSULTANT".equals(role)) {
+        if(!"CONSULTANT".equals(role)) {
             throw new BoardAccessDeniedException("faq");
         }
 
@@ -83,11 +83,11 @@ public class FaqServiceImpl implements FaqService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("ROLE_PARENT".equals(role)) {
+        if ("PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("ROLE_CONSULTANT".equals(role)) {
+        } else if ("CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -121,11 +121,11 @@ public class FaqServiceImpl implements FaqService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("ROLE_PARENT".equals(role)) {
+        if ("PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("ROLE_CONSULTANT".equals(role)) {
+        } else if ("CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -159,11 +159,11 @@ public class FaqServiceImpl implements FaqService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("ROLE_PARENT".equals(role)) {
+        if ("PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("ROLE_CONSULTANT".equals(role)) {
+        } else if ("CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
