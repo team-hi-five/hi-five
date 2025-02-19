@@ -9,6 +9,7 @@ import {getQnaDetail, deleteQna, updateQnaComment, createQnaAnswer, deleteQnaCom
 import { getFileUrl, downloadFile, deleteFile } from '../../../api/file';
 import '../Css/CounselorBoardDetailPage.css';
 import { replaceEditorPlaceholders } from "../../../store/boardStore.js";
+import {useUserStore} from "../../../store/userStore.js";
 
 function CounselorBoardDetailPage() {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ function CounselorBoardDetailPage() {
   const [editingAnswerId, setEditingAnswerId] = useState(null);
   const [editedAnswerContent, setEditedAnswerContent] = useState("");
   const editableRef = useRef(null);
+
+  const userName = useUserStore((state) => state.userName);
 
 
   const handleBack = () => {
@@ -360,7 +363,7 @@ function CounselorBoardDetailPage() {
               <div className="co-detail-title-section">
                 <h2 className="co-detail-post-title">{postData.title}</h2>
                 <div className="co-detail-buttons">
-                  {(type === "notice" || type === "faq") && (
+                  {(type === "notice" || type === "faq") && postData.writer === userName && (
                       <button
                           onClick={() => navigate(`/counselor/board/${type}/edit/${no}`, { state: { postData } })}
                           className="co-detail-edit-btn"
@@ -368,7 +371,7 @@ function CounselorBoardDetailPage() {
                         수정
                       </button>
                   )}
-                  {(type === "notice" || type === "faq") && (
+                  {(type === "notice" || type === "faq") && postData.writer === userName && (
                       <button onClick={handleDelete} className="co-detail-delete-btn">
                         삭제
                       </button>

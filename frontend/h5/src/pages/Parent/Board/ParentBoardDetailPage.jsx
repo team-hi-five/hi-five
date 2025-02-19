@@ -10,6 +10,7 @@ import { getFileUrl, downloadFile, deleteFile } from "../../../api/file";
 import "../../Counselor/Css/CounselorBoardDetailPage.css";
 import { replaceEditorPlaceholders } from "../../../store/boardStore";
 import ParentHeader from "../../../components/Parent/ParentHeader.jsx";
+import {useUserStore} from "../../../store/userStore";
 
 function ParentBoardDetailPage() {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ function ParentBoardDetailPage() {
   const [setFileError] = useState(null);
 
   const viewCountUpdated = useRef(false);
+
+  const userName = useUserStore((state) => state.userName);
 
   // 상대적 시간 계산 함수
   const getTimeAgo = (dateString) => {
@@ -220,7 +223,7 @@ function ParentBoardDetailPage() {
               <div className="co-detail-title-section">
                 <h2 className="co-detail-post-title">{postData.title}</h2>
                 <div className="co-detail-buttons">
-                  {type === "qna" && (
+                  {type === "qna" && postData.writer === userName && (
                       <button
                           onClick={() => navigate(`/parent/board/${type}/edit/${no}`, { state: { postData } })}
                           className="co-detail-edit-btn"
@@ -228,7 +231,7 @@ function ParentBoardDetailPage() {
                         수정
                       </button>
                   )}
-                  {type === 'qna' && (
+                  {type === 'qna' && postData.writer === userName && (
                       <button onClick={handleDelete} className="co-detail-delete-btn">
                         삭제
                       </button>
