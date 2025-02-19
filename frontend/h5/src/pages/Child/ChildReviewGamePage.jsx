@@ -20,6 +20,10 @@ function ChildReviewGamePage() {
   // 표정 분석 데이터를 동기적으로 저장하기 위한 ref
   const analysisDataRef = useRef([]);
 
+  // 음성 인식 관련 ref (4초 동안 음성 데이터를 누적)
+  const voiceRecognitionRef = useRef(null);
+  const voiceAnalysisDataRef = useRef("");
+
   // 단계(phase) 상태
   // "video": 영상 재생 중
   // "face1Modal": 표정 인식 전 모달 표시
@@ -294,10 +298,10 @@ function ChildReviewGamePage() {
   }, [phase]);
 
   // --- 음성 인식 단계 (voice1, voice2) ---
-  // 음성 인식을 1초 지연해서 시작하도록 함
+  // 음성 인식을 1초 지연해서 시작하고, 4초 동안 음성 데이터를 수집합니다.
   useEffect(() => {
     if (phase === "voice1" || phase === "voice2") {
-      const timeoutId = setTimeout(() => {
+      const startRecognitionTimeout = setTimeout(() => {
         if (
           !("webkitSpeechRecognition" in window) &&
           !("SpeechRecognition" in window)
@@ -312,25 +316,39 @@ function ChildReviewGamePage() {
         const recognition = new SpeechRecognition();
         recognition.lang = "ko-KR";
         recognition.interimResults = false;
-        recognition.continuous = false;
+        recognition.continuous = true; // 4초 동안 여러 결과 수집 가능하도록 설정
+        // 음성 인식 데이터를 누적할 변수 초기화
+        voiceAnalysisDataRef.current = "";
         recognition.onresult = (event) => {
-          let finalResult = "";
+          let interimResult = "";
           for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
-              finalResult += event.results[i][0].transcript;
+              interimResult += event.results[i][0].transcript;
             }
           }
-          handleVoiceResult(finalResult);
+          voiceAnalysisDataRef.current += interimResult;
         };
         recognition.onerror = (event) => {
           console.error("음성 인식 오류", event.error);
         };
-        recognition.start();
-        return () => {
-          recognition.abort();
+        recognition.onend = () => {
+          handleVoiceResult(voiceAnalysisDataRef.current);
         };
+        recognition.start();
+        voiceRecognitionRef.current = recognition;
+        // 4초 후 음성 인식 중지를 위한 타이머 설정
+        voiceRecognitionRef.current.stopTimeout = setTimeout(() => {
+          recognition.stop();
+        }, 4000);
       }, 1000);
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(startRecognitionTimeout);
+        if (voiceRecognitionRef.current) {
+          clearTimeout(voiceRecognitionRef.current.stopTimeout);
+          voiceRecognitionRef.current.abort();
+          voiceRecognitionRef.current = null;
+        }
+      };
     }
   }, [phase]);
 
@@ -429,9 +447,9 @@ function ChildReviewGamePage() {
                     {gameInfos[currentVideoIndex].optionImages.map(
                       (imgSrc, index) => (
                         <div key={index} className="option-item">
-                        <h2 className="ch-options-number">
+                          <h2 className="ch-options-number">
                             {["①", "②", "③"][index]}
-                        </h2>
+                          </h2>
                           <img
                             src={imgSrc}
                             alt={`option ${index + 1}`}
@@ -463,7 +481,7 @@ function ChildReviewGamePage() {
                   height: "18rem",
                   marginTop: "4px",
                   transform: "scaleX(-1)",
-                  borderRadius: "1%"
+                  borderRadius: "1%",
                 }}
               />
             </Card>
