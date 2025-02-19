@@ -61,6 +61,7 @@ function ChildReviewPage() {
 
   return (
     <div className="ch-child-game-list-container">
+      <h3 className="ch-chpater-list-title"> 부드럽게 상자를 밀어볼까요?</h3>
       {chapterData && (
         <div style={{ width: '200%', maxWidth: '800px', height: '700px' }}>
           <Swiper
@@ -94,7 +95,6 @@ function ChildReviewPage() {
           </Swiper>
         </div>
       )}
-      <h3 className="ch-chpater-list-title"> 부드럽게 상자를 밀어볼까요?</h3>
     </div>
   );
 }
