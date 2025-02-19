@@ -49,6 +49,8 @@ function ChildClassPage() {
 
   const [childGameChapterId, setChildGameChapterId] = useState(null);
   const [childGameStageId, setChildGameStageId] = useState(null);
+  const [gameLogId, setGameLogId] = useState(null);
+  const [gameVideoBlob, setGameVideoBlob] = useState(null);
 
 
   // --------------------------------------------------------- //
@@ -219,11 +221,7 @@ function ChildClassPage() {
         mediaRecorder.onstop = async () => {
           if (analysisCycle < 3) {
             const blob = new Blob(chunks, { type: "video/webm" });
-            try {
-              await sendGameVideo(blob);
-            } catch (uploadError) {
-              console.error("파일 업로드 실패:", uploadError);
-            }
+            setGameVideoBlob(blob);
           }
         };
 
@@ -267,6 +265,16 @@ function ChildClassPage() {
       });
     }
   }
+
+  // 영상 전송
+  useEffect(() => {
+    try {
+      console.log("gameLogId: ", gameLogId);
+      sendGameVideo(gameVideoBlob);
+    } catch (uploadError) {
+      console.error("파일 업로드 실패:", uploadError);
+    }
+  }, [gameLogId]);
 
   // --- 5. 분석 결과 도출 ------------------
     useEffect( () => {
@@ -956,7 +964,8 @@ function ChildClassPage() {
         aiAnalysis: "test"
       };
       try {
-        await saveGameData(gameLearningDocument);
+        const response = await saveGameData(gameLearningDocument);
+        setGameLogId(response.gameLogId);
       } catch (error) {
         console.error(`분석 사이클 ${analysisCycle} 게임 데이터 저장 실패:`, error);
       }
@@ -1006,7 +1015,7 @@ function ChildClassPage() {
   const sendGameVideo = async (blob) => {
     try {
       const file = new File([blob], "recording.webm", { type: "video/webm" });
-      const response = await uploadFile([file], [TBL_TYPES.GAME], [childId]);
+      const response = await uploadFile([file], [TBL_TYPES.GAME], [Number(gameLogId)]);
       return response;
     } catch (error) {
       console.error("파일 업로드 실패:", error);
@@ -1132,7 +1141,7 @@ function ChildClassPage() {
             {/* 오른쪽 위: 아동 웹캠 (react-webcam 사용) */}
             <Card className="ch-game-Top-section">
               <Webcam
-                  audio={false}
+                  audio={true}
                   ref={webcamRef}
                   videoConstraints={{
                     width: 320,
