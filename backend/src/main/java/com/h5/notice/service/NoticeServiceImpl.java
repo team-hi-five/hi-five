@@ -50,7 +50,7 @@ public class NoticeServiceImpl implements NoticeService {
                 Sort.by(Sort.Direction.DESC, "createDttm")
         );
 
-        if ("ROLE_CONSULTANT".equals(role)) {
+        if ("CONSULTANT".equals(role)) {
             ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
             noticeEntityPage = noticeRepository.findAll(
@@ -58,7 +58,7 @@ public class NoticeServiceImpl implements NoticeService {
                     null,
                     pageable
             );
-        } else if ("ROLE_PARENT".equals(role)) {
+        } else if ("PARENT".equals(role)) {
             ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
             noticeEntityPage = noticeRepository.findAll(
@@ -93,7 +93,7 @@ public class NoticeServiceImpl implements NoticeService {
                 Sort.by(Sort.Direction.DESC, "createDttm")
         );
 
-        if ("ROLE_CONSULTANT".equals(role)) {
+        if ("CONSULTANT".equals(role)) {
             ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
             noticeEntityPage = noticeRepository.findByTitle(
@@ -102,7 +102,7 @@ public class NoticeServiceImpl implements NoticeService {
                     null,
                     pageable
             );
-        } else if ("ROLE_PARENT".equals(role)) {
+        } else if ("PARENT".equals(role)) {
             ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
             noticeEntityPage = noticeRepository.findByTitle(
@@ -135,7 +135,7 @@ public class NoticeServiceImpl implements NoticeService {
 
         Page<NoticeEntity> noticeEntityPage;
 
-        if ("ROLE_CONSULTANT".equals(role)) {
+        if ("CONSULTANT".equals(role)) {
             ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
             noticeEntityPage = noticeRepository.findByName(
@@ -144,7 +144,7 @@ public class NoticeServiceImpl implements NoticeService {
                     null,
                     pageable
             );
-        } else if ("ROLE_PARENT".equals(role)) {
+        } else if ("PARENT".equals(role)) {
             ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new);
             noticeEntityPage = noticeRepository.findByName(
@@ -194,7 +194,7 @@ public class NoticeServiceImpl implements NoticeService {
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
-        if (!"ROLE_CONSULTANT".equals(role)) {
+        if (!"CONSULTANT".equals(role)) {
             throw new BoardAccessDeniedException("notice");
         }
 
