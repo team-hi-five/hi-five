@@ -263,14 +263,6 @@ public class QnaServiceImpl implements QnaService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
-
-        if(!"CONSULTANT".equals(role)) {
-            throw new UserAccessDeniedException();
-        }
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
