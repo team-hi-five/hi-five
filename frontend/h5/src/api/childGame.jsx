@@ -9,7 +9,7 @@ export const chapter = async () => {
     const response = await api.get("/asset/load-chapter-asset", {
       params: { childUserId },
     });
-    console.log("✅ 게임 리스트 요청 성공:", response);
+    console.log("✅ 게임 리스트 요청 성공:", response.data);
     return response.data;
   } catch (error) {
     console.error(

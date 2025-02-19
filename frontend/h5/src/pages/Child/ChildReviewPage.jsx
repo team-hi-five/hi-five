@@ -23,6 +23,9 @@ function ChildReviewPage() {
       const response = await chapter();
       const chapterlist = response.chapterAssetDtoList;
 
+      const limit = response.limit
+      console.log("제한!!",limit)
+
       const chapterdummyData = [
         {
           gameChapterId: 3,
@@ -44,7 +47,21 @@ function ChildReviewPage() {
         },
       ];
 
-      setChapterData([...chapterlist, ...chapterdummyData]);
+      const possibleChapter = chapterlist.map((item)=>{
+        if(item.gameChapterId > 2){
+          return{
+            ...item,
+            isLocked: true,
+          }
+        }
+        return {
+          ...item,
+          isLocked:false,
+        }
+      }) 
+      console.log("가능한챕터!!", possibleChapter)
+
+      setChapterData([...possibleChapter, ...chapterdummyData]);
     };
     fetchData();
   }, []);

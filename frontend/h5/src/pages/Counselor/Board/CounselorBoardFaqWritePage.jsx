@@ -8,7 +8,7 @@ import {base64ToFile, extractAndReplaceEditorImages, useBoardStore} from '../../
 import CounselorHeader from "/src/components/Counselor/CounselorHeader";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
-import { createFaq } from "../../../api/boardFaq";
+import {createFaq, updateFaq} from "../../../api/boardFaq";
 import { uploadFile, TBL_TYPES } from "../../../api/file";
 import '../Css/CounselorBoardFaqWritePage.css';
 import {updateNotice} from "../../../api/boardNotice.jsx";
@@ -104,7 +104,7 @@ function CounselorBoardFaqWritePage() {
           }
         });
         // 에디터 이미지 URL이 반영된 최종 콘텐츠로 공지사항 업데이트
-        await updateNotice(faqId, title, finalContent);
+        await updateFaq(faqId, title, selectedType, finalContent);
       }
 
       if (faqId && selectedFiles.length > 0) {
