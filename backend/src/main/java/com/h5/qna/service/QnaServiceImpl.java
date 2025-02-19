@@ -49,7 +49,7 @@ public class QnaServiceImpl implements QnaService {
                 .findFirst()
                 .orElse(null);
 
-        if(!"ROLE_PARENT".equals(role)){
+        if(!"PARENT".equals(role)){
             throw new BoardAccessDeniedException("qna");
         }
 
@@ -85,11 +85,11 @@ public class QnaServiceImpl implements QnaService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("ROLE_PARENT".equals(role)) {
+        if ("PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("ROLE_CONSULTANT".equals(role)) {
+        } else if ("CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -121,11 +121,11 @@ public class QnaServiceImpl implements QnaService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("ROLE_PARENT".equals(role)) {
+        if ("PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("ROLE_CONSULTANT".equals(role)) {
+        } else if ("CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -156,13 +156,13 @@ public class QnaServiceImpl implements QnaService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("ROLE_PARENT".equals(role)) {
+        if ("PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
         }
 
-        if ("ROLE_CONSULTANT".equals(role)) {
+        if ("CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -242,7 +242,7 @@ public class QnaServiceImpl implements QnaService {
 
         QnaEntity qnaEntity = qnaRepository.findById(qnaId).orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        if("ROLE_PARENT".equals(role)) {
+        if("PARENT".equals(role)) {
             ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
             if(qnaEntity.getParentUser().getId().equals(parentUserEntity.getId())) {
                 qnaEntity.setDeleteDttm(LocalDateTime.now());
@@ -251,7 +251,7 @@ public class QnaServiceImpl implements QnaService {
                 return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
             }
 
-        }else if("ROLE_CONSULTANT".equals(role)) {
+        }else if("CONSULTANT".equals(role)) {
             ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
             if(qnaEntity.getParentUser().getConsultantUserEntity().getId().equals(consultantUserEntity.getId())) {
                 qnaEntity.setDeleteDttm(LocalDateTime.now());
@@ -276,7 +276,7 @@ public class QnaServiceImpl implements QnaService {
                 .findFirst()
                 .orElse(null);
 
-        if(!"ROLE_CONSULTANT".equals(role)) {
+        if(!"CONSULTANT".equals(role)) {
             throw new UserAccessDeniedException();
         }
 
