@@ -38,17 +38,10 @@ public class FaqServiceImpl implements FaqService {
     public FaqSaveResponseDto createFaq(FaqCreateRequestDto faqCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
-        if(!"CONSULTANT".equals(role)) {
-            throw new BoardAccessDeniedException("faq");
-        }
 
         FaqEntity faqEntity = FaqEntity.builder()
                 .title(faqCreateRequestDto.getTitle())
@@ -83,11 +76,11 @@ public class FaqServiceImpl implements FaqService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("PARENT".equals(role)) {
+        if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("CONSULTANT".equals(role)) {
+        } else if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -121,11 +114,11 @@ public class FaqServiceImpl implements FaqService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("PARENT".equals(role)) {
+        if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("CONSULTANT".equals(role)) {
+        } else if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -159,11 +152,11 @@ public class FaqServiceImpl implements FaqService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("PARENT".equals(role)) {
+        if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("CONSULTANT".equals(role)) {
+        } else if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
