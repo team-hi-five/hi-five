@@ -1,6 +1,5 @@
 package com.h5.global.exception;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -121,7 +120,7 @@ public class GlobalExceptionHandler {
     }
 
     // ExpiredJwtTokenException - 401 Unauthorized
-    @ExceptionHandler(ExpiredJwtException.class)
+    @ExceptionHandler(com.h5.global.exception.ExpiredJwtException.class)
     public ResponseEntity<?> handleExpiredJwtException(ExpiredJwtException e) {
         log.warn("Expired jwt token", e);
         return buildErrorResponse(e.getMessage(), "EXPIRED_JWT_TOKEN", HttpStatus.UNAUTHORIZED);

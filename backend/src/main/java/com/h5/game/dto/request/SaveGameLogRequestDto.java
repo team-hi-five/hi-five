@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
 public class SaveGameLogRequestDto {
     private int selectedOption;
     private boolean corrected;
-    private LocalDateTime submitDttm;
     private boolean consulted;
 
     private int childGameStageId;

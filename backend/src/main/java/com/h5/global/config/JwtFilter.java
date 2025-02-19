@@ -73,16 +73,17 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (requestURI.equals("/auth/refresh")) {
-                email = jwtUtil.getEmailFromExpiredToken(token);
-                role = jwtUtil.getRoleFromExpiredToken(token);
-
-                setSecurityContext(email, role);
-            } else {
-                // 일반 요청에서는 유효한 JWT인지 검사
-                if (!jwtUtil.validateToken(token)) {
+            if (!requestURI.equals("/auth/refresh")) {
+                try {
+                    if (!jwtUtil.validateToken(token)) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.getWriter().write("Invalid JWT token");
+                        return;
+                    }
+                } catch (com.h5.global.exception.ExpiredJwtException e) {
+                    // 만료된 토큰일 경우 직접 401 응답을 보내도록 처리
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("Invalid JWT token");
+                    response.getWriter().write(e.getMessage());
                     return;
                 }
                 email = jwtUtil.getEmailFromToken(token);
