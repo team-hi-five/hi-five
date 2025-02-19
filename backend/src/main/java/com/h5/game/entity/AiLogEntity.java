@@ -69,7 +69,7 @@ public class AiLogEntity {
 
     @NotNull
     @Lob
-    @Column(name = "ai_analyze", nullable = false)
+    @Column(name = "ai_analyze")
     private String aiAnalyze;
 
 }

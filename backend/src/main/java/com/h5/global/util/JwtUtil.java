@@ -1,10 +1,7 @@
 package com.h5.global.util;
 
 import com.h5.global.exception.InvalidJwtTokenException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -65,8 +62,8 @@ public class JwtUtil {
             }
             return true;
         } catch (ExpiredJwtException e) {
-            throw new InvalidJwtTokenException("JWT token is expired", e);
-        } catch (Exception e) {
+            throw new com.h5.global.exception.ExpiredJwtException("JWT token is expired");
+        } catch (InvalidJwtTokenException e){
             throw new InvalidJwtTokenException("JWT token validation failed", e);
         }
     }
