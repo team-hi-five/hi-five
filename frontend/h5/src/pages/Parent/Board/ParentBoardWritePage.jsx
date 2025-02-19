@@ -6,7 +6,7 @@ import {base64ToFile, useBoardStore} from "../../../store/boardStore";
 import ParentHeader from "/src/components/Parent/ParentHeader";
 import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
-import { createQna } from "../../../api/boardQna";
+import {createQna, updateQna} from "../../../api/boardQna";
 import { uploadFile, TBL_TYPES } from "../../../api/file";
 import "/src/pages/Parent/ParentCss/ParentBoardWritePage.css";
 import { extractAndReplaceEditorImages } from "../../../store/boardStore";
@@ -92,7 +92,7 @@ function ParentBoardWritePage() {
             finalContent = finalContent.replace(item.placeholder, uploadedUrl);
           }
         });
-        await createNotice(qnaId, title, finalContent);
+        await updateQna(qnaId, title, finalContent);
       }
 
       // 3. 파일 업로드 (첨부파일)
