@@ -26,9 +26,7 @@ export const saveGameData = async (gameLearningDocumentList) => {
   try {
     console.log("📢 아동 게임 데이터 저장 : ", gameLearningDocumentList);
 
-    const response = await api.post("/game/save-log", {
-      gameLearningDocumentList
-    });
+    const response = await api.post("/game/save-log", gameLearningDocumentList);
     console.log("✅ 아동 게임 데이터 저장 성공:", response.data);
     return response.data;
 
@@ -46,9 +44,7 @@ export const startChapter = async(chapterStartData) => {
   try{
     console.log("📢 아동 게임시작 데이터 저장 : ", chapterStartData);
 
-    const response = await api.post("/game/start-game-chapter", {
-      chapterStartData
-    });
+    const response = await api.post("/game/start-game-chapter", chapterStartData);
     console.log("✅ 아동 게임 데이터 저장 성공:", response.data);
     return response.data;
   }catch (error) {
@@ -64,7 +60,7 @@ export const startChapter = async(chapterStartData) => {
 export const startStage = async(chapterStartData)=>{
   try{
     console.log("📢 아동 게임시작 스테이지 데이터 저장 : ", chapterStartData);
-    const response = await api.post("/game/start-game-stage", {chapterStartData})
+    const response = await api.post("/game/start-game-stage", chapterStartData)
     console.log("✅ 아동 게임시작 스테이지 데이터 저장 성공:", response.data);
     return response.data;
   }catch(error){
@@ -79,7 +75,7 @@ export const startStage = async(chapterStartData)=>{
 export const endChapter = async(chapterEndData)=>{
   try{
     console.log("📢 아동 게임시작 쳅터 종료 데이터 저장 : ", chapterEndData);
-    const response = await api.post("/game/end-game-chapter", {chapterEndData})
+    const response = await api.post("/game/end-game-chapter", chapterEndData)
     console.log("✅ 아동 게임 쳅터 종료 데이터 저장 성공:", response.data);
     return response.data;
   }catch(error){
