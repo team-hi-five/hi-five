@@ -113,11 +113,11 @@ public class QnaServiceImpl implements QnaService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("PARENT".equals(role)) {
+        if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
-        } else if ("CONSULTANT".equals(role)) {
+        } else if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -148,13 +148,13 @@ public class QnaServiceImpl implements QnaService {
         Integer parentUserId = null;
         Integer consultantUserId = null;
 
-        if ("PARENT".equals(role)) {
+        if ("ROLE_PARENT".equals(role)) {
             parentUserId = parentUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
         }
 
-        if ("CONSULTANT".equals(role)) {
+        if ("ROLE_CONSULTANT".equals(role)) {
             consultantUserId = consultantUserRepository.findByEmail(email)
                     .orElseThrow(UserNotFoundException::new)
                     .getId();
@@ -234,7 +234,7 @@ public class QnaServiceImpl implements QnaService {
 
         QnaEntity qnaEntity = qnaRepository.findById(qnaId).orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        if("PARENT".equals(role)) {
+        if("ROLE_PARENT".equals(role)) {
             ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
             if(qnaEntity.getParentUser().getId().equals(parentUserEntity.getId())) {
                 qnaEntity.setDeleteDttm(LocalDateTime.now());
@@ -243,7 +243,7 @@ public class QnaServiceImpl implements QnaService {
                 return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
             }
 
-        }else if("CONSULTANT".equals(role)) {
+        }else if("ROLE_CONSULTANT".equals(role)) {
             ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
             if(qnaEntity.getParentUser().getConsultantUserEntity().getId().equals(consultantUserEntity.getId())) {
                 qnaEntity.setDeleteDttm(LocalDateTime.now());
