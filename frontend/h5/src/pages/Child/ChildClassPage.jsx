@@ -546,7 +546,6 @@ function ChildClassPage() {
 
     // 표정 분석 Promise (9초간 분석)
     const facePromise = new Promise((resolve) => {
-      console.log("[facePromise] 표정 분석 시작: 9초간 분석 시작");
       analysisDataRef.current = [];
 
       const intervalId = setInterval(async () => {
@@ -558,7 +557,6 @@ function ChildClassPage() {
               .withFaceLandmarks()
               .withFaceExpressions();
           // 검출 결과 처리
-          console.log("[facePromise] detections : ", detections);
           if (detections.length > 0) {
             const emotions = detections.map((det) => det.expressions);
             analysisDataRef.current.push({
@@ -571,7 +569,6 @@ function ChildClassPage() {
       analysisIntervalRef.current = intervalId;
 
       setTimeout(() => {
-        console.log("[facePromise] set");
         clearInterval(intervalId);
         analysisIntervalRef.current = null;
 
@@ -599,7 +596,6 @@ function ChildClassPage() {
 
     // 음성 인식 Promise
     const voicePromise = new Promise((resolve, reject) => {
-      console.log("[voicePromise] 음성 인식 시작");
       if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
         reject("이 브라우저는 Speech Recognition을 지원하지 않습니다.");
         return;
@@ -644,7 +640,6 @@ function ChildClassPage() {
       };
 
       recognition.start();
-      console.log("[voicePromise] 음성 인식 시작됨");
     });
 
     try {
@@ -661,11 +656,9 @@ function ChildClassPage() {
 
   // ---3. 얼굴 분석만 (표정 연습) ------------------
   const runFaceAnalysis = async () => {
-    console.log("[runFaceAnalysis] 호출됨 - 얼굴 분석 시작 (표정 연습)");
     // 새 분석 시작 시 취소 플래그 초기화
     analysisCanceledRef.current = false;
     const faceMsg = await new Promise((resolve) => {
-      console.log("[faceAnalysis] 표정 분석 시작: 9초간 분석 시작");
       analysisDataRef.current = [];
       const intervalId = setInterval(async () => {
         if (webcamRef.current && webcamRef.current.video) {
@@ -674,14 +667,12 @@ function ChildClassPage() {
               .detectAllFaces(videoElement, new faceApi.TinyFaceDetectorOptions())
               .withFaceLandmarks()
               .withFaceExpressions();
-          console.log("[faceAnalysis] 감지 결과:", detections);
           if (detections.length > 0) {
             const emotions = detections.map((det) => det.expressions);
             analysisDataRef.current.push({
               timestamp: new Date().toISOString(),
               emotions,
             });
-            console.log("[faceAnalysis] 현재 분석 데이터:", analysisDataRef.current);
           }
         }
       }, 100);
@@ -689,7 +680,6 @@ function ChildClassPage() {
       setTimeout(() => {
         clearInterval(analysisIntervalRef.current);
         analysisIntervalRef.current = null;
-        console.log("[faceAnalysis] 9초 분석 종료, 분석 데이터:", analysisDataRef.current);
         const avgEmotion = computeAverageEmotion(analysisDataRef.current);
         if (!avgEmotion) {
           resolve("표정 분석 실패");
@@ -708,25 +698,21 @@ function ChildClassPage() {
             bestEmotion === expectedEmotion
                 ? `정답입니다! 표정 분석 결과: ${bestEmotion}`
                 : `오답입니다! 표정 분석 결과: ${bestEmotion} (예상: ${expectedEmotion})`;
-        console.log("[faceAnalysis] 분석 결과 메시지:", resultMsg);
         resolve(resultMsg);
       }, 9000);
     });
     setFaceResult(faceMsg);
     setPhase("analysisResult");
-    console.log("[runFaceAnalysis] 얼굴 분석 완료, faceResult:", faceMsg);
   };
 
   // ---4. 음성 분석만 (말 연습) ------------------
   const runVoiceAnalysis = async () => {
-    console.log("[runVoiceAnalysis] 호출됨 - 음성 분석 시작 (말 연습)");
 
     // 새 음성 분석 시작 시 취소 플래그를 false로 초기화
     analysisCanceledRef.current = false;
 
     const voiceMsg = await new Promise((resolve, reject) => {
       if (analysisCanceledRef.current) {
-        console.log("[runVoiceAnalysis] 분석이 취소됨");
         resolve("분석 취소됨");
         return;
       }
@@ -745,24 +731,20 @@ function ChildClassPage() {
       recognition.continuous = false;
       const voiceTimeout = setTimeout(() => {
         recognition.abort();
-        console.log("[runVoiceAnalysis] 음성 인식 시간 초과, 종료됨");
         resolve("음성 인식 시간이 초과되었습니다.");
       }, 9000);
       recognition.onresult = (event) => {
         clearTimeout(voiceTimeout);
         if (analysisCanceledRef.current) {
-          console.log("[runVoiceAnalysis] 분석 취소됨, 결과 처리 안함");
           resolve("분석 취소됨");
           return;
         }
-        console.log("[runVoiceAnalysis] 음성 인식 결과 이벤트:", event);
         let finalResult = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
             finalResult += event.results[i][0].transcript;
           }
         }
-        console.log("[runVoiceAnalysis] 최종 음성 결과:", finalResult);
         const optionsArray = currentGameData.options;
         const bestMatch = stringSimilarity.findBestMatch(finalResult, optionsArray);
         const bestOptionIndex = bestMatch.bestMatchIndex;
@@ -770,7 +752,6 @@ function ChildClassPage() {
             bestOptionIndex === currentGameData.answer - 1
                 ? `정답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`
                 : `오답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`;
-        console.log("[runVoiceAnalysis] 음성 분석 결과 메시지:", resultMsg);
         resolve(resultMsg);
       };
       recognition.onerror = (event) => {
@@ -779,16 +760,13 @@ function ChildClassPage() {
         resolve("음성 인식 실패");
       };
       recognition.start();
-      console.log("[runVoiceAnalysis] 음성 인식 시작됨");
     });
 
     if (voiceMsg === "분석 취소됨") {
-      console.log("[runVoiceAnalysis] 분석이 취소되어 후속 처리 없음");
       return;
     }
     setVoiceResult(voiceMsg);
     setPhase("analysisResult");
-    console.log("[runVoiceAnalysis] 음성 분석 완료, voiceResult:", voiceMsg);
     // 작업 완료 후 recognitionRef 초기화
     recognitionRef.current = null;
   };
@@ -946,17 +924,12 @@ function ChildClassPage() {
   // API 호출                                                   //
   // --------------------------------------------------------- //
   const sendGameData = async () => {
-    console.log("sendGameData : 함수 실행됨");
-    const localDateTime = new Date().toISOString().slice(0, 19);
-
-    console.log("sendGameData : voiceResult, currentGameData", !voiceResult, !currentGameData);
     if (!voiceResult || !currentGameData) return;
     const selectedOptionMatch = voiceResult.match(/선택한 옵션은 (.+)입니다/);
-    // const selectedOption = selectedOptionMatch ? selectedOptionMatch[1] : "";
-    // const selectedOptionIndex = currentGameData.options.findIndex(
-    //     (option) => option === selectedOption
-    // );
-    const selectedOptionIndex = 1;
+    const selectedOption = selectedOptionMatch ? selectedOptionMatch[1] : "";
+    const selectedOptionIndex = currentGameData.options.findIndex(
+        (option) => option === selectedOption
+    );
     if (selectedOptionIndex !== -1) {
       const optionNumber = selectedOptionIndex + 1;
       const isCorrect = optionNumber === currentGameData.answer;
@@ -965,7 +938,6 @@ function ChildClassPage() {
       const gameLearningDocument = {
         selectedOption: optionNumber,
         corrected: isCorrect,
-        submitDttm: localDateTime,
         consulted: true,
         childGameStageId: Number(childGameStageId),
         childUserId: Number(childId),
@@ -980,13 +952,11 @@ function ChildClassPage() {
         tSad: Number(avgEmotions?.sad || 0),
         tPanic: Number(avgEmotions?.surprised || 0),
         tFear: Number(avgEmotions?.fearful || 0),
-        // stt: bestMatchResult.bestMatch.target
-        stt: "test"
+        stt: bestMatchResult.bestMatch.target,
+        aiAnalysis: "test"
       };
-      console.log("sendGameData: AI log Data -> ", gameLearningDocument);
       try {
-        console.log("sendGameData API 호출됨");
-        const response = await saveGameData(gameLearningDocument);
+        await saveGameData(gameLearningDocument);
       } catch (error) {
         console.error(`분석 사이클 ${analysisCycle} 게임 데이터 저장 실패:`, error);
       }
@@ -1022,17 +992,9 @@ function ChildClassPage() {
   }
 
   const sendEndChapter = async () => {
-    const now = new Date();
-    const pad = (num) => num.toString().padStart(2, '0');
-
-    const localDateTime =
-        `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ` +
-        `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
     try{
       const chapterEndData = {
         childGameChapterId: childGameChapterId,
-        endDttm: localDateTime
       }
       await endChapter(chapterEndData);  // API 함수는 별도 파일에서 import
 
@@ -1127,15 +1089,6 @@ function ChildClassPage() {
                   <Card className="ch-learning-message-screen">
                     <div className="learning-message">
                       {phase === "analysis" && <h3>분석 중입니다...</h3>}
-                      {/*{phase === "analysisResult" && analysisCycle > 2 && (*/}
-                      {/*    <div>*/}
-                      {/*      {analysisCycle === 3 ? (*/}
-                      {/*          <h3>표정 분석 결과: {faceResult}</h3>*/}
-                      {/*      ) : analysisCycle === 4 ? (*/}
-                      {/*          <h3>음성 분석 결과: {voiceResult}</h3>*/}
-                      {/*      ) : null}*/}
-                      {/*    </div>*/}
-                      {/*)}*/}
                     </div>
                   </Card>
 
