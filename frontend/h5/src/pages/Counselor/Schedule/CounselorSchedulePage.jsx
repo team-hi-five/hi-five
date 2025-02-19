@@ -244,25 +244,36 @@ function CounselorSchedulePage() {
 
             if (result.isConfirmed) {
                 try {
-                    // ✅ 상담 일정 삭제 API 호출
-                    const response = await deleteSchedule(scheduleToDelete.scheduleId, scheduleToDelete.consultation_type);
-                    console.log("✅ 상담 일정 삭제 성공:", response);
-
-                    await SingleButtonAlert(response.message || '성공적으로 삭제되었습니다.');
-
-                    // ✅ 삭제된 상담을 화면에서 제거
-                    setSchedules(prevSchedules =>
-                        prevSchedules.filter(schedule => schedule.scheduleId !== scheduleToDelete.scheduleId)
-                    );
-
-                    // ✅ 모달이 닫힐 때 일정 새로고침
-                    handleModalClose();
-
+                  // 상담 일정 삭제 API 호출 시, type 변환
+                  console.log("여기다~~~미어루ㅕㅜㅇ려");
+                  const deleteType = scheduleToDelete.consultation_type === '게임' ? "game" : "consult";
+                  console.log("여기다~~~", scheduleToDelete.scheduleId, deleteType);
+              
+                  const response = await deleteSchedule(
+                    scheduleToDelete.scheduleId,
+                    deleteType
+                  );
+                  console.log("✅ 상담 일정 삭제 성공:", response);
+              
+                  await SingleButtonAlert(response.message || "성공적으로 삭제되었습니다.");
+              
+                  // 삭제된 상담을 화면에서 제거
+                  setSchedules((prevSchedules) =>
+                    prevSchedules.filter(
+                      (schedule) => schedule.scheduleId !== scheduleToDelete.scheduleId
+                    )
+                  );
+              
+                  // 모달이 닫힐 때 일정 새로고침
+                  handleModalClose();
                 } catch (error) {
-                    console.error("❌ 상담 일정 삭제 실패:", error);
-                    await SingleButtonAlert(error.response?.data?.message || '상담 삭제 중 오류가 발생했습니다.');
+                  console.error("❌ 상담 일정 삭제 실패:", error);
+                  await SingleButtonAlert(
+                    error.response?.data?.message || "상담 삭제 중 오류가 발생했습니다."
+                  );
                 }
-            }
+              }
+              
         } catch (error) {
             console.error('❌ 삭제 중 오류 발생:', error);
         }
