@@ -11,5 +11,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EndGameChapterRequestDto {
     private int childGameChapterId;
-    private String endDttm;
 }
