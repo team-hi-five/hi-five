@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-function CounselorCam({ publisher, subscriber, mode }) {
+function CounselorCamWithChild({ publisher, subscriber, mode }) {
     const videoRef = useRef(null);
 
     const setVideoStream = () => {
@@ -46,4 +46,4 @@ function CounselorCam({ publisher, subscriber, mode }) {
         </div>
     );
 }
-export default CounselorCam;
+export default CounselorCamWithChild;
