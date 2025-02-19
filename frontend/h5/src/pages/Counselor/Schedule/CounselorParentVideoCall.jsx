@@ -344,7 +344,6 @@ function CounselorParentVideoCallPage() {
           <div className='co-main-video-contaioner'>
             {remoteScreen ? (
                 <ScreenShareCam publisher={remoteScreen} mode="subscribe"
-                className='co-main-video'
                 />
             ) : (
                 <div className='co-error'>상담사 화면 공유 없음</div>
@@ -357,18 +356,18 @@ function CounselorParentVideoCallPage() {
                 <CounselorCam session={session} publisher={ownPublisher} mode="publish"
                 className='co-participant'
                 />
-                <h3>내 화상 송출화면 (학부모)</h3>
+                <h3>학부모</h3>
               </div>
 
               {/* 2. 상대방 화상 (상담사) 구독 화면 */}
               <div className='co-participant-container'>
-                <h2>상대방 화상 구독 화면</h2>
                 {remoteCam ? (
                     <CounselorCam session={session} publisher={remoteCam} mode="subscribe"
                     className="co-participant"/>
                 ) : (
                     <div className='co-error'>상대방 화상 없음</div>
                 )}
+                <h3>상담사</h3>
               </div>
             </div>
         </div>

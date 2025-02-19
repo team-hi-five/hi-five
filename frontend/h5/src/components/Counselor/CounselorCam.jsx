@@ -39,7 +39,7 @@ function CounselorCam({ publisher, mode }) {
 
     return (
         <div className="counselor-cam">
-                <video ref={videoRef} autoPlay muted={mode === 'publish'} />
+                <video ref={videoRef} autoPlay muted={mode === 'publish'} style={{ transform: 'scaleX(-1)' }} />
         </div>
     );
 }
