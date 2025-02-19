@@ -428,6 +428,7 @@ function ChildReviewGamePage() {
             />
             {/* ProgressBar 추가 (진행 상황: 1~5 단계에 따라) */}
             <ProgressBar
+              className="ch-review-progressbar"
               value={(currentVideoIndex + 1) * 20}
               style={{
                 width: "80%",
@@ -477,7 +478,7 @@ function ChildReviewGamePage() {
                 style={{
                   backgroundColor: "#000",
                   width: "100%",
-                  height: "298px",
+                  height: "18rem",
                   marginTop: "4px",
                   transform: "scaleX(-1)",
                   borderRadius: "1%",
