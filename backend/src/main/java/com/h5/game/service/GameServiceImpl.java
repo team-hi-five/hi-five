@@ -102,7 +102,7 @@ public class GameServiceImpl implements GameService {
         GameLogEntity gameLogEntity = gameLogRepository.save(GameLogEntity.builder()
                 .selectedOpt(saveGameLogRequestDto.getSelectedOption())
                 .corrected(saveGameLogRequestDto.isCorrected())
-                .submitDttm(saveGameLogRequestDto.getSubmitDttm())
+                .submitDttm(LocalDateTime.now())
                 .consulted(saveGameLogRequestDto.isConsulted())
                 .childGameStageEntity(childGameStageRepository.findById(saveGameLogRequestDto.getChildGameStageId())
                         .orElseThrow(() -> new GameNotFoundException("Child game stage not found")))
