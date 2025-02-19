@@ -123,14 +123,14 @@ function CounselorChildVideoCall() {
     const isOtherParticipantAbsent = () => {
         if (!session) {
             console.log("[isOtherParticipantAbsent] 세션이 아직 초기화되지 않았습니다.");
-            return false;
+            return false; // 세션이 없으면 아직 판단할 수 없음
         }
 
         let childStreamExists = false;
 
         if (session.streams && typeof session.streams.forEach === "function") {
             session.streams.forEach((stream) => {
-                if (stream.typeOfVideo === "SCREEN") {
+                if (stream.typeOfVideo === "VIDEO") {
                     childStreamExists = true;
                 }
             });
@@ -206,10 +206,6 @@ function CounselorChildVideoCall() {
         sendSignal("next-stage", "next-stage");
     };
 
-    const handleStopVideo = () => {
-        sendSignal("stop-video", "stop-video");
-    };
-
     const handleEndChapter = () => {
         sendSignal("end-chapter", "end-chapter");
         Swal.fire({
@@ -218,7 +214,7 @@ function CounselorChildVideoCall() {
             imageWidth: 200,
             imageHeight: 200,
             showConfirmButton: false,
-            timer: 5000, // 2초 후 자동 닫힘
+            timer: 2000, // 2초 후 자동 닫힘
         });
         session.disconnect();
         window.close();
@@ -228,7 +224,7 @@ function CounselorChildVideoCall() {
         <div className="co-consultation-child-page">
             <img src="/logo.png" alt="로고" className='co-logoo' />
             <div className="co-video-layout">
-            {/* 아동의 화면 공유 스트림 영역 */} 
+                {/* 아동의 화면 공유 스트림 영역 */}
                 <div className="co-child-main-video-container">
                     {screenSubscriber ? (
                         <video
@@ -245,77 +241,68 @@ function CounselorChildVideoCall() {
                             autoPlay
                             playsInline
                         />
-                ) : (
-                    <div className="co-error">
-                        <p>아동의 화면 공유가 없습니다.</p>
-                    </div>
-                )}
+                    ) : (
+                        <div className="co-error">
+                            <p>아동의 화면 공유가 없습니다.</p>
+                        </div>
+                    )}
                     <h3 className="co-learning-child-title">아동 게임 공유 화면</h3>
                 </div>
 
-            {/* 상담사 자신의 카메라 스트림 영역 */}
-            <div className="co-self-participant-video">
-                <div className="co-participatn-coun-container">
-                {publisher && (
-                        <video
-                            className="co-slef-participant-video"
-                            ref={(video) => {
-                                if (video && publisher) {
-                                    video.srcObject = publisher.stream.getMediaStream();
-                                }
-                            }}
-                            autoPlay
-                            muted
-                            playsInline
-                        />
-                    )}
-                    <h3>상담사 화면</h3>
+                {/* 상담사 자신의 카메라 스트림 영역 */}
+                <div className="co-self-participant-video">
+                    <div className="co-participatn-coun-container">
+                        {publisher && (
+                            <video
+                                className="co-slef-participant-video"
+                                ref={(video) => {
+                                    if (video && publisher) {
+                                        video.srcObject = publisher.stream.getMediaStream();
+                                    }
+                                }}
+                                autoPlay
+                                muted
+                                playsInline
+                            />
+                        )}
+                        <h3>상담사 화면</h3>
+                    </div>
                 </div>
             </div>
-        </div>
             <div className="co-button-controls">
                 <div>
                     <button  className="web-control-btn" onClick={handleStartChapter}>
-                    <MdOutlineNotStarted/></button>
+                        <MdOutlineNotStarted/></button>
                     <p>학습 시작</p>
                 </div>
-                
+
                 <div>
                     <button  className="web-control-btn" onClick={handlePreviousStage}>
-                    <MdNavigateBefore /></button>
+                        <MdNavigateBefore /></button>
                     <p>이전 단원</p>
                 </div>
-                    
+
                 <div>
-                <button  className="web-control-btn" onClick={handleStartRecording}>
-                <PiRecord /></button>
-                <p>녹화 시작</p>
+                    <button  className="web-control-btn" onClick={handleStartRecording}>
+                        <PiRecord /></button>
+                    <p>녹화 시작</p>
                 </div>
-                
-                <div>   
+
+                <div>
                     <button  className="web-record-btn" onClick={handleStopRecording}>
-                    <PiRecordFill /></button>
+                        <PiRecordFill /></button>
                     <p>녹화 중지</p>
                 </div>
                 <div>
                     <button  className="web-control-btn" onClick={handleNextStage}>
-                    <MdNavigateNext /></button>
+                        <MdNavigateNext /></button>
                     <p>다음 단원</p>
                 </div>
                 <div>
                     <button  className="web-co-end-call" onClick={handleEndChapter}>
-                    <ImExit/></button>
+                        <ImExit/></button>
                     <p>학습 종료</p>
                 </div>
-            )}
-            <div>
-                <button onClick={handleStartChapter}>학습 시작</button>
-                <button onClick={handlePreviousStage}>이전 단원</button>
-                <button onClick={handleStartRecording}>녹화 시작</button>
-                <button onClick={handleStopRecording}>녹화 중지</button>
-                <button onClick={handleNextStage}>다음 단원</button>
-                <button onClick={handleEndChapter}>학습 종료</button>
-                <button onClick={handleStopVideo}>동영상 재생/정지</button>
             </div>
         </div>
     );

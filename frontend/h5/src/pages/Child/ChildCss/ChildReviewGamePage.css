@@ -45,29 +45,31 @@
   font-family: "Jua";
   font-size: 140%;
   padding-top: 2px;
-  margin-bottom: 5px;
+  margin-bottom: 0.2rem;
+  margin-top: 0.3rem;
 }
 
 .ch-game-screen-container h3 {
   text-align: center;
   font-family: "Jua";
   font-size: 150%;
-  margin-top: 10px;
-  margin-bottom: 15px;
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
 }
 
 .ch-game-screen {
   width: 720px;
-  height: 540px;
+  height: 25rem;
   min-height: 350px;
 }
 
 .ch-gameVideo {
   display: block;
   margin: 0 auto;
-  width: 80%;
+  width: 77%;
   height: 80%;
 }
+
 
 .ch-game-button {
   display: flex;
@@ -104,8 +106,8 @@
   align-items: center;
   font-size: 1.3rem;
   font-family: "Jua";
-  margin-bottom: 5px;
-  margin-top: 6px;
+  margin-bottom: 0;
+  margin-top: 0;
 }
 
 .ch-options-number{
@@ -190,7 +192,7 @@
 
 .ch-child-videoScreen {
   width: 50vw;
-  height: 50vh;
+  height: 40vh;
 }
 
 
@@ -201,7 +203,7 @@
   align-items: center;
   flex: 1 1 calc(33.33% - 10px);
   max-width: calc(33.33% - 10px);
-  margin-top: 10px;
+  margin-top: 0;
   margin-left: 20px;
   margin-right: 20px;
 }
@@ -216,7 +218,7 @@
   width: 80%;
   box-sizing: border-box;
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 0;
 }
 s
 /* 옵션 이미지 스타일 */
@@ -225,4 +227,6 @@ s
   height: 80%;
   object-fit: contain;
 }
+
+
 
