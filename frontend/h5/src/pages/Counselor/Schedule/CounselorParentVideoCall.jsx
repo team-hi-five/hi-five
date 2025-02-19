@@ -212,13 +212,23 @@ function CounselorParentVideoCallPage() {
   }, [ownPublisher]);
 
   // 세션 종료
+  // ✅ 버튼 클릭 시 세션 종료
+
   const leaveSessionInternal = useCallback(() => {
+    console.log("수신: 학습 종료");
+  
     if (session) {
       session.disconnect();
+      console.log("OpenVidu 세션 종료됨");
     }
-    OV.current = null;
-    setSession(null);
+  
+    setSession(null); // session 상태 변경
+    window.close();
   }, [session]);
+ 
+  
+
+
 
   // **************************************************************************************************************** //
   // 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람 알람
