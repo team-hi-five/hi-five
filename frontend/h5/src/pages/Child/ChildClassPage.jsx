@@ -8,7 +8,7 @@ import stringSimilarity from "string-similarity";
 import SwAl from "sweetalert2";
 import { OpenVidu } from 'openvidu-browser';
 import api from "../../api/api";
-import CounselorCamWithChild from "../../components/OpenViduSession/CounselorCamWithChild";
+import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
 import Webcam from "react-webcam";
 import {sendAlarm} from "../../api/alarm.jsx";
 import {endChapter, saveGameData, startChapter, startStage} from "../../api/childGame.jsx";
