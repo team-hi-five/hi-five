@@ -49,10 +49,6 @@ public class QnaServiceImpl implements QnaService {
                 .findFirst()
                 .orElse(null);
 
-        if(!"ROLE_PARENT".equals(role)){
-            throw new BoardAccessDeniedException("qna");
-        }
-
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
@@ -271,14 +267,6 @@ public class QnaServiceImpl implements QnaService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
-
-        if(!"ROLE_CONSULTANT".equals(role)) {
-            throw new UserAccessDeniedException();
-        }
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
