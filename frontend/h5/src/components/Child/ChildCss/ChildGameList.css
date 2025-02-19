@@ -3,8 +3,12 @@
   height: 50rem;
   border-radius: 4%;
   position: relative;
-  background-color: #fef5e7;
+  /* background: linear-gradient(to top, #d2e8ff, #8cc7f4); */
+  background: linear-gradient(to top, #daecff, #bbdcfe, #8cc7f4);
 }
+
+/* #fef5e7; */
+/* #cae4ff; */
 
 .ch-game-screenshot {
   position: relative;
