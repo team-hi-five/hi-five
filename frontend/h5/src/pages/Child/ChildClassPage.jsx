@@ -73,37 +73,73 @@ function ChildClassPage() {
   // --- 1. 세션 초기화 -------------------------
   const initializeSession = useCallback(async () => {
     try {
-      const sessionInstance = OV.current.initSession();
+      // OpenVidu 객체 초기화
+      const OVInstance1 = new OpenVidu(); // 웹캠 전용 세션
+      const OVInstance2 = new OpenVidu(); // 화면 공유 전용 세션
 
-      sessionInstance.on("streamCreated", (event) => {
-        const subscriber = sessionInstance.subscribe(event.stream, undefined);
+      // 세션 객체 생성
+      const sessionInstance1 = OVInstance1.initSession();
+      const sessionInstance2 = OVInstance2.initSession();
+
+      // WebCam 스트림이 생성될 때의 이벤트 핸들러
+      sessionInstance1.on("streamCreated", (event) => {
+        const subscriber = sessionInstance1.subscribe(event.stream, undefined);
         setSubscriber(subscriber);
       });
 
-      sessionInstance.on('streamDestroyed', () => {
-        setSubscriber(null);  // null로 초기화
+      sessionInstance1.on("streamDestroyed", () => {
+        setSubscriber(null);
       });
 
-      const token = await getToken();
-      // 토큰을 통해 세션과 스트림구독을 연결
-      await sessionInstance.connect(token);
+      // Screen Share 스트림이 생성될 때의 이벤트 핸들러
+      sessionInstance2.on("streamCreated", (event) => {
+        const subscriber = sessionInstance2.subscribe(event.stream, undefined);
+        setSubscriber((prevSubscribers) => [...prevSubscribers, subscriber]);
+      });
 
-      // 화면 공유 퍼블리셔 생성 (child는 화면 공유만 OpenVidu로 publish)
-      const pub = OV.current.initPublisher(undefined, {
-        audioSource: undefined,
-        videoSource: "screen",
+      sessionInstance2.on("streamDestroyed", () => {
+        setSubscriber(null);
+      });
+
+      // 두 개의 세션 토큰을 받아오기
+      const token1 = await getToken(); // 웹캠 송출용
+      const token2 = await getToken(); // 화면 공유 송출용
+
+      // 세션에 연결
+      await sessionInstance1.connect(token1);
+      await sessionInstance2.connect(token2);
+
+      // 웹캠 퍼블리셔 생성
+      const webcamPublisher = OVInstance1.initPublisher(undefined, {
+        videoSource: undefined, // 기본 카메라
+        audioSource: undefined, // 마이크
         publishAudio: true,
         publishVideo: true,
         mirror: true,
       });
 
-      await sessionInstance.publish(pub);
-      setSession(sessionInstance);
-      setPublisher(pub);
+      // 화면 공유 퍼블리셔 생성
+      const screenSharePublisher = OVInstance2.initPublisher(undefined, {
+        videoSource: "screen",
+        audioSource: undefined,
+        publishAudio: true,
+        publishVideo: true,
+        mirror: false,
+      });
+
+      // 세션에 퍼블리셔 추가 (카메라 & 화면 공유)
+      await sessionInstance1.publish(webcamPublisher);
+      await sessionInstance2.publish(screenSharePublisher);
+
+      // 상태 업데이트
+      setSession([sessionInstance1, sessionInstance2]);
+      setPublisher([webcamPublisher, screenSharePublisher]);
+
     } catch (error) {
-      console.error('세션 초기화 오류:', error);
+      console.error("세션 초기화 오류:", error);
     }
   }, []);
+
 
   // --- 2. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {

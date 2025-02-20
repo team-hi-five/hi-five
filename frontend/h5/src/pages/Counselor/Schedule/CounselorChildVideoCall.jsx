@@ -34,6 +34,7 @@ function CounselorChildVideoCall() {
                 sessionInstance.on("streamCreated", (event) => {
                     console.log("[CounselorChildVideoCall] streamCreated 이벤트 발생");
                     console.log("event.stream.typeOfVideo:", event.stream.typeOfVideo);
+                    console.log("event.stream.videoType:", event.stream.videoType);
 
                     const newSubscriber = sessionInstance.subscribe(event.stream, undefined);
 
