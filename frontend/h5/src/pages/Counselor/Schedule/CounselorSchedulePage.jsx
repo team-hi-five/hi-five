@@ -116,27 +116,7 @@ function CounselorSchedulePage() {
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
-        setShowSuggestions(true);
     };
-
-    const handleSearchKeyDown = async (e) => {
-        if (e.key === "Enter") {
-            if (!searchTerm.trim()) {
-                setSuggestions([]); // 🔹 검색어가 비었으면 드롭다운 초기화
-                return;
-            }
-            const results = await searchChildByName(searchTerm); // 🔹 API 호출해서 데이터 가져오기
-            if (results) {
-                setSuggestions(results.map(child => ({
-                    id: child.childUserId,
-                    name: child.childUserName,
-                    img: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png", // 🔹 기본 이미지 처리
-                    parentName: child.parentUserName
-                })));
-            }
-        }
-    };
-
 
 
     const [schedules, setSchedules] = useState([
@@ -349,7 +329,6 @@ function CounselorSchedulePage() {
     };
 
     const handleFocus = () => {
-        // 이미 suggestions가 존재하면 드롭다운 열기
         if (suggestions.length > 0) {
             setShowSuggestions(true);
         }
@@ -357,12 +336,37 @@ function CounselorSchedulePage() {
 
     // input이 포커스를 잃었을 때
     const handleBlur = () => {
-        // 클릭 선택 중에 blur가 일어나면 곧바로 닫히는 문제를 방지하기 위해
-        // 약간의 지연을 주고 닫기
         setTimeout(() => {
             setShowSuggestions(false);
         }, 100);
     };
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (searchTerm.trim()) {
+                // API 호출: 입력값을 부분 검색(like 검색) 기준으로 처리
+                searchChildByName(searchTerm).then(results => {
+                    if (results) {
+                        setSuggestions(
+                            results.map(child => ({
+                                id: child.childUserId,
+                                name: child.childUserName,
+                                img: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png",
+                                parentName: child.parentUserName
+                            }))
+                        );
+                        setShowSuggestions(true);
+                    }
+                });
+            } else {
+                setSuggestions([]);
+            }
+        }, 300); // 300ms 후 API 호출
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchTerm]);
 
     return (
         <>
@@ -403,7 +407,6 @@ function CounselorSchedulePage() {
                                                     placeholder="아동 이름을 입력하세요"
                                                     value={searchTerm}
                                                     onChange={handleSearchChange}
-                                                    onKeyDown={handleSearchKeyDown}
                                                     className="co-search-input"
                                                     onFocus={handleFocus}
                                                     onBlur={handleBlur}
