@@ -16,6 +16,7 @@ public class QnaDetailResponseDto {
     private String name;
     private String createDttm;
     private int answerCnt;
+    private String DeleteDttm;
 
     private List<QnaAnswerResponseDto> qnaAnswerResponseList;
 }

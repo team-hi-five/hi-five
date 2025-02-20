@@ -174,6 +174,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .name(noticeEntity.getConsultantUser().getName())
                 .viewCnt(noticeEntity.getViewCnt() + 1)
                 .createDttm(noticeEntity.getCreateDttm().toString())
+                .deleteDttm(noticeEntity.getDeleteDttm().toString())
                 .build();
     }
 

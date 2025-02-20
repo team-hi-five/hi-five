@@ -14,5 +14,5 @@ public class NoticeDetailResponseDto {
     private String name;
     private String createDttm;
     private int viewCnt;
-
+    private String deleteDttm;
 }
