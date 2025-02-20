@@ -1138,9 +1138,14 @@ function ChildClassPage() {
                   audio={true}
                   ref={webcamRef}
                   videoConstraints={{
-                    width: 320,
-                    height: 240,
-                    facingMode: "user",
+                    width: 500,
+                    height: 310,
+                    facingMode: "user"
+                  }}
+                  style={{
+                    borderRadius: "10px",  // 여기에서 border-radius를 적용
+                    objectFit: "cover",  // 비디오 크기를 잘라내지 않도록 설정
+                    marginTop: "5px"
                   }}
               />
             </Card>
