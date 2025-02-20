@@ -28,5 +28,5 @@ public interface ChildUserRepository extends JpaRepository<ChildUserEntity, Inte
 
     Optional<List<ChildUserEntity>> findAllByParentUserEntity_IdAndDeleteDttmIsNull(Integer parentUserId);
 
-    Optional<List<ChildUserEntity>> findALlByNameAndDeleteDttmIsNull(@NotNull String name);
+    Optional<List<ChildUserEntity>> findALlByNameContainingAndDeleteDttmIsNull(@NotNull String name);
 }
