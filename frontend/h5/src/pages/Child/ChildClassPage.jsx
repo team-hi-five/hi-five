@@ -112,7 +112,6 @@ function ChildClassPage() {
       if (session) session.disconnect();
     };
   }, []);
-
   // --- 3. API를 통해 동영상 데이터 로드 ----------------
   useEffect(() => {
     const fetchLimitData = async () => {
@@ -149,7 +148,6 @@ function ChildClassPage() {
     };
     loadModels();
   }, []);
-
   // --- 5. 시작 버튼 누른 후 모달 실행 ---------------------
   useEffect(() => {
     if (!isStart) {
@@ -228,7 +226,6 @@ function ChildClassPage() {
         mediaRecorder.start();
         setRecorder(mediaRecorder);
         setIsRecording(true);
-
         // 분석 시작
         setPhase("analysis");
         if ([1, 2].includes(analysisCycle)) {
@@ -277,7 +274,7 @@ function ChildClassPage() {
   }, [gameLogId]);
 
   // --- 5. 분석 결과 도출 ------------------
-    useEffect( () => {
+  useEffect( () => {
     if (phase === "analysisResult" && faceResult && voiceResult) {
       showAnalysisResultModal();
     } else if (phase === "analysisResult" && faceResult) {
@@ -1011,7 +1008,6 @@ function ChildClassPage() {
       console.error(error)
     }
   }
-
   const sendGameVideo = async (blob) => {
     try {
       const file = new File([blob], "recording.webm", { type: "video/webm" });
@@ -1043,7 +1039,6 @@ function ChildClassPage() {
 
     return !childStreamExists;
   };
-
   useEffect(() => {
     const checkAbsence = async () => {
       if (isOtherParticipantAbsent()) {
@@ -1077,7 +1072,6 @@ function ChildClassPage() {
                     {currentGameData?.chapterId ?? ""}단계 {currentGameData?.gameStageId ?? ""}단원
                   </h2>
                   <h3>{currentGameData?.situation ?? ""}</h3>
-
                   <video
                       ref={videoRef}
                       src={currentGameData?.gameVideo ?? ""}
@@ -1091,6 +1085,7 @@ function ChildClassPage() {
                         width: "100%",
                         height: "18rem",
                         marginTop: "4px",
+                        transform: "scaleX(-1)",
                         borderRadius: "1%"
                       }}
                   />
@@ -1143,8 +1138,8 @@ function ChildClassPage() {
                   audio={true}
                   ref={webcamRef}
                   videoConstraints={{
-                    width: "360",
-                    height: "20rem",s
+                    width: 320,
+                    height: 240,
                     facingMode: "user",
                   }}
               />
