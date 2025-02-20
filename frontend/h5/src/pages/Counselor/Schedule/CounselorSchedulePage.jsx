@@ -1,7 +1,7 @@
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
 import Footer from "../../../components/common/Footer";
 import MeetingCreateModal from "../../../components/modals/MeetingCreateModal";
-import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert"
+import DoubleButtonAlert from "../../../components/common/DoubleButtonAlert";
 import SingleButtonAlert from "../../../components/common/SingleButtonAlert";
 import { Calendar } from 'primereact/calendar';
 import { useState, useEffect } from 'react';
@@ -20,8 +20,8 @@ addLocale('ko', {
     monthNamesShort: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
     today: '오늘',
     clear: '초기화',
-    dateFormat: 'yy년 mm월',  // 날짜 포맷 추가
-    yearSuffix: '년'  // 연도 접미사 추가
+    dateFormat: 'yy년 mm월',
+    yearSuffix: '년'
 });
 
 function CounselorSchedulePage() {
@@ -31,115 +31,94 @@ function CounselorSchedulePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [currentMonth, setCurrentMonth] = useState(new Date()); // 현재 선택된 월을 추적
+    const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedChildId, setSelectedChildId] = useState(null);
-    const [highlightedDates, setHighlightedDates] = useState([])
+    const [highlightedDates, setHighlightedDates] = useState([]);
+    const [schedules, setSchedules] = useState([].sort((a, b) => {
+        const timeA = a.time.split('~')[0].trim();
+        const timeB = b.time.split('~')[0].trim();
+        return timeA.localeCompare(timeB);
+    }));
 
+    const dateTemplate = (dateObj) => {
+        // dateObj가 Date 인스턴스인지 확인하고, 아니라면 새 Date 객체로 변환
+        const currentDate = dateObj.getFullYear
+            ? dateObj
+            : new Date(dateObj.year, dateObj.month, dateObj.day);
+
+        const isHighlighted = highlightedDates.some(d =>
+            d.getFullYear() === currentDate.getFullYear() &&
+            d.getMonth() === currentDate.getMonth() &&
+            d.getDate() === currentDate.getDate()
+        );
+
+        return (
+            <div className={isHighlighted ? 'highlight-circle' : ''}>
+                {currentDate.getDate()}
+            </div>
+        );
+    };
     const handleChildSelect = (childId) => {
         setSelectedChildId(childId);
         const fetchSchedulesChild = async () => {
             if (!childId) return;
-            if (!selectedChildId) return;
             const year = date.getFullYear();
             const month = date.getMonth() + 1;
+
             const response = await getChildScheduleList(childId, year, month);
             console.log("응답이여 ~ : ", response);
 
             try {
-                const response = await getChildScheduleDates(childId, year, month);
-                console.log("📅 특정 아동 상담 날짜: ", response);
+                const dateResponse = await getChildScheduleDates(childId, year, month);
+                console.log("📅 특정 아동 상담 날짜: ", dateResponse);
 
                 // 날짜 데이터를 Date 객체 배열로 변환
-                const formattedDates = response.map(dateString => {
+                const formattedDates = dateResponse.map(dateString => {
                     const [year, month, day] = dateString.split('-').map(Number);
-                    return new Date(year, month - 1, day); // JS의 month는 0부터 시작
+                    return new Date(year, month - 1, day);
                 });
                 setHighlightedDates(formattedDates);
-                if (highlightedDates.length > 0) {
-                    highlightScheduledDatesInDOM();
-                }
             } catch (error) {
                 console.error("❌ 특정 아동 상담 날짜 조회 실패", error);
-                setHighlightedDates([]); // 실패 시 초기화
+                setHighlightedDates([]);
             }
 
-            // API 응답 데이터를 화면에 맞게 변환
             const formattedSchedules = response.map(item => {
                 const [year, month, day, hour, minute] = item.schdlDttm;
-                const dateTime = new Date(year, month - 1, day, hour, minute); // month는 0부터 시작
-
+                const dateTime = new Date(year, month - 1, day, hour, minute);
                 return {
                     scheduleId: item.scheduleId,
                     childUserId : item.childUserId,
                     time: `${String(dateTime.getHours()).padStart(2, "0")}:00 ~ ${String(dateTime.getHours() + 1).padStart(2, "0")}:00`,
                     counselor: item.consultantName,
                     consultation_target: item.childName,
-                    consultation_type: item.type,
+                    consultation_type: item.type === 'game' ? '게임' : '학부모 상담',
                     parentName: item.parentName,
                     parentEmail: item.parentEmail,
                     date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
                     isLoading: false,
-                    isCompleted: item.status === 'C' // 완료된 상담 여부
+                    isCompleted: item.status === 'E'
                 };
             });
-
             setSchedules(formattedSchedules);
         };
         setShowSuggestions(false);
         fetchSchedulesChild();
     };
 
-    const highlightScheduledDatesInDOM = () => {
-        setTimeout(() => {
-            const calendarCells = document.querySelectorAll(".p-datepicker td > span"); // 달력의 날짜 요소 선택
-            calendarCells.forEach((cell) => {
-                const dateText = cell.innerText.padStart(2, "0"); // 날짜 형식을 "01", "02" 등으로 변환
-                const selectedDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${dateText}`;
-
-                // 날짜가 `highlightedDates`에 포함되어 있으면 색상 추가
-                if (highlightedDates.some(d => formatDateToString(d) === selectedDate)) {
-                    cell.classList.add("highlight-circle"); // ✅ CSS 클래스 추가
-                }
-            });
-        }, 100); // DOM 렌더링 후 실행
-    };
-
-
-    const highlightScheduledDates = (date) => {
-        return highlightedDates.some(d =>
-            d.getFullYear() === date.getFullYear() &&
-            d.getMonth() === date.getMonth() &&
-            d.getDate() === date.getDate()
-        ) ? "highlight-circle" : null; // CSS 클래스 적용
-    };
-
-
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
-
-    const [schedules, setSchedules] = useState([
-    ].sort((a, b) => {
-        const timeA = a.time.split('~')[0].trim();
-        const timeB = b.time.split('~')[0].trim();
-        return timeA.localeCompare(timeB);
-    })); // 시간순으로 나열해주는 로직
-
-
     useEffect(() => {
         const fetchSchedules = async () => {
-            if (!date) return; // date 값이 없을 경우 요청 안 함
+            if (!date) return;
             const formattedDate = formatDateToString(date);
             const response = await getConsultantScheduleList(formattedDate);
-
             const now = new Date();
-
-            // API 응답 데이터를 화면에 맞게 변환
             const formattedSchedules = response.map(item => {
                 const [year, month, day, hour, minute] = item.schdlDttm;
-                const dateTime = new Date(year, month - 1, day, hour, minute); // month는 0부터 시작
-
+                const dateTime = new Date(year, month - 1, day, hour, minute);
                 return {
                     scheduleId: item.scheduleId,
                     childUserId : item.childUserId,
@@ -155,10 +134,8 @@ function CounselorSchedulePage() {
                     isCompleted: item.status === 'E' || new Date(dateTime.getTime() + 60 * 60 * 1000) < now
                 };
             });
-
             setSchedules(formattedSchedules);
         };
-
         fetchSchedules();
     }, [date]);
 
@@ -171,33 +148,27 @@ function CounselorSchedulePage() {
         return `${year}-${month}-${day}`;
     };
 
-    // 날짜 선택 핸들러
     const handleDateSelect = (e) => {
         setDate(e.value);
         setCurrentMonth(e.value);
     };
 
-    // 월 변경 핸들러
     const handleViewDateChange = (e) => {
         const newDate = e.value;
         setCurrentMonth(newDate);
         setDate(newDate);
     };
 
-    // 필터링된 스케줄을 계산
     const filteredSchedules = schedules.filter(schedule => {
         if (searchTerm) {
             const scheduleDate = new Date(schedule.date);
             const currentMonthDate = new Date(currentMonth);
-
             const isSameMonth =
                 scheduleDate.getFullYear() === currentMonthDate.getFullYear() &&
                 scheduleDate.getMonth() === currentMonthDate.getMonth();
-
             return schedule.consultation_target.toLowerCase().includes(searchTerm.toLowerCase())
                 && isSameMonth;
         }
-
         const selectedDate = formatDateToString(date);
         return schedule.date === selectedDate;
     }).sort((a, b) => {
@@ -209,60 +180,36 @@ function CounselorSchedulePage() {
         return timeA.localeCompare(timeB);
     });
 
-
-    // 날짜 표시 포맷 함수 (M/DD)
     const formatDisplayDate = (dateString) => {
         const date = new Date(dateString);
         return `${date.getMonth() + 1}/${date.getDate()}`;
     };
 
-
     const handleDelete = async (scheduleToDelete) => {
         try {
-            console.log("dsglnigjdanilsnvndsi: ", scheduleToDelete);
             const result = await DoubleButtonAlert('상담을 삭제하시겠습니까?');
-
             if (result.isConfirmed) {
                 try {
-                  // 상담 일정 삭제 API 호출 시, type 변환
-                  console.log("여기다~~~미어루ㅕㅜㅇ려");
-                  const deleteType = scheduleToDelete.consultation_type === '게임' ? "game" : "consult";
-                  console.log("여기다~~~", scheduleToDelete.scheduleId, deleteType);
-              
-                  const response = await deleteSchedule(
-                    scheduleToDelete.scheduleId,
-                    deleteType
-                  );
-                  console.log("✅ 상담 일정 삭제 성공:", response);
-              
-                  await SingleButtonAlert(response.message || "성공적으로 삭제되었습니다.");
-              
-                  // 삭제된 상담을 화면에서 제거
-                  setSchedules((prevSchedules) =>
-                    prevSchedules.filter(
-                      (schedule) => schedule.scheduleId !== scheduleToDelete.scheduleId
-                    )
-                  );
-              
-                  // 모달이 닫힐 때 일정 새로고침
-                  handleModalClose();
+                    const deleteType = scheduleToDelete.consultation_type === '게임' ? "game" : "consult";
+                    const response = await deleteSchedule(scheduleToDelete.scheduleId, deleteType);
+                    await SingleButtonAlert(response.message || "성공적으로 삭제되었습니다.");
+                    setSchedules(prevSchedules =>
+                        prevSchedules.filter(schedule => schedule.scheduleId !== scheduleToDelete.scheduleId)
+                    );
+                    handleModalClose();
                 } catch (error) {
-                  console.error("❌ 상담 일정 삭제 실패:", error);
-                  await SingleButtonAlert(
-                    error.response?.data?.message || "상담 삭제 중 오류가 발생했습니다."
-                  );
+                    await SingleButtonAlert(
+                        error.response?.data?.message || "상담 삭제 중 오류가 발생했습니다."
+                    );
                 }
-              }
-              
+            }
         } catch (error) {
             console.error('❌ 삭제 중 오류 발생:', error);
         }
     };
 
-
     const handleJoin = (index) => {
         const targetSchedule = filteredSchedules[index];
-
         setSchedules(prevSchedules => prevSchedules.map(schedule =>
             schedule.date === targetSchedule.date &&
             schedule.time === targetSchedule.time &&
@@ -270,36 +217,21 @@ function CounselorSchedulePage() {
                 ? { ...schedule, isCompleted: true }
                 : schedule
         ));
-        console.log("childId : " + targetSchedule.childUserId)
-        console.log("consultation_type : " + targetSchedule.consultation_type)
-        console.log(targetSchedule.consultation_type === '게임'?"1" : "2");
-
-        // 상담 유형에 따라 다른 창 열기
         const path = targetSchedule.consultation_type === "게임"
             ? `schedule/child-video-call?type=game&childId=${targetSchedule.childUserId}`
             : `schedule/parent-video-call?type=consult&childId=${targetSchedule.childUserId}&role=consultant`;
-
-        window.open(
-            path,
-            '_blank',
-            'left=0,top=0,width=' + screen.width + ',height=' + screen.height
-        );
+        window.open(path, '_blank', 'left=0,top=0,width=' + screen.width + ',height=' + screen.height);
     };
-
 
     const handleModalClose = async () => {
         setShowModal(false);
         setEditingSchedule(null);
-
         if (selectedChildId) {
-            console.log(`🔄 선택된 아동(${selectedChildId})의 일정 다시 불러오기`);
-            handleChildSelect(selectedChildId); // ✅ 특정 아동의 일정 불러오기
+            handleChildSelect(selectedChildId);
         } else {
-            console.log("🔄 전체 일정 다시 불러오기");
             setDate(new Date(date));
         }
     };
-
 
     const handleEditClick = (schedule) => {
         setEditingSchedule({
@@ -334,7 +266,6 @@ function CounselorSchedulePage() {
         }
     };
 
-    // input이 포커스를 잃었을 때
     const handleBlur = () => {
         setTimeout(() => {
             setShowSuggestions(false);
@@ -344,25 +275,21 @@ function CounselorSchedulePage() {
     useEffect(() => {
         const handler = setTimeout(() => {
             if (searchTerm.trim()) {
-                // API 호출: 입력값을 부분 검색(like 검색) 기준으로 처리
                 searchChildByName(searchTerm).then(results => {
                     if (results) {
-                        setSuggestions(
-                            results.map(child => ({
-                                id: child.childUserId,
-                                name: child.childUserName,
-                                img: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png",
-                                parentName: child.parentUserName
-                            }))
-                        );
+                        setSuggestions(results.map(child => ({
+                            id: child.childUserId,
+                            name: child.childUserName,
+                            img: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png",
+                            parentName: child.parentUserName
+                        })));
                         setShowSuggestions(true);
                     }
                 });
             } else {
                 setSuggestions([]);
             }
-        }, 300); // 300ms 후 API 호출
-
+        }, 300);
         return () => {
             clearTimeout(handler);
         };
@@ -388,7 +315,7 @@ function CounselorSchedulePage() {
                                 monthNavigator
                                 yearNavigator
                                 yearRange="2000:2040"
-                                dayClassName={highlightScheduledDates}
+                                dateTemplate={dateTemplate}
                             />
                         </div>
                     </div>
@@ -396,9 +323,7 @@ function CounselorSchedulePage() {
                         <div className="co-schedule-section">
                             <div className="co-schedule-content">
                                 <div className="co-schedule-header">
-                                    <h2 className="co-schedule-title">
-                                        상담 일정
-                                    </h2>
+                                    <h2 className="co-schedule-title">상담 일정</h2>
                                     <div className="co-search-container">
                                         <span className="p-input-icon-right">
                                             <div className="co-search-container">
@@ -524,6 +449,5 @@ function CounselorSchedulePage() {
         </>
     );
 }
-
 
 export default CounselorSchedulePage;
