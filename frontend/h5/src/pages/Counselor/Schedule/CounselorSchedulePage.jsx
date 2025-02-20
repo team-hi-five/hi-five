@@ -34,14 +34,12 @@ function CounselorSchedulePage() {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedChildId, setSelectedChildId] = useState(null);
     const [highlightedDates, setHighlightedDates] = useState([]);
-    const [schedules, setSchedules] = useState([].sort((a, b) => {
-        const timeA = a.time.split('~')[0].trim();
-        const timeB = b.time.split('~')[0].trim();
-        return timeA.localeCompare(timeB);
-    }));
+    const [schedules, setSchedules] = useState([]);
+    // 추가: 사용자가 드롭다운에서 선택한 상태 여부
+    const [childSelected, setChildSelected] = useState(false);
 
+    // 날짜 셀 렌더링 (하이라이트 적용)
     const dateTemplate = (dateObj) => {
-        // dateObj가 Date 인스턴스인지 확인하고, 아니라면 새 Date 객체로 변환
         const currentDate = dateObj.getFullYear
             ? dateObj
             : new Date(dateObj.year, dateObj.month, dateObj.day);
@@ -58,21 +56,26 @@ function CounselorSchedulePage() {
             </div>
         );
     };
-    const handleChildSelect = (childId) => {
-        setSelectedChildId(childId);
+
+    // 드롭다운에서 아동 선택 시 (child 객체 전체를 전달)
+    const handleChildSelect = (child) => {
+        setChildSelected(true);
+        setSearchTerm(child.name);
+        setSelectedChildId(child.id);
+        setShowSuggestions(false);
+
         const fetchSchedulesChild = async () => {
-            if (!childId) return;
+            if (!child.id) return;
             const year = date.getFullYear();
             const month = date.getMonth() + 1;
 
-            const response = await getChildScheduleList(childId, year, month);
+            const response = await getChildScheduleList(child.id, year, month);
             console.log("응답이여 ~ : ", response);
 
             try {
-                const dateResponse = await getChildScheduleDates(childId, year, month);
+                const dateResponse = await getChildScheduleDates(child.id, year, month);
                 console.log("📅 특정 아동 상담 날짜: ", dateResponse);
 
-                // 날짜 데이터를 Date 객체 배열로 변환
                 const formattedDates = dateResponse.map(dateString => {
                     const [year, month, day] = dateString.split('-').map(Number);
                     return new Date(year, month - 1, day);
@@ -102,11 +105,13 @@ function CounselorSchedulePage() {
             });
             setSchedules(formattedSchedules);
         };
-        setShowSuggestions(false);
+
         fetchSchedulesChild();
     };
 
+    // 검색창 입력 값 변경 시 (입력 시 선택 상태 초기화)
     const handleSearchChange = (e) => {
+        setChildSelected(false);
         setSearchTerm(e.target.value);
     };
 
@@ -139,7 +144,6 @@ function CounselorSchedulePage() {
         fetchSchedules();
     }, [date]);
 
-    // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
     const formatDateToString = (date) => {
         if (!date) return null;
         const year = date.getFullYear();
@@ -227,7 +231,7 @@ function CounselorSchedulePage() {
         setShowModal(false);
         setEditingSchedule(null);
         if (selectedChildId) {
-            handleChildSelect(selectedChildId);
+            handleChildSelect({ id: selectedChildId, name: searchTerm });
         } else {
             setDate(new Date(date));
         }
@@ -272,7 +276,9 @@ function CounselorSchedulePage() {
         }, 100);
     };
 
+    // 실시간 아동 검색 (선택 상태일 경우 검색하지 않음)
     useEffect(() => {
+        if (childSelected) return;
         const handler = setTimeout(() => {
             if (searchTerm.trim()) {
                 searchChildByName(searchTerm).then(results => {
@@ -288,12 +294,15 @@ function CounselorSchedulePage() {
                 });
             } else {
                 setSuggestions([]);
+                // 입력값이 비었으면 달력 하이라이트도 초기화
+                setHighlightedDates([]);
             }
         }, 300);
         return () => {
             clearTimeout(handler);
         };
-    }, [searchTerm]);
+    }, [searchTerm, childSelected]);
+
 
     return (
         <>
@@ -342,7 +351,7 @@ function CounselorSchedulePage() {
                                                             <li
                                                                 key={child.id}
                                                                 className="co-search-item"
-                                                                onMouseDown={() => handleChildSelect(child.id)}
+                                                                onMouseDown={() => handleChildSelect(child)}
                                                                 style={{cursor:'pointer'}}
                                                             >
                                                                 <img

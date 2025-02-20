@@ -9,6 +9,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
     const [searchTerm, setSearchTerm] = useState(editData?.counsultation_target || '');
     const [showDropdown, setShowDropdown] = useState(false);
     const [searchResults, setSearchResults] = useState([]); // 검색 결과 저장
+    const [childSelected, setChildSelected] = useState(false);
 
     // formData 초기값 설정
     const [formData, setFormData] = useState({
@@ -46,45 +47,50 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
             setSearchTerm(editData.childName);
         }
     }, [editData]); // editData 변경 시 자동 반영
-    
 
-    // 🔹 엔터 키를 눌렀을 때 검색 실행
-    const handleKeyPress = async (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault(); // 기본 폼 제출 방지
-            if (!searchTerm.trim()) return; // 빈 입력 방지
-    
-            try {
-                const result = await searchChildByName(searchTerm);
-                if (result && Array.isArray(result)) {
-                    // ✅ 기존 형식과 맞추도록 데이터 변환
-                    const formattedResults = result.map(child => ({
-                        id: child.childUserId, 
-                        image: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png",
-                        childName: child.childUserName, 
-                        parentName: child.parentUserName, 
-                        email: child.parentUserEmail
-                    }));
-    
-                    setSearchResults(formattedResults);
-                } else {
-                    setSearchResults([]);
-                }
-                setShowDropdown(true); // 검색 결과 창 열기
-            } catch (error) {
-                console.error("❌ 아동 검색 실패:", error);
-                setSearchResults([]);
-            }
-        }
-    };
-
-    // 입력 필드 변경 핸들러
     const handleChildSearch = (e) => {
+        // 사용자가 다시 입력하면 선택 플래그 초기화
+        setChildSelected(false);
         setSearchTerm(e.target.value);
     };
 
+    // 실시간 검색 (debounce 적용)
+    useEffect(() => {
+        if (childSelected) return;
+        if (!searchTerm.trim()) {
+            setSearchResults([]);
+            setShowDropdown(false);
+            return;
+        }
+        const delayDebounceFn = setTimeout(() => {
+            searchChildByName(searchTerm)
+                .then(result => {
+                    if (result && Array.isArray(result)) {
+                        const formattedResults = result.map(child => ({
+                            id: child.childUserId,
+                            image: child.childProfileUrl !== "Default Image" ? child.childProfileUrl : "/default-profile.png",
+                            childName: child.childUserName,
+                            parentName: child.parentUserName,
+                            email: child.parentUserEmail
+                        }));
+                        setSearchResults(formattedResults);
+                        setShowDropdown(true);
+                    } else {
+                        setSearchResults([]);
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ 아동 검색 실패:", error);
+                    setSearchResults([]);
+                });
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchTerm]);
+
     // 검색된 아이 선택 시 입력 필드 자동 채우기
     const handleSelectChild = (child) => {
+        setChildSelected(true);
         setFormData((prev) => ({
             ...prev,
             childUserId: child.id,  // 🔹 아이 ID 저장
@@ -107,10 +113,10 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
                 await SingleButtonAlert("필수 입력값을 모두 입력해주세요.");
                 return;
             }
-    
+
             // ✅ 시간 범위에서 시작 시간만 추출하고, 초(`:00`)까지 추가
             const formattedDateTime = `${formData.date} ${formData.time.split('~')[0].trim()}:00`;
-    
+
             const newSchedule = {
                 childId: parseInt(formData.childUserId, 10), // 🔹 ID를 정수로 변환
                 schdlDttm: formattedDateTime, // 🔹 올바른 날짜 형식 적용
@@ -123,9 +129,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
                 schdlDttm: formattedDateTime, // 🔹 올바른 날짜 형식 적용
                 type: formData.type === 'type1' ? 'game' : 'consult',
             };
-    
-            
-    
+
             if (isEdit) {
                 console.log("📌 서버에 전송할 데이터:", udSchedule);
                 await updateSchedule(udSchedule.scheduleId, udSchedule.childId, udSchedule.schdlDttm, udSchedule.type);
@@ -141,9 +145,6 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
             await SingleButtonAlert('상담 생성 중 오류가 발생했습니다.');
         }
     };
-    
-    
-    
 
     return (
         <div className="co-m-overlay">
@@ -162,8 +163,7 @@ const MeetingCreateModal = ({ onClose, isEdit = false, editData = null, onSchedu
                                     type="text"
                                     value={searchTerm}
                                     onChange={handleChildSearch}
-                                    onKeyDown={handleKeyPress} // 🔹 엔터 키 감지 이벤트 추가
-                                    placeholder="아동 이름을 입력하고 엔터 키를 누르세요"
+                                    placeholder="아동 이름을 입력하세요"
                                 />
                             </div>
                             {showDropdown && (
