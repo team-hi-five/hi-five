@@ -3,11 +3,9 @@ package com.h5.game.service;
 import com.h5.asset.entity.GameStageEntity;
 import com.h5.asset.repository.GameChapterRepository;
 import com.h5.asset.repository.GameStageRepository;
+import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
-import com.h5.game.dto.request.EndGameChapterRequestDto;
-import com.h5.game.dto.request.SaveGameLogRequestDto;
-import com.h5.game.dto.request.StartGameChapterRequsetDto;
-import com.h5.game.dto.request.StartGameStageRequestDto;
+import com.h5.game.dto.request.*;
 import com.h5.game.dto.response.EndGameChapterResponseDto;
 import com.h5.game.dto.response.SaveGameLogResponseDto;
 import com.h5.game.dto.response.StartGameChapterResponseDto;
@@ -132,6 +130,23 @@ public class GameServiceImpl implements GameService {
                 .gameLogId(gameLogEntity.getId())
                 .aiLogId(aiLogEntity.getId())
                 .build();
+    }
+
+    @Override
+    public int updateChildClearedStage(UpdateChildClearedStageRequestDto updateChildClearedStageRequestDto) {
+        int childId = updateChildClearedStageRequestDto.getChildId();
+        int chapter = updateChildClearedStageRequestDto.getChapter();
+        int stage = updateChildClearedStageRequestDto.getStage();
+
+        ChildUserEntity childUserEntity = childUserRepository.findById(childId)
+                .orElseThrow(UserNotFoundException::new);
+
+        int cleared = (chapter-1)*5 + stage;
+
+        childUserEntity.setClearChapter(cleared);
+        childUserRepository.save(childUserEntity);
+
+        return cleared;
     }
 
     private void updateAnalytics(ChildGameChapterEntity chapter) {
