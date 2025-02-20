@@ -170,7 +170,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
                 .orElseThrow(UserNotFoundException::new);
 
-        List<ChildUserEntity> childUsers = childUserRepository.findByConsultantUserEntity_Id(consultantUser.getId())
+        List<ChildUserEntity> childUsers = childUserRepository.findByConsultantUserEntity_IdAndDeleteDttmIsNotNull(consultantUser.getId())
                 .orElse(new ArrayList<>());
 
         List<GetMyChildrenResponseDto> responseDtos = new ArrayList<>();
@@ -197,7 +197,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
                 .orElseThrow(UserNotFoundException::new);
 
-        ChildUserEntity childUser = childUserRepository.findByIdAndConsultantUserEntity_Id(childUserId, consultantUser.getId())
+        ChildUserEntity childUser = childUserRepository.findByIdAndConsultantUserEntity_IdAndDeleteDttmIsNotNull(childUserId, consultantUser.getId())
                 .orElseThrow(UserNotFoundException::new);
 
         return GetChildResponseDto.builder()
@@ -256,7 +256,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     @Transactional
     @Override
     public List<SearchChildResponseDto> searchChild(String childUserName) {
-        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByName(childUserName)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByNameAndDeleteDttmIsNotNull(childUserName)
                 .orElseThrow(UserNotFoundException::new);
 
         return childUserEntities.stream()
