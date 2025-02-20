@@ -493,11 +493,11 @@ function ChildReviewGamePage() {
               <Card className="ch-game-counselor-screen">
                 <div className="ch-review-message">
                   {phase === "video" ? null : phase === "face1" ? (
-                    <h3>표정 분석 중입니다...</h3>
+                    <h3>상황에 맞는 표정을 지어보아요!</h3>
                   ) : phase === "face1Result" ? (
                     <h3>표정 분석 결과: {faceResult1}</h3>
                   ) : phase === "face2" ? (
-                    <h3>표정 분석 중입니다...</h3>
+                    <h3>상황에 맞는 표정을 지어보아요!</h3>
                   ) : phase === "face2Result" ? (
                     <h3>표정 분석 결과: {faceResult2}</h3>
                   ) : phase === "voice1" ? (

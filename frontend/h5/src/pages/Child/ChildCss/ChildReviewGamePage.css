@@ -29,7 +29,7 @@
 .ch-review-message h3{
   text-align: center;
   font-family: "Jua";
-  font-size: 2.2rem;
+  font-size: 1.8rem;
 }
 
 .ch-game-screen-container {
@@ -52,7 +52,7 @@
 .ch-game-screen-container h3 {
   text-align: center;
   font-family: "Jua";
-  font-size: 150%;
+  font-size: 120%;
   margin-top: 0.3rem;
   margin-bottom: 0.3rem;
 }

@@ -14,7 +14,11 @@ function CounselorVideoMultiplePage() {
   const childUserId = params.get('childUserId') || "";
   const getInitialDate = (paramName) => {
     const dateStr = params.get(paramName); // "YYYY-MM-DD"
-    return dateStr ? new Date(dateStr) : new Date();
+    if (dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      return new Date(year, month - 1, day); // 로컬 타임존 기준으로 생성
+    }
+    return new Date();
   };
 
   // 두 달력의 선택된 날짜 (왼쪽: dateVideo1, 오른쪽: dateVideo2)
@@ -36,7 +40,7 @@ function CounselorVideoMultiplePage() {
 
   // tryIndex에 따른 label 생성 헬퍼 함수
   const getLabel = (tryIndex) => {
-    const labels = ["첫번째 시도", "두번째 시도", "세번째 시도"];
+    const labels = ["첫번째 시도", "두번째 시도", "세번째 시도", "네번째 시도", "다섯번째 시도", "여섯번째 시도"];
     return labels[tryIndex] || `${tryIndex + 1}번째 시도`;
   };
 
@@ -210,6 +214,7 @@ function CounselorVideoMultiplePage() {
                     }}
                     className="simple-calendar"
                     placeholder="날짜를 선택하세요"
+                    dateFormat="yy년/mm월/dd일"
                   />
                 </div>
               </div>
@@ -242,7 +247,8 @@ function CounselorVideoMultiplePage() {
                     // tblType은 "G"로 고정, tblId는 선택된 회차 아이디 (gameLogId)
                     getFileUrl("G", Number(e.value))
                       .then((data) => {
-                        const url = data.url || data;
+                        // data가 배열 형태로 반환될 경우 첫 번째 요소의 url 사용
+                        const url = Array.isArray(data) && data.length > 0 ? data[0].url : "";
                         setVideoUrls(prev => {
                           const updated = [...prev];
                           updated[index] = url;
@@ -258,7 +264,8 @@ function CounselorVideoMultiplePage() {
                   className="dropdown-input"
                 />
               </div>
-            </div>            
+            </div>
+            
             <div className="video-container-m">
               { videoUrls[index] ? (
                 <video 
