@@ -42,6 +42,8 @@ function ChildClassPage() {
   const [subscriber, setSubscriber] = useState([]);
   const [, setPublisher] = useState(null);
   const OV = useRef(new OpenVidu());
+
+  const localPublisherStreamIdsRef = useRef([]);
   const [isStart, setIsStart] = useState(false);
   const recognitionRef = useRef(null);
   const analysisCanceledRef = useRef(false)
@@ -86,18 +88,16 @@ function ChildClassPage() {
 
       // WebCam 스트림이 생성될 때의 이벤트 핸들러
       sessionInstance1.on("streamCreated", (event) => {
-        if (event.stream.connection.connectionId !== sessionInstance1.connection.connectionId) {
+          if (localPublisherStreamIdsRef.current.includes(event.stream.streamId)) return;
           const newSubscriber = sessionInstance1.subscribe(event.stream, undefined);
           setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
-        }
-      });
+        });
 
       sessionInstance2.on("streamCreated", (event) => {
-        if (event.stream.connection.connectionId !== sessionInstance2.connection.connectionId) {
-             const newSubscriber = sessionInstance2.subscribe(event.stream, undefined);
-             setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
-        }
-      });
+          if (localPublisherStreamIdsRef.current.includes(event.stream.streamId)) return;
+          const newSubscriber = sessionInstance2.subscribe(event.stream, undefined);
+          setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
+        });
 
       // Screen Share 스트림이 생성될 때의 이벤트 핸들러
       sessionInstance2.on("streamCreated", (event) => {
@@ -141,6 +141,11 @@ function ChildClassPage() {
       // 세션에 퍼블리셔 추가 (카메라 & 화면 공유)
       await sessionInstance1.publish(webcamPublisher);
       await sessionInstance2.publish(screenSharePublisher);
+
+      localPublisherStreamIdsRef.current = [
+        webcamPublisher.stream.streamId,
+        screenSharePublisher.stream.streamId,
+        ];
 
       // 상태 업데이트
       setWebcamSession(sessionInstance1);
