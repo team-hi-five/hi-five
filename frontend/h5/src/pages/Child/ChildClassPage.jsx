@@ -1023,7 +1023,7 @@ function ChildClassPage() {
     try{
       const updateChildStageData = {
         childId: Number(childId),
-        chapter: childGameChapterId,
+        chapter: currentGameData?.chapterId,
         stage: Number(5),
       }
       const response = await updateChildStage(updateChildStageData);
