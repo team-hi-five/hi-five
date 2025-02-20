@@ -5,6 +5,8 @@ import com.h5.asset.repository.GameChapterRepository;
 import com.h5.asset.repository.GameStageRepository;
 import com.h5.child.entity.ChildUserEntity;
 import com.h5.child.repository.ChildUserRepository;
+import com.h5.emotion.entity.EmotionEntity;
+import com.h5.emotion.repository.EmotionRepository;
 import com.h5.game.dto.request.*;
 import com.h5.game.dto.response.EndGameChapterResponseDto;
 import com.h5.game.dto.response.SaveGameLogResponseDto;
@@ -48,6 +50,7 @@ public class GameServiceImpl implements GameService {
     private final StatisticRepository statisticRepository;
 
     private final int BASIC_SCORE = 100;
+    private final EmotionRepository emotionRepository;
 
     @Transactional
     @Override
@@ -192,50 +195,80 @@ public class GameServiceImpl implements GameService {
         boolean isCorrect = firstCorrectIndex.isPresent();
         int whenCorrect = firstCorrectIndex.orElse(gameLogs.size()) + 1;
 
-        StatisticEntity statistic = statisticRepository
+        StatisticEntity statisticEntity = statisticRepository
                 .findByEmotionEntity_IdAndChildUserEntity_Id(emotionId, childUserId)
-                .orElseThrow(() -> new StatisticNotFoundException("Statistic not found"));
+                .orElseGet(() -> {
+                    EmotionEntity emotionEntity = emotionRepository.findById(emotionId)
+                            .orElseThrow(() -> new RuntimeException("EmotionEntity not found"));
+                    ChildUserEntity childUserEntity = childUserRepository.findById(childUserId)
+                            .orElseThrow(() -> new RuntimeException("ChildUserEntity not found"));
+
+                    StatisticEntity newEntity = StatisticEntity.builder()
+                            .rating(0)
+                            .trialCnt(0)
+                            .crtCnt(0)
+                            .stageCrtRate1(BigDecimal.ZERO)
+                            .stageCrtRate2(BigDecimal.ZERO)
+                            .stageCrtRate3(BigDecimal.ZERO)
+                            .stageCrtRate4(BigDecimal.ZERO)
+                            .stageCrtRate5(BigDecimal.ZERO)
+                            .emotionEntity(emotionEntity)
+                            .childUserEntity(childUserEntity)
+                            .stageTryCnt1(0)
+                            .stageTryCnt2(0)
+                            .stageTryCnt3(0)
+                            .stageTryCnt4(0)
+                            .stageTryCnt5(0)
+                            .stageCrtCnt1(0)
+                            .stageCrtCnt2(0)
+                            .stageCrtCnt3(0)
+                            .stageCrtCnt4(0)
+                            .stageCrtCnt5(0)
+                            .build();
+                    return statisticRepository.save(newEntity);
+                });
+
 
         int logCount = gameLogs.size();
-        statistic.setTrialCnt(statistic.getTrialCnt() + logCount);
+        statisticEntity.setTrialCnt(statisticEntity.getTrialCnt() + logCount);
         if (isCorrect) {
-            statistic.setCrtCnt(statistic.getCrtCnt() + 1);
+            statisticEntity.setCrtCnt(statisticEntity.getCrtCnt() + 1);
         }
 
         double scoreIncrement = (whenCorrect < 3 ? (1.0 / whenCorrect) * BASIC_SCORE : 0.0);
-        statistic.setRating((int) (statistic.getRating() + scoreIncrement));
+        statisticEntity.setRating((int) (statisticEntity.getRating() + scoreIncrement));
 
         switch (gameChapterId) {
             case 1:
-                statistic.setStageTryCnt1(statistic.getStageTryCnt1() + logCount);
-                statistic.setStageCrtCnt1(statistic.getStageCrtCnt1() + (isCorrect ? 1 : 0));
-                statistic.setStageCrtRate1(calculateRate(statistic.getStageCrtCnt1(), statistic.getStageTryCnt1()));
+                statisticEntity.setStageTryCnt1(statisticEntity.getStageTryCnt1() + logCount);
+                statisticEntity.setStageCrtCnt1(statisticEntity.getStageCrtCnt1() + (isCorrect ? 1 : 0));
+                statisticEntity.setStageCrtRate1(calculateRate(statisticEntity.getStageCrtCnt1(), statisticEntity.getStageTryCnt1()));
                 break;
             case 2:
-                statistic.setStageTryCnt2(statistic.getStageTryCnt2() + logCount);
-                statistic.setStageCrtCnt2(statistic.getStageCrtCnt2() + (isCorrect ? 1 : 0));
-                statistic.setStageCrtRate2(calculateRate(statistic.getStageCrtCnt2(), statistic.getStageTryCnt2()));
+                statisticEntity.setStageTryCnt2(statisticEntity.getStageTryCnt2() + logCount);
+                statisticEntity.setStageCrtCnt2(statisticEntity.getStageCrtCnt2() + (isCorrect ? 1 : 0));
+                statisticEntity.setStageCrtRate2(calculateRate(statisticEntity.getStageCrtCnt2(), statisticEntity.getStageTryCnt2()));
                 break;
             case 3:
-                statistic.setStageTryCnt3(statistic.getStageTryCnt3() + logCount);
-                statistic.setStageCrtCnt3(statistic.getStageCrtCnt3() + (isCorrect ? 1 : 0));
-                statistic.setStageCrtRate3(calculateRate(statistic.getStageCrtCnt3(), statistic.getStageTryCnt3()));
+                statisticEntity.setStageTryCnt3(statisticEntity.getStageTryCnt3() + logCount);
+                statisticEntity.setStageCrtCnt3(statisticEntity.getStageCrtCnt3() + (isCorrect ? 1 : 0));
+                statisticEntity.setStageCrtRate3(calculateRate(statisticEntity.getStageCrtCnt3(), statisticEntity.getStageTryCnt3()));
                 break;
             case 4:
-                statistic.setStageTryCnt4(statistic.getStageTryCnt4() + logCount);
-                statistic.setStageCrtCnt4(statistic.getStageCrtCnt4() + (isCorrect ? 1 : 0));
-                statistic.setStageCrtRate4(calculateRate(statistic.getStageCrtCnt4(), statistic.getStageTryCnt4()));
+                statisticEntity.setStageTryCnt4(statisticEntity.getStageTryCnt4() + logCount);
+                statisticEntity.setStageCrtCnt4(statisticEntity.getStageCrtCnt4() + (isCorrect ? 1 : 0));
+                statisticEntity.setStageCrtRate4(calculateRate(statisticEntity.getStageCrtCnt4(), statisticEntity.getStageTryCnt4()));
                 break;
             case 5:
-                statistic.setStageTryCnt5(statistic.getStageTryCnt5() + logCount);
-                statistic.setStageCrtCnt5(statistic.getStageCrtCnt5() + (isCorrect ? 1 : 0));
-                statistic.setStageCrtRate5(calculateRate(statistic.getStageCrtCnt5(), statistic.getStageTryCnt5()));
+                statisticEntity.setStageTryCnt5(statisticEntity.getStageTryCnt5() + logCount);
+                statisticEntity.setStageCrtCnt5(statisticEntity.getStageCrtCnt5() + (isCorrect ? 1 : 0));
+                statisticEntity.setStageCrtRate5(calculateRate(statisticEntity.getStageCrtCnt5(), statisticEntity.getStageTryCnt5()));
                 break;
             default:
                 break;
         }
 
-        statisticRepository.save(statistic);
+        statisticRepository.save(statisticEntity);
     }
 
     private BigDecimal calculateRate(int correctCount, int tryCount) {
