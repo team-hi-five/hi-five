@@ -1091,7 +1091,6 @@ function ChildClassPage() {
                         width: "100%",
                         height: "18rem",
                         marginTop: "4px",
-                        transform: "scaleX(-1)",
                         borderRadius: "1%"
                       }}
                   />
@@ -1144,8 +1143,8 @@ function ChildClassPage() {
                   audio={true}
                   ref={webcamRef}
                   videoConstraints={{
-                    width: 320,
-                    height: 240,
+                    width: "360",
+                    height: "20rem",s
                     facingMode: "user",
                   }}
               />
