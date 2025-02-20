@@ -11,7 +11,7 @@ import api from "../../api/api";
 import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
 import Webcam from "react-webcam";
 import {sendAlarm} from "../../api/alarm.jsx";
-import {endChapter, saveGameData, startChapter, startStage} from "../../api/childGame";
+import {chapter, endChapter, saveGameData, startChapter, startStage, updateChildStage} from "../../api/childGame";
 import {TBL_TYPES, uploadFile} from "../../api/file";
 
 function ChildClassPage() {
@@ -958,6 +958,7 @@ function ChildClassPage() {
             nextChapter();
             break;
           case "end-chapter":
+            sendUpdateChildStage();
             if (session) {
               session.disconnect();
             }
@@ -1069,6 +1070,18 @@ function ChildClassPage() {
     } catch (error) {
       console.error("파일 업로드 실패:", error);
       throw error;
+    }
+  };
+  const sendUpdateChildStage = async () => {
+    try{
+      const updateChildStageData = {
+        chapter: chapter,
+        stage: Number(5),
+      }
+      const response = await updateChildStage(updateChildStageData);
+      return response;
+    } catch(error){
+      console.error(error);
     }
   };
 
