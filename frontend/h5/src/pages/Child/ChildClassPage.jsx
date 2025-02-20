@@ -1,4 +1,4 @@
-import "./ChildCss/ChildClassPage.css";
+import "./ChildCss/ChildReviewGamePage.css";
 import useGameStore from "../../store/gameStore";
 import { limitGamedata } from "../../api/childGameContent";
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -13,6 +13,7 @@ import Webcam from "react-webcam";
 import {sendAlarm} from "../../api/alarm.jsx";
 import {chapter, endChapter, saveGameData, startChapter, startStage, updateChildStage} from "../../api/childGame";
 import {TBL_TYPES, uploadFile} from "../../api/file";
+import { ProgressBar } from "primereact/progressbar";
 
 function ChildClassPage() {
   // react-webcam의 ref (내부 video 엘리먼트는 ref.current.video)
@@ -1128,118 +1129,127 @@ function ChildClassPage() {
   }, [session, childId]);
 
   return (
+    <div className="ch-review-game-container">
       <div className="ch-review-container">
         {/* 왼쪽: 게임 동영상 영역 */}
         <div className="ch-review-game-left">
           <Card className="ch-game-screen-container">
-            {currentGameData ? (
-                <>
-                  <h2>
-                    {currentGameData?.chapterId ?? ""}단계 {currentGameData?.gameStageId ?? ""}단원
-                  </h2>
-                  <h3>{currentGameData?.situation ?? ""}</h3>
-                  <video
-                      ref={videoRef}
-                      src={currentGameData?.gameVideo ?? ""}
-                      onEnded={() => {
-                        sendStartStage();
-                        handleVideoEnd();
-                      }}
-                      className="ch-gameVideo"
-                      style={{
-                        backgroundColor: "#000",
-                        width: "100%",
-                        height: "18rem",
-                        marginTop: "4px",
-                        transform: "scaleX(-1)",
-                        borderRadius: "1%"
-                      }}
-                  />
+            {currentGameData && (
+              <>
+                <h2>
+                  {currentGameData.chapterId}단계{" "}
+                  {currentGameData.gameStageId}단원
+                </h2>
+                <h3>{currentGameData.situation}</h3>
+                <video
+                  ref={videoRef}
+                  src={currentGameData.gameVideo}
+                  className="ch-gameVideo"
+                  autoPlay
+                  onEnded={() => {
+                    sendStartStage();
+                    handleVideoEnd();
+                  }}
+                />
+                {/* ProgressBar는 기존 스타일 유지 */}
+                <ProgressBar
+                  className="ch-review-progressbar"
+                  value={(currentVideoIndex + 1) * 20}
+                  style={{
+                    width: "80%",
+                    height: "15px",
+                    margin: "0 auto",
+                    marginTop: "20px",
+                  }}
+                />
+
+                {/* 분석 중 메시지 */}
+                {phase === "analysis" && (
                   <Card className="ch-learning-message-screen">
                     <div className="learning-message">
-                      {phase === "analysis" && <h3>분석 중입니다...</h3>}
+                      <h3>분석 중입니다...</h3>
                     </div>
                   </Card>
+                )}
 
-                  <div className="ch-game-button">
-                    {currentGameData?.optionImages?.length > 0 &&
-                    currentGameData?.options?.length > 0 ? (
-                        <div className="option-images">
-                          {currentGameData.optionImages.map((imgSrc, index) => (
-                              <div key={index} className="learning-option-item">
-                                <img src={imgSrc} alt={`option ${index + 1}`} className="option-image" />
-                                <p
-                                    className={`${
-                                        analysisCycle < 3
-                                            ? index + 1 === currentGameData?.answer
-                                                ? "ch-learning-before-answer"
-                                                : ""
-                                            : index + 1 === currentGameData?.answer
-                                                ? "ch-learning-correct-answer"
-                                                : ""
-                                    }`}
-                                >
-                                  {currentGameData.options[index]}
-                                </p>
-                              </div>
-                          ))}
-                        </div>
-                    ) : (
-                        <p>선택지 정보를 불러오는 중...</p>
+                {/* 선택지 버튼 영역 - 원본 스타일 유지 */}
+                <div className="ch-game-button">
+                  {currentGameData.optionImages?.length > 0 &&
+                    currentGameData.options?.length > 0 && (
+                      <div className="option-images">
+                        {currentGameData.optionImages.map((imgSrc, index) => (
+                          <div key={index} className="option-item">
+                            <h2 className="ch-options-number">
+                              {["①", "②", "③"][index]}
+                            </h2>
+                            <img
+                              src={imgSrc}
+                              alt={`option ${index + 1}`}
+                              className="option-image"
+                            />
+                            <p className={`ch-option-text ${
+                              analysisCycle < 3
+                                ? index + 1 === currentGameData.answer
+                                  ? "ch-learning-before-answer"
+                                  : ""
+                                : index + 1 === currentGameData.answer
+                                  ? "ch-learning-correct-answer"
+                                  : ""
+                            }`}>
+                              {currentGameData.options[index]}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     )}
-                  </div>
-                </>
-            ) : (
-                <h2>게임 데이터를 불러오는 중...</h2>
+                </div>
+              </>
             )}
           </Card>
         </div>
 
-        {/* 오른쪽: 웹캠 영역 */}
+        {/* 오른쪽: 웹캠 및 상담가 화면 영역 */}
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
-            {/* 오른쪽 위: 아동 웹캠 (react-webcam 사용) */}
             <Card className="ch-game-Top-section">
               <Webcam
-                  audio={true}
-                  ref={webcamRef}
-                  videoConstraints={{
-                    width: 500,
-                    height: 310,
-                    facingMode: "user"
-                  }}
-                  style={{
-                    borderRadius: "10px",  // 여기에서 border-radius를 적용
-                    objectFit: "cover",  // 비디오 크기를 잘라내지 않도록 설정
-                    marginTop: "5px"
-                  }}
+                audio={true}
+                ref={webcamRef}
+                videoConstraints={{
+                  width: 500,
+                  height: 310,
+                  facingMode: "user"
+                }}
+                style={{
+                  backgroundColor: "#000",
+                  width: "100%",
+                  height: "20rem",
+                  marginTop: "4px",
+                  transform: "scaleX(-1)",
+                  borderRadius: "1%",
+                }}
               />
             </Card>
-
-            <div className="ch-learning-middle-section"></div>
-
-            <div className="ch-learning-bottom-section">
-              <div className="ch-learning-button-left">
+            <div className="ch-game-middle-section"></div>
+            <div className="ch-game-bottom-section">
+              <div className="ch-game-button-left">
                 <img src="/child/button-left.png" alt="button-left" />
               </div>
-
-              {/* 오른쪽 아래: 상담사 웹캠 (OpenVidu 구독) */}
-              <Card className="ch-learning-counselor-screen">
+              <Card className="ch-game-counselor-screen">
                 <CounselorCamWithChild
-                    session={webcamSession}
-                    subscriber={subscriber[0]}
-                    mode="subscribe"
+                  session={webcamSession}
+                  subscriber={subscriber[0]}
+                  mode="subscribe"
                 />
               </Card>
-
-
-              <div className="ch-learning-button-right">
-                <img src="/child/button-right.png" alt="button-right"  />
+              <div className="ch-game-button-right">
+                <img src="/child/button-right.png" alt="button-right" />
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
   );
 }
 

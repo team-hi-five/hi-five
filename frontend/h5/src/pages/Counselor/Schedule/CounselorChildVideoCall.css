@@ -100,7 +100,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 40px;
+    gap: 30px;
     margin-bottom: 0px;
     z-index: 10;
     position: absolute;
@@ -109,8 +109,9 @@
     transform: translateX(-70%); /* 수평으로 정확히 중앙 정렬 */
     background-color: bisque;
     opacity: 90%;
-    width: 35%;
     border-radius: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
   }
 
   .co-button-controls p{
@@ -134,6 +135,8 @@
     align-items: center;
     justify-content: center;
     margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
   }
   
   .web-control-btn:hover {
@@ -153,7 +156,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 10spx;
+    margin-top: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
   }
   
   .web-record-btn:hover {
@@ -169,6 +174,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 5px;
+    margin-right: 5px;
   }
   
   /* 반응형 디자인 */
