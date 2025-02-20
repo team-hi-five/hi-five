@@ -431,13 +431,13 @@ function CounselorChildrenDataPage() {
                     labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
                     datasets: [
                       {
-                        label: "성공 횟수",
+                        label: "정답률",
                         data: [
-                          emotionData["1"][`stageCrtCnt${stage}`],
-                          emotionData["2"][`stageCrtCnt${stage}`],
-                          emotionData["3"][`stageCrtCnt${stage}`],
-                          emotionData["4"][`stageCrtCnt${stage}`],
-                          emotionData["5"][`stageCrtCnt${stage}`],
+                          emotionData["1"][`stageCrtRate${stage}`],
+                          emotionData["2"][`stageCrtRate${stage}`],
+                          emotionData["3"][`stageCrtRate${stage}`],
+                          emotionData["4"][`stageCrtRate${stage}`],
+                          emotionData["5"][`stageCrtRate${stage}`],
                         ],
                         backgroundColor: ["#7DA1FF", "#FF7A7A", "#3C72E3", "#FFB85F", "#7A7AFF"],
                         borderRadius: 5,

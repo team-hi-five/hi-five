@@ -660,7 +660,7 @@ function ChildClassPage() {
         const bestOptionIndex = bestMatch.bestMatchIndex;
         const voiceMsg =
             bestOptionIndex === currentGameData.answer - 1
-                ? `표현력이 좋아요!`
+                ? `표현력이 좋아요! 정답은 ${optionsArray[bestOptionIndex]}이에요!`
                 : `아쉬워요! 정답은 ${optionsArray[currentGameData.answer-1]}이에요!`;
         resolve(voiceMsg);
       };
@@ -967,7 +967,7 @@ function ChildClassPage() {
   // --------------------------------------------------------- //
   const sendGameData = async () => {
     if (!voiceResult || !currentGameData) return;
-    const selectedOptionMatch = voiceResult.match(/선택한 옵션은 (.+)입니다/);
+    const selectedOptionMatch = voiceResult.match(/정답은 (.+)이에요/);
     const selectedOption = selectedOptionMatch ? selectedOptionMatch[1] : "";
     const selectedOptionIndex = currentGameData.options.findIndex(
         (option) => option === selectedOption
@@ -1023,7 +1023,7 @@ function ChildClassPage() {
   const sendStartStage = async () => {
     try{
       const stageStartData = {
-        gameStageId: Number(childId),
+        gameStageId: Number(currentGameData?.gameStageId),
         childGameChapterId: Number(childGameChapterId),
       }
       const response = await startStage(stageStartData);

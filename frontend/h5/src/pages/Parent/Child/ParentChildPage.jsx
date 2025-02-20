@@ -496,7 +496,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
           labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
           datasets: [
             {
-              label: "성공 횟수",
+              label: "정답률",
               data: [
                 emotionData["1"].stageCrtRate1,
                 emotionData["2"].stageCrtRate1,
@@ -515,7 +515,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
           labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
           datasets: [
             {
-              label: "성공 횟수",
+              label: "정답률",
               data: [
                 emotionData["1"].stageCrtRate2,
                 emotionData["2"].stageCrtRate2,
@@ -534,7 +534,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
           labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
           datasets: [
             {
-              label: "성공 횟수",
+              label: "정답률",
               data: [
                 emotionData["1"].stageCrtRate3,
                 emotionData["2"].stageCrtRate3,
@@ -553,7 +553,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
           labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
           datasets: [
             {
-              label: "성공 횟수",
+              label: "정답률",
               data: [
                 emotionData["1"].stageCrtRate4,
                 emotionData["2"].stageCrtRate4,
@@ -572,7 +572,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
           labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
           datasets: [
             {
-              label: "성공 횟수",
+              label: "정답률",
               data: [
                 emotionData["1"].stageCrtRate5,
                 emotionData["2"].stageCrtRate5,
