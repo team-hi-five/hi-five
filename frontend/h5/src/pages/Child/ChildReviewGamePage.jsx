@@ -6,11 +6,15 @@ import * as faceapi from "face-api.js";
 import { reviewGame } from "/src/api/childGameContent";
 import stringSimilarity from "string-similarity";
 import Swal from "sweetalert2";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 function ChildReviewGamePage() {
   const location = useLocation();
+  const navigate = useNavigate();
+  // childId는 location.state에서 받아온다고 가정합니다.
+  const childId = location.state.childId;
   console.log("데이터", location.state.chapterId);
+  
   // 동영상 재생용 ref
   const videoRef = useRef(null);
   // 웹캠 분석용 video ref
@@ -100,7 +104,7 @@ function ChildReviewGamePage() {
         // 하드코딩 sample 예시
         const sampleStageData = {
           options: ["사과", "바나나", "오렌지"],
-          answer: 2, // DB 값이 2라면 실제 정답 인덱스는 2 - 1 = 1 (즉, "바나나")
+          answer: 2, // DB 값이 2라면 실제 정답 인덱스는 1 (즉, "바나나")
         };
         setStageData(sampleStageData);
       } catch (error) {
@@ -195,6 +199,15 @@ function ChildReviewGamePage() {
     return avg;
   };
 
+  // 얼굴 표정 결과 피드백을 위한 매핑 (사용자 친화적 단어)
+  const faceMapping = {
+    happy: "행복",
+    sad: "슬픔",
+    angry: "화난",
+    fearful: "무서운",
+    surprised: "놀란",
+  };
+
   const startAnalysis = async () => {
     analysisDataRef.current = [];
     const intervalId = setInterval(async () => {
@@ -246,10 +259,11 @@ function ChildReviewGamePage() {
     const expectedEmotions = ["happy", "sad", "angry", "fearful", "surprised"];
     const expectedEmotion = expectedEmotions[currentVideoIndex] || "없음";
 
-    const resultMsg =
-      bestEmotion === expectedEmotion
-        ? `정답입니다! 표정 분석 결과: ${bestEmotion}`
-        : `오답입니다! 표정 분석 결과: ${bestEmotion} (예상: ${expectedEmotion})`;
+    const isCorrect = bestEmotion === expectedEmotion;
+    const mappedExpected = faceMapping[expectedEmotion] || expectedEmotion;
+    const resultMsg = isCorrect
+      ? "표현력이 좋아요!"
+      : `아쉬워요! 정답은 "${mappedExpected}" 이에요!`;
 
     if (phase === "face1") {
       setFaceResult1(resultMsg);
@@ -358,18 +372,20 @@ function ChildReviewGamePage() {
     const optionsArray = gameInfos[currentVideoIndex].options;
     const bestMatch = stringSimilarity.findBestMatch(finalText, optionsArray);
     const bestOptionIndex = bestMatch.bestMatchIndex;
-    const voiceMsg =
-      bestOptionIndex === gameInfos[currentVideoIndex].answer - 1
-        ? `정답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`
-        : `오답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`;
+    const correctIndex = gameInfos[currentVideoIndex].answer - 1;
+    const isCorrect = bestOptionIndex === correctIndex;
+    const resultMsg = isCorrect
+      ? "표현력이 좋아요!"
+      : `아쉬워요! 정답은 "${optionsArray[correctIndex]}" 이에요!`;
+      
     if (phase === "voice1") {
-      setVoiceResult1(voiceMsg);
+      setVoiceResult1(resultMsg);
       const timeoutId = setTimeout(() => {
         setPhase("voice1Result");
       }, 500);
       return () => clearTimeout(timeoutId);
     } else if (phase === "voice2") {
-      setVoiceResult2(voiceMsg);
+      setVoiceResult2(resultMsg);
       const timeoutId = setTimeout(() => {
         setPhase("voice2Result");
       }, 500);
@@ -377,7 +393,7 @@ function ChildReviewGamePage() {
     }
   };
 
-  // voiceResult 단계: 결과 표시 후 2초 대기하고 다음 단계로 전환 (voice2Result → video)
+  // voiceResult 단계: 결과 표시 후 다음 단계로 전환
   useEffect(() => {
     let timeoutId;
     if (phase === "voice1Result") {
@@ -385,20 +401,31 @@ function ChildReviewGamePage() {
         setPhase("voice2");
       }, 2000);
     } else if (phase === "voice2Result") {
-      timeoutId = setTimeout(() => {
-        // 다음 영상으로 전환
-        setVoiceResult1("");
-        setVoiceResult2("");
-        setFaceResult1(null);
-        setFaceResult2(null);
-        setPhase("video");
-        setCurrentVideoIndex((prev) =>
-          prev < gameInfos.length - 1 ? prev + 1 : prev
-        );
-      }, 2000);
+      // 다음 영상이 남아있다면 전환, 마지막 영상이라면 3초 후 Swal로 알림 후 이동
+      if (currentVideoIndex < gameInfos.length - 1) {
+        timeoutId = setTimeout(() => {
+          setVoiceResult1("");
+          setVoiceResult2("");
+          setFaceResult1(null);
+          setFaceResult2(null);
+          setPhase("video");
+          setCurrentVideoIndex((prev) => prev + 1);
+        }, 2000);
+      } else {
+        timeoutId = setTimeout(() => {
+          Swal.fire({
+            title: "복습이 끝났어요!",
+            icon: "success",
+            showConfirmButton: false,
+            timer: 3000,
+          }).then(() => {
+            navigate(`/child/${childId}`);
+          });
+        }, 2000);
+      }
     }
     return () => clearTimeout(timeoutId);
-  }, [phase, currentVideoIndex, gameInfos.length]);
+  }, [phase, currentVideoIndex, gameInfos.length, childId, navigate]);
 
   return (
     <div className="ch-review-game-container">
@@ -426,7 +453,7 @@ function ChildReviewGamePage() {
               autoPlay
               onEnded={handleVideoEnded}
             />
-            {/* ProgressBar 추가 (진행 상황: 1~5 단계에 따라) */}
+            {/* ProgressBar (진행 상황: 1~5 단계에 따라) */}
             <ProgressBar
               className="ch-review-progressbar"
               value={(currentVideoIndex + 1) * 20}
@@ -493,21 +520,21 @@ function ChildReviewGamePage() {
               <Card className="ch-game-counselor-screen">
                 <div className="ch-review-message">
                   {phase === "video" ? null : phase === "face1" ? (
-                    <h3>상황에 맞는 표정을 지어보아요!</h3>
+                    <h3>상황에 어울리는 표정을 지어보아요!</h3>
                   ) : phase === "face1Result" ? (
-                    <h3>표정 분석 결과: {faceResult1}</h3>
+                    <h3>{faceResult1}</h3>
                   ) : phase === "face2" ? (
-                    <h3>상황에 맞는 표정을 지어보아요!</h3>
+                    <h3>상황에 어울리는 표정을 지어보아요!</h3>
                   ) : phase === "face2Result" ? (
-                    <h3>표정 분석 결과: {faceResult2}</h3>
+                    <h3>{faceResult2}</h3>
                   ) : phase === "voice1" ? (
-                    <h3>음성 인식 중입니다...</h3>
+                    <h3>상황에 어울리는 말을 해보아요!</h3>
                   ) : phase === "voice1Result" ? (
-                    <h3>음성 인식 결과: {voiceResult1}</h3>
+                    <h3>{voiceResult1}</h3>
                   ) : phase === "voice2" ? (
-                    <h3>음성 인식 중입니다...</h3>
+                    <h3>상황에 어울리는 말을 해보아요!</h3>
                   ) : phase === "voice2Result" ? (
-                    <h3>음성 인식 결과: {voiceResult2}</h3>
+                    <h3>{voiceResult2}</h3>
                   ) : null}
                 </div>
               </Card>
