@@ -57,8 +57,8 @@ function ChildCardMainPage() {
     { id: 1, name: "기쁘미", image: "/child/character/joymi.png", type: "joy", bgColor: "#FCFCD4", textColor: "rgb(246, 96, 145)" },
     { id: 2, name: "슬프미", image: "/child/character/sadmi.png", type: "sadness", bgColor: "#B7E1F9", textColor: "rgb(176, 149, 126)" },
     { id: 3, name: "화나미", image: "/child/character/angrymi.png", type: "anger", bgColor: "#B5ABD8", textColor: "rgb(242, 233, 191)" },
-    { id: 4, name: "무서미", image: "/child/character/scarymi.png", type: "fear", bgColor: "#FB8B32", textColor: "rgb(93, 68, 72)" },
-    { id: 5, name: "놀라미", image: "/child/character/surprimi.png", type: "surprise", bgColor: "#62A5EB", textColor: "rgb(225, 96, 86)" },
+    { id: 4, name: "무서미", image: "/child/character/scarymi.png", type: "fear", bgColor: "#62A5EB", textColor: "rgb(93, 68, 72)" },
+    { id: 5, name: "놀라미", image: "/child/character/surprimi.png", type: "surprise", bgColor: "#fac8e8", textColor: "rgb(225, 96, 86)" },
   ];
 
   return (
