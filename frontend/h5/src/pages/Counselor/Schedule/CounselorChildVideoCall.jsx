@@ -8,7 +8,6 @@ import { sendAlarm } from "../../../api/alarm.jsx";
 import { ImExit } from "react-icons/im";
 import { MdNavigateNext, MdNavigateBefore, MdOutlineNotStarted } from "react-icons/md";
 import { PiRecordFill, PiRecord } from "react-icons/pi";
-
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
     const [session, setSession] = useState(null);
@@ -94,7 +93,6 @@ function CounselorChildVideoCall() {
                 console.error("[CounselorChildVideoCall] 세션 초기화 오류:", error);
             }
         };
-
         initSession();
     }, [childId, type]);
 
@@ -130,7 +128,7 @@ function CounselorChildVideoCall() {
 
         if (session.streams && typeof session.streams.forEach === "function") {
             session.streams.forEach((stream) => {
-                if (stream.typeOfVideo === "VIDEO") {
+                if (stream.typeOfVideo === "SCREEN") {
                     childStreamExists = true;
                 }
             });
@@ -246,15 +244,13 @@ function CounselorChildVideoCall() {
                             <p>아동의 화면 공유가 없습니다.</p>
                         </div>
                     )}
-                    <h3 className="co-learning-child-title">아동 게임 공유 화면</h3>
                 </div>
 
                 {/* 상담사 자신의 카메라 스트림 영역 */}
                 <div className="co-self-participant-video">
-                    <div className="co-participatn-coun-container">
+                    <div className="co-participant-coun-container">
                         {publisher && (
                             <video
-                                className="co-slef-participant-video"
                                 ref={(video) => {
                                     if (video && publisher) {
                                         video.srcObject = publisher.stream.getMediaStream();
@@ -265,7 +261,6 @@ function CounselorChildVideoCall() {
                                 playsInline
                             />
                         )}
-                        <h3>상담사 화면</h3>
                     </div>
                 </div>
             </div>
@@ -275,13 +270,13 @@ function CounselorChildVideoCall() {
                         <MdOutlineNotStarted/></button>
                     <p>학습 시작</p>
                 </div>
-
+                
                 <div>
                     <button  className="web-control-btn" onClick={handlePreviousStage}>
                         <MdNavigateBefore /></button>
                     <p>이전 단원</p>
                 </div>
-
+                    
                 <div>
                     <button  className="web-control-btn" onClick={handleStartRecording}>
                         <PiRecord /></button>
