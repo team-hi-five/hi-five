@@ -128,7 +128,7 @@ function CounselorChildVideoCall() {
 
         if (session.streams && typeof session.streams.forEach === "function") {
             session.streams.forEach((stream) => {
-                if (stream.typeOfVideo === "VIDEO") {
+                if (stream.typeOfVideo === "SCREEN") {
                     childStreamExists = true;
                 }
             });
@@ -270,13 +270,13 @@ function CounselorChildVideoCall() {
                         <MdOutlineNotStarted/></button>
                     <p>학습 시작</p>
                 </div>
-
+                
                 <div>
                     <button  className="web-control-btn" onClick={handlePreviousStage}>
                         <MdNavigateBefore /></button>
                     <p>이전 단원</p>
                 </div>
-
+                    
                 <div>
                     <button  className="web-control-btn" onClick={handleStartRecording}>
                         <PiRecord /></button>

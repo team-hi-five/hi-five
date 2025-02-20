@@ -422,7 +422,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 999;
 }
 
 .loading-spinner {
@@ -489,9 +489,16 @@
     -ms-overflow-style: none;
 }
 
+/* CounselorSchedulePage.css */
 .highlight-circle {
     background-color: #f9c74f !important; /* 배경색 강조 */
     border-radius: 50%; /* 원형 강조 */
     color: white !important;
     font-weight: bold;
+
+    display: inline-block;
+    width: 2rem;       /* 날짜 셀 크기에 맞게 조정 */
+    height: 2rem;      /* 날짜 셀 크기에 맞게 조정 */
+    line-height: 2rem; /* 수직 중앙 정렬 */
+    text-align: center;
 }
