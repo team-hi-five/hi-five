@@ -1,9 +1,6 @@
 package com.h5.game.controller;
 
-import com.h5.game.dto.request.EndGameChapterRequestDto;
-import com.h5.game.dto.request.SaveGameLogRequestDto;
-import com.h5.game.dto.request.StartGameChapterRequsetDto;
-import com.h5.game.dto.request.StartGameStageRequestDto;
+import com.h5.game.dto.request.*;
 import com.h5.game.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,5 +34,10 @@ public class GameController {
     @PostMapping("/save-log")
     public ResponseEntity<?> saveGameLog(@RequestBody SaveGameLogRequestDto saveGameLogRequestDto) {
         return ResponseEntity.ok(gameService.saveGameLog(saveGameLogRequestDto));
+    }
+
+    @PostMapping("/update-child-stage")
+    public ResponseEntity<?> updateChildClearedStage(@RequestBody UpdateChildClearedStageRequestDto updateChildClearedStageRequestDto){
+        return ResponseEntity.ok(gameService.updateChildClearedStage(updateChildClearedStageRequestDto));
     }
 }
