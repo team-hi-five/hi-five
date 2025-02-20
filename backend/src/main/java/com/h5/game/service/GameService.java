@@ -1,9 +1,6 @@
 package com.h5.game.service;
 
-import com.h5.game.dto.request.EndGameChapterRequestDto;
-import com.h5.game.dto.request.SaveGameLogRequestDto;
-import com.h5.game.dto.request.StartGameChapterRequsetDto;
-import com.h5.game.dto.request.StartGameStageRequestDto;
+import com.h5.game.dto.request.*;
 import com.h5.game.dto.response.EndGameChapterResponseDto;
 import com.h5.game.dto.response.SaveGameLogResponseDto;
 import com.h5.game.dto.response.StartGameChapterResponseDto;
@@ -18,5 +15,7 @@ public interface GameService {
     EndGameChapterResponseDto endGameChapter(EndGameChapterRequestDto endGameChapterRequestDto);
 
     SaveGameLogResponseDto saveGameLog(SaveGameLogRequestDto saveGameLogRequestDto);
+
+    int updateChildClearedStage(UpdateChildClearedStageRequestDto updateChildClearedStageRequestDto);
 
 }
