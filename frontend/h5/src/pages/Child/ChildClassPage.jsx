@@ -11,7 +11,7 @@ import api from "../../api/api";
 import CounselorCamWithChild from "../../components/OpenviduSession/CounselorCamWithChild";
 import Webcam from "react-webcam";
 import {sendAlarm} from "../../api/alarm.jsx";
-import {chapter, endChapter, saveGameData, startChapter, startStage, updateChildStage} from "../../api/childGame";
+import {endChapter, saveGameData, startChapter, startStage, updateChildStage} from "../../api/childGame";
 import {TBL_TYPES, uploadFile} from "../../api/file";
 import { ProgressBar } from "primereact/progressbar";
 
@@ -43,8 +43,6 @@ function ChildClassPage() {
   const [subscriber, setSubscriber] = useState([]);
   const [, setPublisher] = useState(null);
   const OV = useRef(new OpenVidu());
-
-  const localPublisherStreamIdsRef = useRef([]);
   const [isStart, setIsStart] = useState(false);
   const recognitionRef = useRef(null);
   const analysisCanceledRef = useRef(false)
@@ -54,9 +52,6 @@ function ChildClassPage() {
   const [childGameStageId, setChildGameStageId] = useState(null);
   const [gameLogId, setGameLogId] = useState(null);
   const [gameVideoBlob, setGameVideoBlob] = useState(null);
-
-  const [webcamSession, setWebcamSession] = useState(null);
-  const [screenSession, setScreenSession] = useState(null);
 
 
   // --------------------------------------------------------- //
@@ -79,85 +74,37 @@ function ChildClassPage() {
   // --- 1. 세션 초기화 -------------------------
   const initializeSession = useCallback(async () => {
     try {
-      // OpenVidu 객체 초기화
-      const OVInstance1 = new OpenVidu(); // 웹캠 전용 세션
-      const OVInstance2 = new OpenVidu(); // 화면 공유 전용 세션
+      const sessionInstance = OV.current.initSession();
 
-      // 세션 객체 생성
-      const sessionInstance1 = OVInstance1.initSession();
-      const sessionInstance2 = OVInstance2.initSession();
-
-      // WebCam 스트림이 생성될 때의 이벤트 핸들러
-      sessionInstance1.on("streamCreated", (event) => {
-          if (localPublisherStreamIdsRef.current.includes(event.stream.streamId)) return;
-          const newSubscriber = sessionInstance1.subscribe(event.stream, undefined);
-          setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
-        });
-
-      sessionInstance2.on("streamCreated", (event) => {
-          if (localPublisherStreamIdsRef.current.includes(event.stream.streamId)) return;
-          const newSubscriber = sessionInstance2.subscribe(event.stream, undefined);
-          setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
-        });
-
-      // Screen Share 스트림이 생성될 때의 이벤트 핸들러
-      sessionInstance2.on("streamCreated", (event) => {
-        if (event.stream.connection.connectionId !== sessionInstance2.connection.connectionId) {
-          const subscriber = sessionInstance2.subscribe(event.stream, undefined);
-          setSubscriber((prevSubscribers) => [...prevSubscribers, subscriber]);
-        }
+      sessionInstance.on("streamCreated", (event) => {
+        const subscriber = sessionInstance.subscribe(event.stream, undefined);
+        setSubscriber(subscriber);
       });
 
-      sessionInstance2.on("streamDestroyed", () => {
-        setSubscriber((prevSubscribers) =>
-         prevSubscribers.filter((sub) => sub.stream.streamId !== event.stream.streamId));
+      sessionInstance.on('streamDestroyed', () => {
+        setSubscriber(null);  // null로 초기화
       });
 
-      // 두 개의 세션 토큰을 받아오기
-      const token1 = await getToken(); // 웹캠 송출용
-      const token2 = await getToken(); // 화면 공유 송출용
+      const token = await getToken();
+      // 토큰을 통해 세션과 스트림구독을 연결
+      await sessionInstance.connect(token);
 
-      // 세션에 연결
-      await sessionInstance1.connect(token1);
-      await sessionInstance2.connect(token2);
-
-      // 웹캠 퍼블리셔 생성
-      const webcamPublisher = OVInstance1.initPublisher(undefined, {
-        videoSource: undefined, // 기본 카메라
-        audioSource: undefined, // 마이크
+      // 화면 공유 퍼블리셔 생성 (child는 화면 공유만 OpenVidu로 publish)
+      const pub = OV.current.initPublisher(undefined, {
+        audioSource: undefined,
+        videoSource: "screen",
         publishAudio: true,
         publishVideo: true,
         mirror: true,
       });
 
-      // 화면 공유 퍼블리셔 생성
-      const screenSharePublisher = OVInstance2.initPublisher(undefined, {
-        videoSource: "screen",
-        audioSource: undefined,
-        publishAudio: true,
-        publishVideo: true,
-        mirror: false,
-      });
-
-      // 세션에 퍼블리셔 추가 (카메라 & 화면 공유)
-      await sessionInstance1.publish(webcamPublisher);
-      await sessionInstance2.publish(screenSharePublisher);
-
-      localPublisherStreamIdsRef.current = [
-        webcamPublisher.stream.streamId,
-        screenSharePublisher.stream.streamId,
-        ];
-
-      // 상태 업데이트
-      setWebcamSession(sessionInstance1);
-      setScreenSession(sessionInstance2);
-      setPublisher([webcamPublisher, screenSharePublisher]);
-
+      await sessionInstance.publish(pub);
+      setSession(sessionInstance);
+      setPublisher(pub);
     } catch (error) {
-      console.error("세션 초기화 오류:", error);
+      console.error('세션 초기화 오류:', error);
     }
   }, []);
-
 
   // --- 2. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {
@@ -421,18 +368,28 @@ function ChildClassPage() {
   // 정답 제출 모달 (Cycle 1,2)
   const showAfterSubmitModal = async () => {
     if (![1, 2].includes(analysisCycle)) return;
-
-
+  
+    // 영어 감정 값을 한글로 매핑하는 객체
+    const faceResultMap = {
+      happy: "행복",
+      sad: "슬픔",
+      angry: "화남",
+      fearful: "공포",
+      surprised: "놀람"
+    };
+  
+    // faceResult를 한글로 변환 (매핑이 없으면 원본 값 사용)
+    const displayFaceResult = faceResultMap[faceResult] || faceResult;
+  
     showSwalModal({
-      title: "분석 결과예요!",
+      title: "현재 감정이의 표현은?",
       html: `
-      <p>표정 분석: ${faceResult}</p>
-      <p>음성 인식: ${voiceResult}</p>
-    `,
+        <h4>표정: ${displayFaceResult}</h4>
+        <h4>목소리: ${voiceResult}</h4>
+      `,
     }).then(async () => {
-      // Cycle 1: 정답 여부에 따라 다음 단계 분기, Cycle 2: 바로 연습 모달로 진행
       if (analysisCycle === 1) {
-        if (faceResult.includes("정답") && voiceResult.includes("정답")) {
+        if (faceResult.includes("좋아요") && voiceResult.includes("좋아요")) {
           showBeforeSubmitModal(3);
         } else {
           showBeforeSubmitModal(2);
@@ -442,11 +399,14 @@ function ChildClassPage() {
       }
     });
   };
+  
+
+
 
   // Cycle 3: 표정 분석 결과 후 음성 연습 안내
   const showFacePracticeModal = () => {
     showSwalModal({
-      title: "표정 분석 결과",
+      title: "감정이의 표정",
       html: `<p>${faceResult}</p>`,
     }).then(() => {
       showSwalModal({
@@ -463,7 +423,7 @@ function ChildClassPage() {
   // Cycle 4: 음성 분석 결과 모달 (추가 동작 필요 시 확장)
   const showVoicePracticeModal = () => {
     showSwalModal({
-      title: "음성 분석 결과",
+      title: "감정이의 목소리",
       html: `<p>${voiceResult}</p>`,
     }).then(() => {
       setAnalysisCycle(5); // 카드 보상 단계로 전환
@@ -553,6 +513,7 @@ function ChildClassPage() {
         text: "모든 단원을 완료했어요!",
       });
       await sendEndChapter();
+      await sendUpdateChildStage();
     } else {
       await showSwalModal({
         title: "정말 잘했어요!",
@@ -645,11 +606,22 @@ function ChildClassPage() {
         const bestEmotion = candidateAverages[0].emotion;
         const expectedEmotions = ["happy", "sad", "angry", "fearful", "surprised"];
         const expectedEmotion = expectedEmotions[currentVideoIndex] || "없음";
+        const emotionMap = {
+          happy: "행복",
+          sad: "슬픔",
+          angry: "화남",
+          fearful: "공포",
+          surprised: "놀람"
+        };
+        
+        const displayExpectedEmotion = emotionMap[expectedEmotion] || expectedEmotion;
+        
         const resultMsg =
-            bestEmotion === expectedEmotion
-                ? `정답입니다! 표정 분석 결과: ${bestEmotion}`
-                : `오답입니다! 표정 분석 결과: ${bestEmotion} (예상: ${expectedEmotion})`;
+          bestEmotion === expectedEmotion
+            ? `표현력이 좋아요!`
+            : `아쉬워요! 정답은 "${displayExpectedEmotion}" 이에요!`;
         resolve(resultMsg);
+        
       }, 9000);
     });
 
@@ -688,8 +660,8 @@ function ChildClassPage() {
         const bestOptionIndex = bestMatch.bestMatchIndex;
         const voiceMsg =
             bestOptionIndex === currentGameData.answer - 1
-                ? `정답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`
-                : `오답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`;
+                ? `표현력이 좋아요!`
+                : `아쉬워요! 정답은 ${optionsArray[currentGameData.answer-1]}이에요!`;
         resolve(voiceMsg);
       };
 
@@ -753,11 +725,22 @@ function ChildClassPage() {
         const bestEmotion = candidateAverages[0].emotion;
         const expectedEmotions = ["happy", "sad", "angry", "fearful", "surprised"];
         const expectedEmotion = expectedEmotions[currentVideoIndex] || "없음";
+        const emotionMap = {
+          happy: "행복",
+          sad: "슬픔",
+          angry: "화남",
+          fearful: "공포",
+          surprised: "놀람"
+        };
+        
+        const displayExpectedEmotion = emotionMap[expectedEmotion] || expectedEmotion;
+        
         const resultMsg =
-            bestEmotion === expectedEmotion
-                ? `정답입니다! 표정 분석 결과: ${bestEmotion}`
-                : `오답입니다! 표정 분석 결과: ${bestEmotion} (예상: ${expectedEmotion})`;
+          bestEmotion === expectedEmotion
+            ? `표현력이 좋아요!`
+            : `아쉬워요! 정답은 "${displayExpectedEmotion}" 이에요!`;
         resolve(resultMsg);
+        
       }, 9000);
     });
     setFaceResult(faceMsg);
@@ -809,8 +792,8 @@ function ChildClassPage() {
         const bestOptionIndex = bestMatch.bestMatchIndex;
         const resultMsg =
             bestOptionIndex === currentGameData.answer - 1
-                ? `정답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`
-                : `오답입니다! 선택한 옵션은 ${optionsArray[bestOptionIndex]}입니다.`;
+            ? `표현력이 좋아요!`
+            : `아쉬워요! 정답은 ${optionsArray[currentGameData.answer-1]}이에요!`;
         resolve(resultMsg);
       };
       recognition.onerror = (event) => {
@@ -959,7 +942,6 @@ function ChildClassPage() {
             nextChapter();
             break;
           case "end-chapter":
-            sendUpdateChildStage();
             if (session) {
               session.disconnect();
             }
@@ -1076,7 +1058,8 @@ function ChildClassPage() {
   const sendUpdateChildStage = async () => {
     try{
       const updateChildStageData = {
-        chapter: chapter,
+        childId: Number(childId),
+        chapter: currentGameData?.chapterId,
         stage: Number(5),
       }
       const response = await updateChildStage(updateChildStageData);
@@ -1141,73 +1124,73 @@ function ChildClassPage() {
                   {currentGameData.gameStageId}단원
                 </h2>
                 <h3>{currentGameData.situation}</h3>
-                <video
-                  ref={videoRef}
-                  src={currentGameData.gameVideo}
-                  className="ch-gameVideo"
-                  autoPlay
-                  onEnded={() => {
-                    sendStartStage();
-                    handleVideoEnd();
-                  }}
-                />
-                {/* ProgressBar는 기존 스타일 유지 */}
-                <ProgressBar
-                  className="ch-review-progressbar"
-                  value={(currentVideoIndex + 1) * 20}
-                  style={{
-                    width: "80%",
-                    height: "15px",
-                    margin: "0 auto",
-                    marginTop: "20px",
-                  }}
-                />
-
-                {/* 분석 중 메시지 */}
-                {phase === "analysis" && (
-                  <Card className="ch-learning-message-screen">
-                    <div className="learning-message">
-                      <h3>분석 중입니다...</h3>
-                    </div>
-                  </Card>
-                )}
-
-                {/* 선택지 버튼 영역 - 원본 스타일 유지 */}
-                <div className="ch-game-button">
-                  {currentGameData.optionImages?.length > 0 &&
-                    currentGameData.options?.length > 0 && (
-                      <div className="option-images">
-                        {currentGameData.optionImages.map((imgSrc, index) => (
-                          <div key={index} className="option-item">
-                            <h2 className="ch-options-number">
-                              {["①", "②", "③"][index]}
-                            </h2>
-                            <img
-                              src={imgSrc}
-                              alt={`option ${index + 1}`}
-                              className="option-image"
-                            />
-                            <p className={`ch-option-text ${
-                              analysisCycle < 3
-                                ? index + 1 === currentGameData.answer
-                                  ? "ch-learning-before-answer"
-                                  : ""
-                                : index + 1 === currentGameData.answer
-                                  ? "ch-learning-correct-answer"
-                                  : ""
-                            }`}>
-                              {currentGameData.options[index]}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                </div>
               </>
             )}
+            <video
+              ref={videoRef}
+              src={currentGameData ? currentGameData.gameVideo : ""}
+              className="ch-gameVideo"
+              onEnded={() => {
+                sendStartStage();
+                handleVideoEnd();
+              }}
+            />
+            
+            {/* ProgressBar 유지 */}
+            <ProgressBar
+              className="ch-review-progressbar"
+              value={(currentVideoIndex + 1) * 20}
+              style={{
+                width: "80%",
+                height: "15px",
+                margin: "0 auto",
+                marginTop: "20px",
+              }}
+            />
+  
+            {/* 분석 메시지 화면 */}
+            {phase === "analysis" && (
+              <Card className="ch-learning-message-screen">
+                <div className="learning-message">
+                  <h3>분석 중입니다...</h3>
+                </div>
+              </Card>
+            )}
+  
+            {/* 선택지 버튼 영역 - 원본 스타일 유지 */}
+            <div className="ch-game-button">
+              {currentGameData?.optionImages?.length > 0 &&
+                currentGameData?.options?.length > 0 && (
+                  <div className="option-images">
+                    {currentGameData.optionImages.map((imgSrc, index) => (
+                      <div key={index} className="option-item">
+                        <h2 className="ch-options-number">
+                          {["①", "②", "③"][index]}
+                        </h2>
+                        <img
+                          src={imgSrc}
+                          alt={`option ${index + 1}`}
+                          className="option-image"
+                        />
+                        <p className={`ch-option-text ${
+                          analysisCycle < 3
+                            ? index + 1 === currentGameData?.answer
+                              ? "ch-learning-before-answer"
+                              : ""
+                            : index + 1 === currentGameData?.answer
+                              ? "ch-learning-correct-answer"
+                              : ""
+                        }`}>
+                          {currentGameData.options[index]}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+              )}
+            </div>
           </Card>
         </div>
-
+  
         {/* 오른쪽: 웹캠 및 상담가 화면 영역 */}
         <div className="ch-review-game-right">
           <div className="ch-game-face-screen">
@@ -1216,9 +1199,9 @@ function ChildClassPage() {
                 audio={true}
                 ref={webcamRef}
                 videoConstraints={{
-                  width: 500,
-                  height: 310,
-                  facingMode: "user"
+                  width: 320,
+                  height: 240,
+                  facingMode: "user",
                 }}
                 style={{
                   backgroundColor: "#000",
@@ -1236,9 +1219,9 @@ function ChildClassPage() {
                 <img src="/child/button-left.png" alt="button-left" />
               </div>
               <Card className="ch-game-counselor-screen">
-                <CounselorCamWithChild
-                  session={webcamSession}
-                  subscriber={subscriber[0]}
+                <CounselorCamWithChild 
+                  session={session} 
+                  subscriber={subscriber} 
                   mode="subscribe"
                 />
               </Card>
