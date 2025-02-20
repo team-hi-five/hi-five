@@ -14,19 +14,19 @@ import java.util.Set;
 
 @Repository
 public interface ChildUserRepository extends JpaRepository<ChildUserEntity, Integer> {
-    Optional<List<ChildUserEntity>> findByConsultantUserEntity_IdAndDeleteDttmIsNotNull(Integer consultantUserEntityId);
+    Optional<List<ChildUserEntity>> findByConsultantUserEntity_IdAndDeleteDttmIsNull(Integer consultantUserEntityId);
 
-    Optional<ChildUserEntity> findByIdAndConsultantUserEntity_IdAndDeleteDttmIsNotNull(int childUserId, int consultantId);
+    Optional<ChildUserEntity> findByIdAndConsultantUserEntity_IdAndDeleteDttmIsNull(int childUserId, int consultantId);
 
-    Optional<List<ChildUserEntity>> findByParentUserEntity_IdAndDeleteDttmIsNotNull(Integer parentUserEntityId);
+    Optional<List<ChildUserEntity>> findByParentUserEntity_IdAndDeleteDttmIsNull(Integer parentUserEntityId);
 
     @Modifying
     @Query("UPDATE ChildUserEntity c SET c.deleteDttm = :deleteDttm WHERE c.id IN :ids")
     void updateDeleteDttmForChildUsers(@Param("ids") Set<Integer> ids, @Param("deleteDttm") String deleteDttm);
 
-    Optional<ChildUserEntity> findNameByIdAndDeleteDttmIsNotNull(Integer childUserId);
+    Optional<ChildUserEntity> findNameByIdAndDeleteDttmIsNull(Integer childUserId);
 
-    Optional<List<ChildUserEntity>> findAllByParentUserEntity_IdAndDeleteDttmIsNotNull(Integer parentUserId);
+    Optional<List<ChildUserEntity>> findAllByParentUserEntity_IdAndDeleteDttmIsNull(Integer parentUserId);
 
-    Optional<List<ChildUserEntity>> findALlByNameAndDeleteDttmIsNotNull(@NotNull String name);
+    Optional<List<ChildUserEntity>> findALlByNameAndDeleteDttmIsNull(@NotNull String name);
 }

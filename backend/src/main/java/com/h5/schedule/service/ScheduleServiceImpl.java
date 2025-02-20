@@ -388,7 +388,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         int year = scheduleSearchByParentRequestDto.getYear();
         int month = scheduleSearchByParentRequestDto.getMonth();
 
-        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNotNull(parentUserId)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNull(parentUserId)
                 .orElseThrow(UserNotFoundException::new);
         List<Integer> childUserIds = childUserEntities.stream().map(ChildUserEntity::getId).toList();
 
@@ -450,7 +450,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElseThrow(UserNotFoundException::new)
                 .getId();
 
-        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNotNull(parentUserId)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNull(parentUserId)
                 .orElseThrow(UserNotFoundException::new);
         List<Integer> childUserIds = childUserEntities.stream().map(ChildUserEntity::getId).toList();
 
