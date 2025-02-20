@@ -51,3 +51,30 @@ export const getVideoDate = async (childUserId, year, month) => {
   }
 };
 
+export const getVideoCount = async (id, date, stId) => {
+  try {
+    // 전달받은 date에 1일을 더함
+    const adjustedDate = addOneDay(date);
+    console.log("✅ 비디오 개수 불러오기 날짜 :", adjustedDate);
+    const response = await api.get("/statistic/get-videos-length", {
+      params: { childUserId: Number(id), date: adjustedDate, stageId: Number(stId) },
+    });
+    console.log("✅ 비디오 개수 성공:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "❌ 비디오 개수 조회 실패:",
+      error.response ? error.response.data : error.message
+    );
+    throw error;
+  }
+};
+
+const addOneDay = (dateString) => {
+  const dateObj = new Date(dateString);
+  dateObj.setDate(dateObj.getDate() + 1);
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
