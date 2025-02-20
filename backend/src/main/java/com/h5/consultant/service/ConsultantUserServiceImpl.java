@@ -256,7 +256,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     @Transactional
     @Override
     public List<SearchChildResponseDto> searchChild(String childUserName) {
-        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByNameAndDeleteDttmIsNull(childUserName)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByNameContainingAndDeleteDttmIsNull(childUserName)
                 .orElseThrow(UserNotFoundException::new);
 
         return childUserEntities.stream()
