@@ -196,6 +196,7 @@ public class QnaServiceImpl implements QnaService {
                 .name(qnaEntity.getParentUser().getName())
                 .createDttm(qnaEntity.getCreateDttm().toString())
                 .answerCnt(qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId()))
+                .DeleteDttm(qnaEntity.getDeleteDttm().toString())
                 .qnaAnswerResponseList(qnaAnswerResponseList)
                 .build();
     }

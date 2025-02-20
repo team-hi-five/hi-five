@@ -86,3 +86,14 @@ export const endChapter = async(chapterEndData)=>{
   }
 }
 
+export const updateChildStage = async(updateChildStageData) => {
+  try{
+    const response = await api.post("/game/update-child-stage", updateChildStageData);
+    return response.data;
+  }catch(error){
+    console.error("아동 최종 학습 게임 스테이지 갱신 실패" ,
+        error.response ? error.response.data : error.message)
+    throw error;
+  }
+}
+

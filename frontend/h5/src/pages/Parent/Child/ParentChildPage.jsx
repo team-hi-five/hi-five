@@ -68,12 +68,14 @@ function ParentChildPage() {
 
       출력 형식 (예시):
       <p>
-        현재 아이는 <strong>놀라움</strong>이나 <strong>두려움</strong> 관련 단어들을 조금 어려워하는 경향이 있습니다.
+        현재 아이는 <strong>행복</strong> 감정은 잘 이해하고 있으나, <strong>놀라움</strong>이나 <strong>두려움</strong>과 같이 감정의 미묘한 뉘앙스를 전달하는 단어들을 이해하는 데 어려움을 보입니다. 이러한 감정을 좀 더 깊이 공부하면 좋을 것 같습니다.
       </p>
-      <p>
-        <strong>주 감정:</strong> 기쁨 <br />
-        <strong>보완 감정:</strong> 분노
-      </p>
+      <div className="bar">
+        <p>
+          <strong>주 감정:</strong> 기쁨<br>
+          <strong>보완 감정:</strong> 분노
+        </p>
+      </div>
     `;
 
     try {
@@ -496,11 +498,11 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
             {
               label: "성공 횟수",
               data: [
-                emotionData["1"].stageCrtCnt1,
-                emotionData["2"].stageCrtCnt1,
-                emotionData["3"].stageCrtCnt1,
-                emotionData["4"].stageCrtCnt1,
-                emotionData["5"].stageCrtCnt1,
+                emotionData["1"].stageCrtRate1,
+                emotionData["2"].stageCrtRate1,
+                emotionData["3"].stageCrtRate1,
+                emotionData["4"].stageCrtRate1,
+                emotionData["5"].stageCrtRate1,
               ],
               backgroundColor: ["#7DA1FF", "#FF7A7A", "#3C72E3", "#FFB85F", "#7A7AFF"],
               borderRadius: 5,
@@ -515,11 +517,11 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
             {
               label: "성공 횟수",
               data: [
-                emotionData["1"].stageCrtCnt2,
-                emotionData["2"].stageCrtCnt2,
-                emotionData["3"].stageCrtCnt2,
-                emotionData["4"].stageCrtCnt2,
-                emotionData["5"].stageCrtCnt2,
+                emotionData["1"].stageCrtRate2,
+                emotionData["2"].stageCrtRate2,
+                emotionData["3"].stageCrtRate2,
+                emotionData["4"].stageCrtRate2,
+                emotionData["5"].stageCrtRate2,
               ],
               backgroundColor: ["#7DA1FF", "#FF7A7A", "#3C72E3", "#FFB85F", "#7A7AFF"],
               borderRadius: 5,
@@ -534,11 +536,11 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
             {
               label: "성공 횟수",
               data: [
-                emotionData["1"].stageCrtCnt3,
-                emotionData["2"].stageCrtCnt3,
-                emotionData["3"].stageCrtCnt3,
-                emotionData["4"].stageCrtCnt3,
-                emotionData["5"].stageCrtCnt3,
+                emotionData["1"].stageCrtRate3,
+                emotionData["2"].stageCrtRate3,
+                emotionData["3"].stageCrtRate3,
+                emotionData["4"].stageCrtRate3,
+                emotionData["5"].stageCrtRate3,
               ],
               backgroundColor: ["#7DA1FF", "#FF7A7A", "#3C72E3", "#FFB85F", "#7A7AFF"],
               borderRadius: 5,
@@ -553,11 +555,11 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
             {
               label: "성공 횟수",
               data: [
-                emotionData["1"].stageCrtCnt4,
-                emotionData["2"].stageCrtCnt4,
-                emotionData["3"].stageCrtCnt4,
-                emotionData["4"].stageCrtCnt4,
-                emotionData["5"].stageCrtCnt4,
+                emotionData["1"].stageCrtRate4,
+                emotionData["2"].stageCrtRate4,
+                emotionData["3"].stageCrtRate4,
+                emotionData["4"].stageCrtRate4,
+                emotionData["5"].stageCrtRate4,
               ],
               backgroundColor: ["#7DA1FF", "#FF7A7A", "#3C72E3", "#FFB85F", "#7A7AFF"],
               borderRadius: 5,
@@ -572,11 +574,11 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
             {
               label: "성공 횟수",
               data: [
-                emotionData["1"].stageCrtCnt5,
-                emotionData["2"].stageCrtCnt5,
-                emotionData["3"].stageCrtCnt5,
-                emotionData["4"].stageCrtCnt5,
-                emotionData["5"].stageCrtCnt5,
+                emotionData["1"].stageCrtRate5,
+                emotionData["2"].stageCrtRate5,
+                emotionData["3"].stageCrtRate5,
+                emotionData["4"].stageCrtRate5,
+                emotionData["5"].stageCrtRate5,
               ],
               backgroundColor: ["#7DA1FF", "#FF7A7A", "#3C72E3", "#FFB85F", "#7A7AFF"],
               borderRadius: 5,
