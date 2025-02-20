@@ -50,7 +50,7 @@ export const searchNotices = async (keyword, searchType = 'title', pageNumber = 
     try {
         // 필수값 검증
         if (!keyword) {
-            throw new Error("검색 키워드는 필수 입력값입니다.");
+            keyword="";
         }
 
         // 검색 타입 검증
@@ -93,6 +93,10 @@ export const getNoticeDetail = async (noticeId) => {
         console.log("📢 공지사항 상세 조회 요청:", { noticeId });
 
         const response = await api.get(`/notice/${noticeId}`);
+        console.log("sadGSDFGDIOFSAAHUI 글", response.data);
+        if(!response.data || response.data.deleteDttm === null ) {
+            console.log("삭제된 글")
+        }
 
         console.log("✅ 공지사항 상세 조회 성공:", response.data);
         return response.data;

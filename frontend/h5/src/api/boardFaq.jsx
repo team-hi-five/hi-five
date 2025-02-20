@@ -50,7 +50,7 @@ export const searchFaqs = async (keyword, searchType = 'title', pageNumber = 0, 
     try {
         // 필수값 검증
         if (!keyword) {
-            throw new Error("검색 키워드는 필수 입력값입니다.");
+            keyword= "";
         }
 
         // 검색 타입 검증
