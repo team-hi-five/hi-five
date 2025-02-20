@@ -68,12 +68,14 @@ function ParentChildPage() {
 
       출력 형식 (예시):
       <p>
-        현재 아이는 <strong>놀라움</strong>이나 <strong>두려움</strong> 관련 단어들을 조금 어려워하는 경향이 있습니다.
+        현재 아이는 <strong>행복</strong> 감정은 잘 이해하고 있으나, <strong>놀라움</strong>이나 <strong>두려움</strong>과 같이 감정의 미묘한 뉘앙스를 전달하는 단어들을 이해하는 데 어려움을 보입니다. 이러한 감정을 좀 더 깊이 공부하면 좋을 것 같습니다.
       </p>
-      <p>
-        <strong>주 감정:</strong> 기쁨 <br />
-        <strong>보완 감정:</strong> 분노
-      </p>
+      <div className="bar">
+        <p>
+          <strong>주 감정:</strong> 기쁨<br>
+          <strong>보완 감정:</strong> 분노
+        </p>
+      </div>
     `;
 
     try {
