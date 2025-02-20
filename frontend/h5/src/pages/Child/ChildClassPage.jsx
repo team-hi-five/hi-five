@@ -52,6 +52,9 @@ function ChildClassPage() {
   const [gameLogId, setGameLogId] = useState(null);
   const [gameVideoBlob, setGameVideoBlob] = useState(null);
 
+  const [webcamSession, setWebcamSession] = useState(null);
+  const [screenSession, setScreenSession] = useState(null);
+
 
   // --------------------------------------------------------- //
   // 페이지 마운트 및 세션 초기화, 게임 에셋, AI 모델 로드            //
@@ -83,22 +86,30 @@ function ChildClassPage() {
 
       // WebCam 스트림이 생성될 때의 이벤트 핸들러
       sessionInstance1.on("streamCreated", (event) => {
-        const subscriber = sessionInstance1.subscribe(event.stream, undefined);
-        setSubscriber(subscriber);
+        if (event.stream.connection.connectionId !== sessionInstance1.connection.connectionId) {
+          const newSubscriber = sessionInstance1.subscribe(event.stream, undefined);
+          setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
+        }
       });
 
-      sessionInstance1.on("streamDestroyed", () => {
-        setSubscriber(null);
+      sessionInstance2.on("streamCreated", (event) => {
+        if (event.stream.connection.connectionId !== sessionInstance2.connection.connectionId) {
+             const newSubscriber = sessionInstance2.subscribe(event.stream, undefined);
+             setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
+        }
       });
 
       // Screen Share 스트림이 생성될 때의 이벤트 핸들러
       sessionInstance2.on("streamCreated", (event) => {
-        const subscriber = sessionInstance2.subscribe(event.stream, undefined);
-        setSubscriber((prevSubscribers) => [...prevSubscribers, subscriber]);
+        if (event.stream.connection.connectionId !== sessionInstance2.connection.connectionId) {
+          const subscriber = sessionInstance2.subscribe(event.stream, undefined);
+          setSubscriber((prevSubscribers) => [...prevSubscribers, subscriber]);
+        }
       });
 
       sessionInstance2.on("streamDestroyed", () => {
-        setSubscriber(null);
+        setSubscriber((prevSubscribers) =>
+         prevSubscribers.filter((sub) => sub.stream.streamId !== event.stream.streamId));
       });
 
       // 두 개의 세션 토큰을 받아오기
@@ -132,7 +143,8 @@ function ChildClassPage() {
       await sessionInstance2.publish(screenSharePublisher);
 
       // 상태 업데이트
-      setSession([sessionInstance1, sessionInstance2]);
+      setWebcamSession(sessionInstance1);
+      setScreenSession(sessionInstance2);
       setPublisher([webcamPublisher, screenSharePublisher]);
 
     } catch (error) {
@@ -1196,8 +1208,13 @@ function ChildClassPage() {
 
               {/* 오른쪽 아래: 상담사 웹캠 (OpenVidu 구독) */}
               <Card className="ch-learning-counselor-screen">
-                <CounselorCamWithChild session={session} subscriber={subscriber} mode="subscribe" />
+                <CounselorCamWithChild
+                    session={webcamSession}
+                    subscriber={subscriber[0]}
+                    mode="subscribe"
+                />
               </Card>
+
 
               <div className="ch-learning-button-right">
                 <img src="/child/button-right.png" alt="button-right"  />
