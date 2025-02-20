@@ -1022,6 +1022,7 @@ function ChildClassPage() {
   const sendUpdateChildStage = async () => {
     try{
       const updateChildStageData = {
+        childId: Number(childId),
         chapter: childGameChapterId,
         stage: Number(5),
       }
