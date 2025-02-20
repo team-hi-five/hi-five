@@ -14,7 +14,11 @@ function ParentVideoMultiplePage() {
   const childUserId = params.get('childUserId') || "";
   const getInitialDate = (paramName) => {
     const dateStr = params.get(paramName); // "YYYY-MM-DD"
-    return dateStr ? new Date(dateStr) : new Date();
+    if (dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      return new Date(year, month - 1, day); // 로컬 타임존 기준으로 생성
+    }
+    return new Date();
   };
 
   // 두 달력의 선택된 날짜 (왼쪽: dateVideo1, 오른쪽: dateVideo2)
@@ -210,6 +214,7 @@ function ParentVideoMultiplePage() {
                     }}
                     className="simple-calendar"
                     placeholder="날짜를 선택하세요"
+                    dateFormat="yy년/mm월/dd일"
                   />
                 </div>
               </div>
