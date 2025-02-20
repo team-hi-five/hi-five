@@ -59,7 +59,7 @@ public class StatisticServiceImpl implements StatisticService {
 
             DataAnalysisResponseDto dataAnalysisRequestDto = DataAnalysisResponseDto.builder()
                     .childUserId(childUserId)
-                    .childName(childUserRepository.findNameById(childUserId)
+                    .childName(childUserRepository.findNameByIdAndDeleteDttmIsNotNull(childUserId)
                             .orElseThrow(UserNotFoundException::new)
                             .getName())
                     .emotionId(emotionEntityId)
