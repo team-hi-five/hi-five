@@ -89,7 +89,7 @@ public class ParentUserServiceImpl implements ParentUserService {
     }
 
     private List<MyChildInfo> buildMyChildInfos(int parentId) {
-        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentId)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNotNull(parentId)
                 .orElseThrow(UserNotFoundException::new);
 
         List<MyChildInfo> myChildInfos = new ArrayList<>();
@@ -164,7 +164,7 @@ public class ParentUserServiceImpl implements ParentUserService {
         String parentEmail = authentication.getName();
 
         ParentUserEntity parentUserEntity = findParentByEmail(parentEmail);
-        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_Id(parentUserEntity.getId())
+        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_IdAndDeleteDttmIsNotNull(parentUserEntity.getId())
                 .orElseThrow(UserNotFoundException::new);
 
         return myChildren.stream()
