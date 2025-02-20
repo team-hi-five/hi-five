@@ -1,5 +1,6 @@
 body {
   background: linear-gradient(to bottom, #def0ff, #ffffff 100%); /* 원하는 색상 */
+  scroll-behavior: smooth;
 }
 
 .ch-card-main-container {
@@ -29,6 +30,6 @@ body {
   width: fit-content;
   height: 100%;
   gap: 2rem;
-  padding: 1rem 15rem 0rem 13rem;
+  padding: 1rem 15rem 0rem 9rem;
   overflow-x: auto;
 }
