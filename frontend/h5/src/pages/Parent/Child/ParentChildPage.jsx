@@ -457,7 +457,7 @@ const fetchChatBotDate = useCallback(async (selectedDate) => {
     labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
     datasets: [
       {
-        label: "성공 횟수",
+        label: "종합 점수",
         data: emotionData
           ? [emotionData["1"].rating, emotionData["2"].rating, emotionData["3"].rating, emotionData["4"].rating, emotionData["5"].rating]
           : [0, 0, 0, 0, 0], // 데이터 없을 경우 기본값 설정

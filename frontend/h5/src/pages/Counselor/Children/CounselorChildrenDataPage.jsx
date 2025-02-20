@@ -370,7 +370,7 @@ function CounselorChildrenDataPage() {
                     labels: ["기쁨", "슬픔", "화남", "공포", "놀람"],
                     datasets: [
                       {
-                        label: "성공 횟수",
+                        label: "종합 점수",
                         data: emotionData
                           ? [
                               emotionData["1"].rating,
