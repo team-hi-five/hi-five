@@ -140,9 +140,12 @@ public class GameServiceImpl implements GameService {
 
         ChildUserEntity childUserEntity = childUserRepository.findById(childId)
                 .orElseThrow(UserNotFoundException::new);
+        int nowCleared = childUserEntity.getClearChapter();
 
         int cleared = (chapter-1)*5 + stage;
-
+        if(nowCleared >= cleared) {
+            return 0;
+        }
         childUserEntity.setClearChapter(cleared);
         childUserRepository.save(childUserEntity);
 
