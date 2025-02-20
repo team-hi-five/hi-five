@@ -499,6 +499,7 @@ function ChildClassPage() {
         text: "모든 단원을 완료했어요!",
       });
       await sendEndChapter();
+      await sendUpdateChildStage();
     } else {
       await showSwalModal({
         title: "정말 잘했어요!",
