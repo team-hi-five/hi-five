@@ -50,7 +50,6 @@ function CardDetailsLayout({ emotion, filteredCards, emotionType }) {
             <div className="ch-card-details-content">
                 <div className="ch-big-main-character">
                     <img src={emotion.image} alt={emotion.name} />
-                    <div>{emotion.name}</div>
                 </div>
 
                 {/* ✅ 마우스 오버로 카드가 반대로 회전했다가 원래대로 돌아옴 */}
