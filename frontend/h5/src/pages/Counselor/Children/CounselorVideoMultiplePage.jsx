@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Calendar } from 'primereact/calendar';
 import { Dropdown } from 'primereact/dropdown';
 import { useLocation } from 'react-router-dom';
-import { getVideoDate } from "/src/api/childData";
+import { getVideoDate, getVideoCount } from "/src/api/childData";
+import { getFileUrl } from "/src/api/file";
 import "/src/pages/Parent/ParentCss/ParentVideoMultiplePage.css";
 
 function CounselorVideoMultiplePage() {
@@ -27,19 +28,24 @@ function CounselorVideoMultiplePage() {
   // API 호출 결과를 저장할 상태 (각 달력에 해당하는 "YYYY-MM-DD" 형식의 문자열 배열)
   const [videoDates1, setVideoDates1] = useState([]);
   const [videoDates2, setVideoDates2] = useState([]);
+  // 각 달력(왼쪽, 오른쪽) 영상 옵션을 저장할 state
+  const [videoOptions1, setVideoOptions1] = useState([]);
+  const [videoOptions2, setVideoOptions2] = useState([]);
+  // 선택한 회차에 해당하는 파일 URL을 저장할 state (각각 왼쪽, 오른쪽)
+  const [videoUrls, setVideoUrls] = useState([null, null]);
+
+  // tryIndex에 따른 label 생성 헬퍼 함수
+  const getLabel = (tryIndex) => {
+    const labels = ["첫번째 시도", "두번째 시도", "세번째 시도"];
+    return labels[tryIndex] || `${tryIndex + 1}번째 시도`;
+  };
 
   const emotionOptions = [
-    { label: '기쁨', value: 'joy' },
-    { label: '슬픔', value: 'sadness' },
-    { label: '놀람', value: 'surprise' },
-    { label: '화남', value: 'anger' },
-    { label: '공포', value: 'fear' }
-  ];
-
-  const videoOptions = [
-    { label: '첫번째 영상', value: 'video1' },
-    { label: '두번째 영상', value: 'video2' },
-    { label: '세번째 영상', value: 'video3' }
+    { label: '기쁨', value: '1' },
+    { label: '슬픔', value: '2' },
+    { label: '놀람', value: '3' },
+    { label: '화남', value: '4' },
+    { label: '공포', value: '5' }
   ];
 
   // API에서 받은 데이터의 dateList를 "YYYY-MM-DD" 문자열 배열로 변환하는 함수
@@ -53,7 +59,6 @@ function CounselorVideoMultiplePage() {
   };
 
   // 달력 오버레이(팝업)에 highlight를 적용하는 함수
-  // ※ Calendar의 팝업은 appendTo={document.body} 때문에 document.body 내에서 찾습니다.
   const highlightDates = useCallback((baseDate, formattedDates) => {
     setTimeout(() => {
       const overlay = document.body.querySelector('.p-datepicker');
@@ -74,7 +79,7 @@ function CounselorVideoMultiplePage() {
     }, 100);
   }, []);
 
-  // 날짜 변경 또는 달이 바뀔 때 API를 호출해 날짜 데이터를 받아오고 highlight 적용
+  // 날짜 변경 또는 달이 바뀔 때 API를 호출해 날짜 데이터를 받아오고 highlight 적용 (왼쪽 달력)
   useEffect(() => {
     if (childUserId) {
       const year = dates[0].getFullYear();
@@ -83,7 +88,6 @@ function CounselorVideoMultiplePage() {
         .then(response => {
           const formatted = getFormattedDates(response);
           setVideoDates1(formatted);
-          // 오버레이가 열려 있다면 highlight 적용
           highlightDates(dates[0], formatted);
         })
         .catch(error => {
@@ -92,6 +96,7 @@ function CounselorVideoMultiplePage() {
     }
   }, [childUserId, dates, highlightDates]);
 
+  // 날짜 변경 또는 달이 바뀔 때 API를 호출해 날짜 데이터를 받아오고 highlight 적용 (오른쪽 달력)
   useEffect(() => {
     if (childUserId) {
       const year = dates[1].getFullYear();
@@ -108,6 +113,52 @@ function CounselorVideoMultiplePage() {
     }
   }, [childUserId, dates, highlightDates]);
 
+  // 왼쪽 달력에 대한 영상 옵션 업데이트
+  useEffect(() => {
+    if (childUserId && dates[0] && emotions[0]) {
+      const formattedDate = dates[0].toISOString().split("T")[0];
+      const stageId = emotions[0];
+      getVideoCount(childUserId, formattedDate, stageId)
+        .then((response) => {
+          const newOptions = response.map((item) => ({
+            label: getLabel(item.tryIndex),
+            value: item.gameLogId,
+          }));
+          if (newOptions.length === 0) {
+            setVideoOptions1([{ label: "데이터 없음", value: "" }]);
+          } else {
+            setVideoOptions1(newOptions);
+          }
+        })
+        .catch((error) => {
+          console.error("❌ 왼쪽 영상 개수 가져오기 실패:", error);
+        });
+    }
+  }, [childUserId, dates[0], emotions[0]]);
+
+  // 오른쪽 달력에 대한 영상 옵션 업데이트
+  useEffect(() => {
+    if (childUserId && dates[1] && emotions[1]) {
+      const formattedDate = dates[1].toISOString().split("T")[0];
+      const stageId = emotions[1];
+      getVideoCount(childUserId, formattedDate, stageId)
+        .then((response) => {
+          const newOptions = response.map((item) => ({
+            label: getLabel(item.tryIndex),
+            value: item.gameLogId,
+          }));
+          if (newOptions.length === 0) {
+            setVideoOptions2([{ label: "데이터 없음", value: "" }]);
+          } else {
+            setVideoOptions2(newOptions);
+          }
+        })
+        .catch((error) => {
+          console.error("❌ 오른쪽 영상 개수 가져오기 실패:", error);
+        });
+    }
+  }, [childUserId, dates[1], emotions[1]]);
+
   // onMonthChange 이벤트 핸들러: 달이 바뀌면 해당 달의 1일로 업데이트하고 API 재호출 + highlight 적용
   const handleMonthChange = (index, e) => {
     const { month, year } = e; // month: 0부터 시작 (0 = 1월)
@@ -116,7 +167,7 @@ function CounselorVideoMultiplePage() {
     newDates[index] = firstDayOfNewMonth;
     setDates(newDates);
 
-    // 새 달에 대해 API 호출 (API가 month 값을 1~12로 받으므로 month+1)
+    // 새 달에 대해 API 호출 (month+1: 1~12)
     getVideoDate(childUserId, year, month + 1)
       .then(response => {
         const formatted = getFormattedDates(response);
@@ -125,7 +176,6 @@ function CounselorVideoMultiplePage() {
         } else {
           setVideoDates2(formatted);
         }
-        // 달력 오버레이가 열려 있다면 highlight 적용
         highlightDates(firstDayOfNewMonth, formatted);
       })
       .catch(error => {
@@ -150,13 +200,11 @@ function CounselorVideoMultiplePage() {
                       newDates[index] = e.value;
                       setDates(newDates);
                     }}
-                    // 기본 헤더의 좌우 화살표 또는 드롭다운 선택 시 실행됨
                     onMonthChange={(e) => handleMonthChange(index, e)}
                     showMonthNavigator
                     showYearNavigator
                     appendTo={document.body}
                     onShow={() => {
-                      // 오버레이(팝업)가 열리면 해당 달의 날짜를 highlight 적용
                       const formatted = index === 0 ? videoDates1 : videoDates2;
                       highlightDates(dates[index], formatted);
                     }}
@@ -185,24 +233,51 @@ function CounselorVideoMultiplePage() {
                 <label>회차 선택</label>
                 <Dropdown
                   value={selectedVideos[index]}
-                  options={videoOptions}
+                  options={index === 0 ? videoOptions1 : videoOptions2}
                   onChange={(e) => {
                     const newVideos = [...selectedVideos];
                     newVideos[index] = e.value;
                     setSelectedVideos(newVideos);
+                    console.log(`선택한 회차 아이디 (${index}): ${e.value}`);
+                    // tblType은 "G"로 고정, tblId는 선택된 회차 아이디 (gameLogId)
+                    getFileUrl("G", Number(e.value))
+                      .then((data) => {
+                        const url = data.url || data;
+                        setVideoUrls(prev => {
+                          const updated = [...prev];
+                          updated[index] = url;
+                          return updated;
+                        });
+                        console.log(`회차 ${index}의 파일 URL:`, url);
+                      })
+                      .catch((error) => {
+                        console.error("파일 URL 조회 실패:", error);
+                      });
                   }}
-                  placeholder="회차"
+                  placeholder="회차 선택"
                   className="dropdown-input"
                 />
               </div>
-            </div>
-            
+            </div>            
             <div className="video-container-m">
-              <img 
-                src="/user.png" 
-                alt={`Video ${index + 1}`}
-                className="video-placeholder"
-              />
+              { videoUrls[index] ? (
+                <video 
+                src={videoUrls[index]} 
+                controls 
+                autoPlay 
+                style={{ 
+                  height: "100%", 
+                  width: "100%", 
+                  objectFit: "cover" 
+                }} 
+              />              
+              ) : (
+                <img 
+                  src="/noVideo.png" 
+                  alt={`Video ${index + 1}`} 
+                  className="video-placeholder" 
+                />
+              ) }
             </div>
           </div>
         ))}

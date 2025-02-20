@@ -42,6 +42,8 @@ function ChildClassPage() {
   const [subscriber, setSubscriber] = useState([]);
   const [, setPublisher] = useState(null);
   const OV = useRef(new OpenVidu());
+
+  const localPublisherStreamIdsRef = useRef([]);
   const [isStart, setIsStart] = useState(false);
   const recognitionRef = useRef(null);
   const analysisCanceledRef = useRef(false)
@@ -51,6 +53,9 @@ function ChildClassPage() {
   const [childGameStageId, setChildGameStageId] = useState(null);
   const [gameLogId, setGameLogId] = useState(null);
   const [gameVideoBlob, setGameVideoBlob] = useState(null);
+
+  const [webcamSession, setWebcamSession] = useState(null);
+  const [screenSession, setScreenSession] = useState(null);
 
 
   // --------------------------------------------------------- //
@@ -73,37 +78,85 @@ function ChildClassPage() {
   // --- 1. 세션 초기화 -------------------------
   const initializeSession = useCallback(async () => {
     try {
-      const sessionInstance = OV.current.initSession();
+      // OpenVidu 객체 초기화
+      const OVInstance1 = new OpenVidu(); // 웹캠 전용 세션
+      const OVInstance2 = new OpenVidu(); // 화면 공유 전용 세션
 
-      sessionInstance.on("streamCreated", (event) => {
-        const subscriber = sessionInstance.subscribe(event.stream, undefined);
-        setSubscriber(subscriber);
+      // 세션 객체 생성
+      const sessionInstance1 = OVInstance1.initSession();
+      const sessionInstance2 = OVInstance2.initSession();
+
+      // WebCam 스트림이 생성될 때의 이벤트 핸들러
+      sessionInstance1.on("streamCreated", (event) => {
+          if (localPublisherStreamIdsRef.current.includes(event.stream.streamId)) return;
+          const newSubscriber = sessionInstance1.subscribe(event.stream, undefined);
+          setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
+        });
+
+      sessionInstance2.on("streamCreated", (event) => {
+          if (localPublisherStreamIdsRef.current.includes(event.stream.streamId)) return;
+          const newSubscriber = sessionInstance2.subscribe(event.stream, undefined);
+          setSubscriber((prevSubscribers) => [...prevSubscribers, newSubscriber]);
+        });
+
+      // Screen Share 스트림이 생성될 때의 이벤트 핸들러
+      sessionInstance2.on("streamCreated", (event) => {
+        if (event.stream.connection.connectionId !== sessionInstance2.connection.connectionId) {
+          const subscriber = sessionInstance2.subscribe(event.stream, undefined);
+          setSubscriber((prevSubscribers) => [...prevSubscribers, subscriber]);
+        }
       });
 
-      sessionInstance.on('streamDestroyed', () => {
-        setSubscriber(null);  // null로 초기화
+      sessionInstance2.on("streamDestroyed", () => {
+        setSubscriber((prevSubscribers) =>
+         prevSubscribers.filter((sub) => sub.stream.streamId !== event.stream.streamId));
       });
 
-      const token = await getToken();
-      // 토큰을 통해 세션과 스트림구독을 연결
-      await sessionInstance.connect(token);
+      // 두 개의 세션 토큰을 받아오기
+      const token1 = await getToken(); // 웹캠 송출용
+      const token2 = await getToken(); // 화면 공유 송출용
 
-      // 화면 공유 퍼블리셔 생성 (child는 화면 공유만 OpenVidu로 publish)
-      const pub = OV.current.initPublisher(undefined, {
-        audioSource: undefined,
-        videoSource: "screen",
+      // 세션에 연결
+      await sessionInstance1.connect(token1);
+      await sessionInstance2.connect(token2);
+
+      // 웹캠 퍼블리셔 생성
+      const webcamPublisher = OVInstance1.initPublisher(undefined, {
+        videoSource: undefined, // 기본 카메라
+        audioSource: undefined, // 마이크
         publishAudio: true,
         publishVideo: true,
         mirror: true,
       });
 
-      await sessionInstance.publish(pub);
-      setSession(sessionInstance);
-      setPublisher(pub);
+      // 화면 공유 퍼블리셔 생성
+      const screenSharePublisher = OVInstance2.initPublisher(undefined, {
+        videoSource: "screen",
+        audioSource: undefined,
+        publishAudio: true,
+        publishVideo: true,
+        mirror: false,
+      });
+
+      // 세션에 퍼블리셔 추가 (카메라 & 화면 공유)
+      await sessionInstance1.publish(webcamPublisher);
+      await sessionInstance2.publish(screenSharePublisher);
+
+      localPublisherStreamIdsRef.current = [
+        webcamPublisher.stream.streamId,
+        screenSharePublisher.stream.streamId,
+        ];
+
+      // 상태 업데이트
+      setWebcamSession(sessionInstance1);
+      setScreenSession(sessionInstance2);
+      setPublisher([webcamPublisher, screenSharePublisher]);
+
     } catch (error) {
-      console.error('세션 초기화 오류:', error);
+      console.error("세션 초기화 오류:", error);
     }
   }, []);
+
 
   // --- 2. 컴포넌트 마운트 시 세션 초기화 -------------------------
   useEffect(() => {
@@ -1159,8 +1212,13 @@ function ChildClassPage() {
 
               {/* 오른쪽 아래: 상담사 웹캠 (OpenVidu 구독) */}
               <Card className="ch-learning-counselor-screen">
-                <CounselorCamWithChild session={session} subscriber={subscriber} mode="subscribe" />
+                <CounselorCamWithChild
+                    session={webcamSession}
+                    subscriber={subscriber[0]}
+                    mode="subscribe"
+                />
               </Card>
+
 
               <div className="ch-learning-button-right">
                 <img src="/child/button-right.png" alt="button-right"  />

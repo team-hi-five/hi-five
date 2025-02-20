@@ -1,5 +1,5 @@
 import api from "../../../api/api";
-import "./CounselorChildVideoCall.css";
+import "./CounselorChildVideoCall.css"
 import { useState, useEffect, useRef } from "react";
 import { OpenVidu } from "openvidu-browser";
 import { useSearchParams } from "react-router-dom";
@@ -12,14 +12,10 @@ import { PiRecordFill, PiRecord } from "react-icons/pi";
 function CounselorChildVideoCall() {
     const OV = useRef(new OpenVidu());
     const [session, setSession] = useState(null);
-
     // 상담사 자신의 영상 (publisher)
     const [publisher, setPublisher] = useState(null);
-
-    // 아동이 퍼블리시하는 스트림 (화면공유 / 카메라) 각각 구독
-    const [childCamSubscriber, setChildCamSubscriber] = useState(null);
+    // 아동의 화면 공유 스트림만 구독 (subscriber)
     const [screenSubscriber, setScreenSubscriber] = useState(null);
-
     const [searchParams] = useSearchParams();
     const type = searchParams.get("type");
     const childId = searchParams.get("childId");
@@ -30,36 +26,42 @@ function CounselorChildVideoCall() {
                 const sessionInstance = OV.current.initSession();
                 console.log("[CounselorChildVideoCall] 세션 초기화됨:", sessionInstance);
 
-                // 스트림 생성 시 (아동이 publish하는 모든 스트림)
                 sessionInstance.on("streamCreated", (event) => {
                     console.log("[CounselorChildVideoCall] streamCreated 이벤트 발생");
-                    console.log("event.stream.typeOfVideo:", event.stream.typeOfVideo);
+                    console.log("[CounselorChildVideoCall] event:", event);
+                    console.log("[CounselorChildVideoCall] event.stream:", event.stream);
+                    console.log(
+                        "[CounselorChildVideoCall] typeOfVideo:",
+                        event.stream.typeOfVideo
+                    );
 
-                    const newSubscriber = sessionInstance.subscribe(event.stream, undefined);
-
-                    // 아동이 보낸 스트림 분기
+                    // 오직 화면 공유 스트림만 구독 (아동 페이지에서 오직 화면 공유만 퍼블리싱하므로)
                     if (event.stream.typeOfVideo === "SCREEN") {
-                        console.log("[Counselor] 화면공유 스트림 구독");
-                        setScreenSubscriber(newSubscriber);
-                    } else if (event.stream.typeOfVideo === "CAMERA") {
-                        console.log("[Counselor] 카메라 스트림 구독");
-                        setChildCamSubscriber(newSubscriber);
-                    } else {
-                        // 혹은 "WEBRTC"로 표기될 수도 있음
-                        console.log("[Counselor] 다른 스트림 구독:", event.stream);
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 감지:",
+                            event.stream.streamId
+                        );
+                        const screenSub = sessionInstance.subscribe(event.stream, undefined);
+                        setScreenSubscriber(screenSub);
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 구독 완료:",
+                            screenSub
+                        );
                     }
                 });
 
                 sessionInstance.on("streamDestroyed", (event) => {
                     console.log("[CounselorChildVideoCall] streamDestroyed 이벤트 발생");
+                    console.log("[CounselorChildVideoCall] event:", event);
                     if (event.stream.typeOfVideo === "SCREEN") {
+                        console.log(
+                            "[CounselorChildVideoCall] 화면 공유 스트림 제거:",
+                            event.stream.streamId
+                        );
                         setScreenSubscriber(null);
-                    } else if (event.stream.typeOfVideo === "CAMERA") {
-                        setChildCamSubscriber(null);
                     }
                 });
 
-                // 세션 토큰 발급
                 const getToken = async () => {
                     try {
                         const response = await api.post("/session/join", { type, childId });
@@ -73,21 +75,19 @@ function CounselorChildVideoCall() {
 
                 const token = await getToken();
                 console.log("[CounselorChildVideoCall] 연결 토큰:", token);
-
-                // 세션 연결
                 await sessionInstance.connect(token);
-                console.log("[CounselorChildVideoCall] 세션 connect 완료");
+                console.log("[CounselorChildVideoCall] 세션 연결 완료");
 
-                // 상담사 웹캠 퍼블리셔
+                // 상담사 자신의 웹캠 퍼블리셔 생성 및 publish
                 const myPublisher = OV.current.initPublisher(undefined, {
-                    audioSource: true,   // 상담사 마이크
-                    videoSource: true,   // 상담사 카메라
+                    audioSource: true,
+                    videoSource: true,
                     publishAudio: true,
                     publishVideo: true,
                 });
+                console.log("[CounselorChildVideoCall] 내 퍼블리셔 생성:", myPublisher);
                 await sessionInstance.publish(myPublisher);
-                console.log("[CounselorChildVideoCall] 상담사 퍼블리시 완료");
-
+                console.log("[CounselorChildVideoCall] 내 퍼블리셔 publish 완료");
                 setSession(sessionInstance);
                 setPublisher(myPublisher);
             } catch (error) {
@@ -98,44 +98,66 @@ function CounselorChildVideoCall() {
         initSession();
     }, [childId, type]);
 
-    // 만약 "재구독" 로직이 필요하다면(페이지 로딩 도중 publish가 이미 되어있던 경우)
-    // 아래처럼 session.streams를 확인해서 필요한 스트림을 subscribe 할 수도 있습니다.
-    // 하지만 2.x 버전 이후엔 session.streams 대신 session.on("streamCreated")가 대부분 처리해줍니다.
+    // 재구독 효과: 세션이 연결된 상태인데 아직 화면 공유 스트림을 구독하지 않은 경우
+    useEffect(() => {
+        if (session && !screenSubscriber) {
+            const streams = session.streams;
+            if (streams && streams.forEach) {
+                streams.forEach((stream) => {
+                    if (stream.typeOfVideo === "SCREEN") {
+                        console.log(
+                            "[CounselorChildVideoCall] 재구독: 화면 공유 스트림 발견",
+                            stream.streamId
+                        );
+                        const screenSub = session.subscribe(stream, undefined);
+                        setScreenSubscriber(screenSub);
+                    }
+                });
+            } else {
+                console.log("[CounselorChildVideoCall] session.streams is undefined or not iterable");
+            }
+        }
+    }, [session, screenSubscriber]);
 
-    // ---------------------------------------------------------
-    // 상대방(아동)이 없는지 체크 -> 알람 전송 (예: 1회성 호출)
-    // ---------------------------------------------------------
+    // 상대방(아동의 화면 공유 스트림)이 없는지 체크하는 함수
     const isOtherParticipantAbsent = () => {
         if (!session) {
             console.log("[isOtherParticipantAbsent] 세션이 아직 초기화되지 않았습니다.");
             return false;
         }
+
         let childStreamExists = false;
 
         if (session.streams && typeof session.streams.forEach === "function") {
             session.streams.forEach((stream) => {
-                if (stream.typeOfVideo === "SCREEN" || stream.typeOfVideo === "CAMERA") {
+                if (stream.typeOfVideo === "SCREEN") {
                     childStreamExists = true;
                 }
             });
-        }
-        if (!childStreamExists) {
-            console.log("[isOtherParticipantAbsent] 아동 스트림이 세션에 존재하지 않습니다.");
         } else {
-            console.log("[isOtherParticipantAbsent] 아동 스트림이 확인되었습니다.");
+            console.log("[isOtherParticipantAbsent] session.streams가 없거나 순회할 수 없습니다.");
         }
+
+        if (!childStreamExists) {
+            console.log("[isOtherParticipantAbsent] 상대방(아동의 화면 공유 스트림)이 세션에 존재하지 않습니다.");
+        } else {
+            console.log("[isOtherParticipantAbsent] 아동의 화면 공유 스트림이 확인되었습니다.");
+        }
+
         return !childStreamExists;
     };
 
     useEffect(() => {
         const checkAbsence = async () => {
             if (isOtherParticipantAbsent()) {
-                console.log("[checkAbsence] 아동이 없는 것 같아 알람 전송...");
+                console.log("[checkAbsence] 상대방이 없습니다. 알람 전송 시작...");
+                // 알람 전송에 필요한 데이터(alarmDto)를 구성합니다.
                 const alarmDto = {
                     toUserId: Number(childId),
                     senderRole: "ROLE_CONSULTANT",
                     sessionType: type,
                 };
+
                 try {
                     const response = await sendAlarm(alarmDto);
                     console.log("[checkAbsence] 알람 전송 성공:", response);
@@ -146,40 +168,40 @@ function CounselorChildVideoCall() {
         };
 
         checkAbsence();
-    }, [session, childId, type]);
+    }, [session, childId]);
 
-    // ---------------------------------------------------------
-    // 시그널 전송
-    // ---------------------------------------------------------
-    const sendSignal = (data, sigType) => {
-        if (!session) return;
+
+    const sendSignal = (data, type) => {
         session
             .signal({
-                data: data,
-                to: [],
-                type: sigType,
+                data: data, // 전송할 메시지
+                to: [],     // 빈 배열이면 모든 참가자에게 전송
+                type: type, // 메시지 타입
             })
             .then(() => {
-                console.log("Message successfully sent:", data);
+                console.log("Message successfully sent");
             })
             .catch((error) => {
                 console.error("Signal error:", error);
             });
     };
 
-    // 상담사 측에서 버튼 누르면 아동 측에 signal 전송
     const handleStartChapter = () => {
         sendSignal("start-chapter", "start-chapter");
     };
+
     const handlePreviousStage = () => {
         sendSignal("previous-stage", "previous-stage");
     };
+
     const handleStartRecording = () => {
         sendSignal("record-start", "record-start");
     };
+
     const handleStopRecording = () => {
         sendSignal("record-stop", "record-stop");
     };
+
     const handleNextStage = () => {
         sendSignal("next-stage", "next-stage");
     };
@@ -192,124 +214,91 @@ function CounselorChildVideoCall() {
             imageWidth: 200,
             imageHeight: 200,
             showConfirmButton: false,
-            timer: 2000,
+            timer: 2000, // 2초 후 자동 닫힘
         });
-        if (session) {
-            session.disconnect();
-        }
-        // 팝업 닫거나 페이지 이동 등
-        // window.close();
     };
 
-    // ---------------------------------------------------------
-    // 렌더링
-    // ---------------------------------------------------------
     return (
         <div className="co-consultation-child-page">
-            <img src="/logo.png" alt="로고" className="co-logoo" />
+            <img src="/logo.png" alt="로고" className='co-logoo' />
             <div className="co-video-layout">
-                {/* (1) 아동의 화면공유 스트림 */}
+            {/* 아동의 화면 공유 스트림 영역 */} 
                 <div className="co-child-main-video-container">
                     {screenSubscriber ? (
                         <video
                             className="co-main-video-container"
                             ref={(video) => {
                                 if (video && screenSubscriber) {
+                                    console.log(
+                                        "[CounselorChildVideoCall] 연결된 화면 공유 스트림:",
+                                        screenSubscriber.stream
+                                    );
                                     video.srcObject = screenSubscriber.stream.getMediaStream();
                                 }
                             }}
                             autoPlay
                             playsInline
                         />
-                    ) : (
-                        <div className="co-error">
-                            <p>아동의 화면 공유가 없습니다.</p>
-                        </div>
-                    )}
+                ) : (
+                    <div className="co-error">
+                        <p>아동의 화면 공유가 없습니다.</p>
+                    </div>
+                )}
                     <h3 className="co-learning-child-title">아동 게임 공유 화면</h3>
                 </div>
 
-                {/* (2) 아동의 카메라 스트림 */}
-                <div className="co-child-cam-video-container">
-                    {childCamSubscriber ? (
+            {/* 상담사 자신의 카메라 스트림 영역 */}
+            <div className="co-self-participant-video">
+                <div className="co-participatn-coun-container">
+                {publisher && (
                         <video
-                            className="co-child-cam-video"
+                            className="co-slef-participant-video"
                             ref={(video) => {
-                                if (video && childCamSubscriber) {
-                                    video.srcObject = childCamSubscriber.stream.getMediaStream();
+                                if (video && publisher) {
+                                    video.srcObject = publisher.stream.getMediaStream();
                                 }
                             }}
                             autoPlay
+                            muted
                             playsInline
                         />
-                    ) : (
-                        <div className="co-error">
-                            <p>아동 카메라 영상이 없습니다.</p>
-                        </div>
                     )}
-                    <h3>아동 카메라</h3>
-                </div>
-
-                {/* (3) 상담사 자신의 카메라 */}
-                <div className="co-self-participant-video">
-                    <div className="co-participatn-coun-container">
-                        {publisher && (
-                            <video
-                                className="co-slef-participant-video"
-                                ref={(video) => {
-                                    if (video && publisher) {
-                                        video.srcObject = publisher.stream.getMediaStream();
-                                    }
-                                }}
-                                autoPlay
-                                muted
-                                playsInline
-                            />
-                        )}
-                        <h3>상담사 화면</h3>
-                    </div>
+                    <h3>상담사 화면</h3>
                 </div>
             </div>
-
-            {/* 버튼들 */}
+        </div>
             <div className="co-button-controls">
                 <div>
-                    <button className="web-control-btn" onClick={handleStartChapter}>
-                        <MdOutlineNotStarted />
-                    </button>
+                    <button  className="web-control-btn" onClick={handleStartChapter}>
+                    <MdOutlineNotStarted/></button>
                     <p>학습 시작</p>
                 </div>
-
+                
                 <div>
-                    <button className="web-control-btn" onClick={handlePreviousStage}>
-                        <MdNavigateBefore />
-                    </button>
+                    <button  className="web-control-btn" onClick={handlePreviousStage}>
+                    <MdNavigateBefore /></button>
                     <p>이전 단원</p>
                 </div>
-
+                    
                 <div>
-                    <button className="web-control-btn" onClick={handleStartRecording}>
-                        <PiRecord />
-                    </button>
-                    <p>녹화 시작</p>
+                <button  className="web-control-btn" onClick={handleStartRecording}>
+                <PiRecord /></button>
+                <p>녹화 시작</p>
                 </div>
-
-                <div>
-                    <button className="web-record-btn" onClick={handleStopRecording}>
-                        <PiRecordFill />
-                    </button>
+                
+                <div>   
+                    <button  className="web-record-btn" onClick={handleStopRecording}>
+                    <PiRecordFill /></button>
                     <p>녹화 중지</p>
                 </div>
                 <div>
-                    <button className="web-control-btn" onClick={handleNextStage}>
-                        <MdNavigateNext />
-                    </button>
+                    <button  className="web-control-btn" onClick={handleNextStage}>
+                    <MdNavigateNext /></button>
                     <p>다음 단원</p>
                 </div>
                 <div>
-                    <button className="web-co-end-call" onClick={handleEndChapter}>
-                        <ImExit />
-                    </button>
+                    <button  className="web-co-end-call" onClick={handleEndChapter}>
+                    <ImExit/></button>
                     <p>학습 종료</p>
                 </div>
             </div>
