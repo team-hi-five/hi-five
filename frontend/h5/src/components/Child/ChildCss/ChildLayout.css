@@ -15,6 +15,7 @@
     cursor: pointer;
     padding-right: 30px;
     font-size: 24px;
+    margin-top: 10px;
 }
 
 .ch-logo {
@@ -23,7 +24,7 @@
     object-fit: contain;
 }
 
-/* 뒤로가기 막은 페이지에서는 뒤로가기 숨기기기 */
+/* 뒤로가기 막은 페이지에서는 뒤로가기 숨기기 */
 .ch-header-back.disabled {
     display: none;  
 }
