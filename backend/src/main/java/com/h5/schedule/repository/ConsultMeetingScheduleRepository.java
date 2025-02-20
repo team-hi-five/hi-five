@@ -78,8 +78,8 @@ public interface ConsultMeetingScheduleRepository extends JpaRepository<ConsultM
 
     @Query(value = "SELECT * FROM consult_meeting_schdl c " +
             "WHERE c.child_user_id = :childUserId " +
-            "AND c.schdl_dttm <= :currentDttm " +
-            "AND DATE_ADD(c.schdl_dttm, INTERVAL 70 MINUTE) > :currentDttm " +
+            "AND c.start_dttm <= :currentDttm " +
+            "AND DATE_ADD(c.start_dttm, INTERVAL 70 MINUTE) > :currentDttm " +
             "AND c.delete_dttm IS NULL", nativeQuery = true)
     Optional<ConsultMeetingScheduleEntity> findNowSchedulesByChildId(
             @Param("childUserId") Integer childUserId,
