@@ -1144,7 +1144,7 @@ function ChildClassPage() {
                   ref={webcamRef}
                   videoConstraints={{
                     width: "360",
-                    height: "20rem",s
+                    height: "20rem",
                     facingMode: "user",
                   }}
               />
