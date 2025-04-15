@@ -160,12 +160,6 @@
     
 }
 
-/* 일반 날짜에 호버 효과 적용 */
-.p-datepicker table td:not(.p-highlight):not(.p-disabled):hover > span {
-    background-color: #FFCC80 !important;
-    color: white !important;
-}
-
 .p-datepicker .p-datepicker-header {
     background: transparent !important;
     border: none !important;
@@ -174,11 +168,6 @@
 
 .p-datepicker .p-yearpicker {
     color: #002753 !important;
-}
-
-/* 선택된 날짜에 호버 효과 적용 */
-.p-datepicker table td > span.p-highlight {
-    background-color: #fbd090;
 }
 
 .p-datepicker .p-monthpicker {
@@ -224,11 +213,6 @@
     color: #1A2A4D !important;
 }
 
-/* 오늘 날짜가 선택되었을 때 스타일링 */
-.p-datepicker table td.p-datepicker-today.p-highlight > span {
-    background-color: #FFB74D !important;
-    color: white !important;
-}
 
 /* 년도 선택 드롭다운에 '년' 추가 */
 .p-datepicker .p-datepicker-header .p-datepicker-title .p-yearpicker option::after {
@@ -341,4 +325,21 @@
 .pa-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+/* 📌 상담 예약된 날짜 스타일 */
+.highlight-circle {
+    position: relative;
+}
+
+.highlight-circle::before {
+    content: "";
+    position: absolute;
+    width: 95%;
+    height: 95%;
+    background-color: rgba(255, 107, 107, 0.3); /* 반투명 파란색 */
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }

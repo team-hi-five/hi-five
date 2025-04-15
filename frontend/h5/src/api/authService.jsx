@@ -22,7 +22,7 @@ export const logout = async () => {
     try {
         const accessToken = sessionStorage.getItem("access_token");
         if (!accessToken) {
-            console.warn("❌ 로그아웃 실패: 토큰이 없습니다.");
+            console.warn("🔹 토큰이 없는 상태에서 로그아웃 요청. 단순히 로그아웃 처리");
             return;
         }
         const response = await api.post("/auth/logout", null, { 
@@ -32,7 +32,9 @@ export const logout = async () => {
         return response.data;
     } catch (error) {
         console.error("❌ 로그아웃 실패:", error.response ? error.response.data : error.message);
-        throw error;
+    } finally {
+        sessionStorage.removeItem("access_token");
+        window.location.href = "/";
     }
 };
 
@@ -91,3 +93,22 @@ export const requestConsultantTempPassword = async (name, email) => {
         throw error;
     }
 };
+
+export const getUserInfo = async () => {
+
+    try {
+        const accessToken = sessionStorage.getItem("access_token");
+
+        if (accessToken) {
+            const response = await api.get("/auth/get-user-info", {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+            return response.data;
+        }
+    } catch (error) {
+        console.error("❌ 유저 정보 불러오기 실패:", error);
+    }
+};
+

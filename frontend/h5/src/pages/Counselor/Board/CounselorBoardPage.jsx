@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CounselorHeader from "../../../components/Counselor/CounselorHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import { getNoticePosts, searchNotices } from '../../../api/boardNotice';
 import { getFaqList, searchFaqs } from '../../../api/boardFaq';
+import { getQnaList, searchQnas } from '../../../api/boardQna';
 import SingleButtonAlert from '../../../components/common/SingleButtonAlert';
 import '../Css/CounselorBoardPage.css';
 
-
-// QnA: 번호, 제목, 작성자, 답변상태(status), 작성일 (조회수 대신 status)
-const qnaData = [
-  { no: 3, title: "문의드립니다", writer: "홍길동", status: "미답변", date: "2025-01-23" },
-  { no: 2, title: "결제 관련 문의", writer: "김철수", status: "답변완료", date: "2025-01-17" },
-  { no: 1, title: "서비스 이용 방법 문의", writer: "이영희", status: "답변완료", date: "2025-01-02" },
-];
 
 function CounselorBoardPage() {
     const [paActiveTab, setPaActiveTab] = useState("notice");
@@ -23,10 +17,12 @@ function CounselorBoardPage() {
     const [paCurrentPage, setPaCurrentPage] = useState(1);
 
     const [noticeData, setNoticeData] = useState([]);
+    const [faqData, setFaqData] = useState([]);
+    const [qnaData, setQnaData] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-    const [faqData, setFaqData] = useState([]);
     const [faqLoading, setFaqLoading] = useState(false);
+    const [qnaLoading, setQnaLoading] = useState(false);
     const paItemsPerPage = 6;
   
     const navigate = useNavigate();
@@ -39,11 +35,11 @@ function CounselorBoardPage() {
         }
     
         try {
+            setIsSearching(true);
             const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
             
             if (paActiveTab === "notice") {
                 setIsLoading(true);
-                setIsSearching(true);
     
                 const response = await searchNotices(
                     paSearchTerm,
@@ -52,8 +48,9 @@ function CounselorBoardPage() {
                     paItemsPerPage
                 );
     
-                const formattedData = response.notices.map(item => ({
-                    no: item.id || "9999",
+                const formattedData = response.notices.map((item, index) => ({
+                    no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),  // 역순 번호 부여
+                    id: item.id,
                     title: item.title,
                     writer: item.name || "운영자",
                     views: item.viewCnt || 0,
@@ -74,8 +71,9 @@ function CounselorBoardPage() {
                     paItemsPerPage
                 );
     
-                const formattedData = response.faqs.map(item => ({
-                    no: item.id || "9999",
+                const formattedData = response.faqs.map((item, index) => ({
+                    no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),  // 역순 번호 부여
+                    id: item.id,
                     type: item.type || "기타",
                     title: item.title,
                     writer: item.name || "운영자"
@@ -107,8 +105,9 @@ function CounselorBoardPage() {
               paItemsPerPage
           );
           
-          const formattedData = response.notices.map(item => ({
-              no: item.id || "9999",
+          const formattedData = response.notices.map((item, index) => ({
+              no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+              id: item.id, // 실제 데이터베이스 ID
               title: item.title,
               writer: item.name || "운영자",
               views: item.viewCnt || 0,
@@ -133,8 +132,9 @@ function CounselorBoardPage() {
           setFaqLoading(true);
           const response = await getFaqList(paCurrentPage - 1, paItemsPerPage);
           
-          const formattedData = response.faqs.map(item => ({
-            no: item.id || "9999",
+          const formattedData = response.faqs.map((item, index) => ({
+            no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+            id: item.id, // 실제 데이터베이스 ID
             type: item.type || "기타",
             title: item.title,
             writer: item.name || "운영자",
@@ -152,6 +152,35 @@ function CounselorBoardPage() {
         }
       };
 
+      const fetchQnaData = async () => {
+        try {
+          setQnaLoading(true);
+          setIsSearching(false);  // 검색 모드 해제
+          
+          const response = await getQnaList(paCurrentPage - 1, paItemsPerPage);
+          
+          const formattedData = response.qnaList.map((item, index) => ({
+            no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+            id: item.id, // 실제 데이터베이스 ID
+            title: item.title,
+            writer: item.name || "익명",
+            status: item.answerCnt > 0 ? "답변완료" : "미답변",
+            date: new Date(item.createDttm).toISOString().split('T')[0]
+          }));
+      
+          setQnaData(formattedData);
+          setTotalPages(response.pagination.totalPages);
+      
+        } catch (error) {
+          console.error("QnA 목록 조회 실패:", error);
+          await SingleButtonAlert(
+            error.response?.data?.message || 'QnA 목록을 불러오는데 실패했습니다.'
+          );
+        } finally {
+          setQnaLoading(false);
+        }
+      };
+
     useEffect(() => {
         if (paActiveTab === "notice" && !isSearching) {
             fetchNoticeData();
@@ -163,6 +192,12 @@ function CounselorBoardPage() {
           fetchFaqData();
         }
       }, [paCurrentPage, paActiveTab, isSearching]);
+
+    useEffect(() => {
+    if (paActiveTab === "qna" && !isSearching) {
+        fetchQnaData();
+    }
+    }, [paCurrentPage, paActiveTab, isSearching]);
   
     let paBoardData;
     let paTitle;
@@ -177,11 +212,11 @@ function CounselorBoardPage() {
       paTitle = "질문";
     }
   
-    const paFilteredData = (paActiveTab === "notice" || (paActiveTab === "faq" && isSearching))
-    ? paBoardData
-    : paBoardData.filter((item) =>
-        item[paSearchCategory]?.toLowerCase().includes(paSearchTerm.toLowerCase())
-    );
+    // paFilteredData 수정
+    const paFilteredData = (paActiveTab === "notice" || paActiveTab === "faq" || paActiveTab === "qna")
+        ? paBoardData
+        : paBoardData;
+    
   
     const paPageData = paFilteredData;
     const emptyRowsCount = paItemsPerPage - paPageData.length;
@@ -195,9 +230,99 @@ function CounselorBoardPage() {
     };
   
     const handleSearchChange = (e) => {
-      setPaSearchTerm(e.target.value);
-      setPaCurrentPage(1);
+        setPaSearchTerm(e.target.value);
+        setPaCurrentPage(1);
+        
+        // 검색어가 비어있으면 전체 목록을 보여줌
+        if (!e.target.value.trim()) {
+            setIsSearching(false);
+            if (paActiveTab === "notice") {
+                fetchNoticeData();
+            } else if (paActiveTab === "faq") {
+                fetchFaqData();
+            } else if (paActiveTab === "qna") {
+                fetchQnaData();
+            }
+            return;
+        }
+        
+        // 검색 실행
+        const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
+        setIsSearching(true);
+    
+        const timer = setTimeout(async () => {
+            try {
+                if (paActiveTab === "notice") {
+                    setIsLoading(true);
+                    const response = await searchNotices(
+                        e.target.value,
+                        searchType,
+                        paCurrentPage - 1,
+                        paItemsPerPage
+                    );
+    
+                    const formattedData = response.notices.map((item, index) => ({
+                        no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                        id: item.id,
+                        title: item.title,
+                        writer: item.name || "운영자",
+                        views: item.viewCnt || 0,
+                        date: new Date(item.createDttm).toISOString().split('T')[0]
+                    }));
+    
+                    setNoticeData(formattedData);
+                    setTotalPages(response.pagination.totalPages);
+                    setIsLoading(false);
+                } else if (paActiveTab === "faq") {
+                    setFaqLoading(true);
+                    const response = await searchFaqs(
+                        e.target.value,
+                        searchType,
+                        paCurrentPage - 1,
+                        paItemsPerPage
+                    );
+    
+                    const formattedData = response.faqs.map((item, index) => ({
+                        no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                        id: item.id,
+                        type: item.type || "기타",
+                        title: item.title,
+                        writer: item.name || "운영자"
+                    }));
+    
+                    setFaqData(formattedData);
+                    setTotalPages(response.pagination.totalPages);
+                    setFaqLoading(false);
+                } else if (paActiveTab === "qna") {
+                    setQnaLoading(true);
+                    const response = await searchQnas(
+                        e.target.value,
+                        searchType,
+                        paCurrentPage - 1,
+                        paItemsPerPage
+                    );
+    
+                    const formattedData = response.qnaList.map((item, index) => ({
+                        no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                        id: item.id,
+                        title: item.title,
+                        writer: item.name || "익명",
+                        status: item.answerCnt > 0 ? "답변완료" : "미답변",
+                        date: new Date(item.createDttm).toISOString().split('T')[0]
+                    }));
+    
+                    setQnaData(formattedData);
+                    setTotalPages(response.pagination.totalPages);
+                    setQnaLoading(false);
+                }
+            } catch (error) {
+                console.error("검색 에러:", error);
+            }
+        }, 300);
+    
+        return () => clearTimeout(timer);
     };
+    
   
     const handleCategoryClick = (category) => {
         setPaSearchCategory(category);
@@ -234,7 +359,7 @@ function CounselorBoardPage() {
     };
   
     const handleRowClick = (type, item) => {
-      navigate(`/counselor/board/${type}/${item.no}`);
+      navigate(`/counselor/board/${type}/${item.id}`);
     };
   
     const colSpan = paActiveTab === "faq" ? 4 : paActiveTab === "qna" ? 5 : 5;
@@ -261,7 +386,7 @@ function CounselorBoardPage() {
                             className={`co-board-tab ${paActiveTab === "qna" ? "co-active-tab" : ""}`}
                             onClick={() => handleTabClick("qna")}
                         >
-                            질문
+                            QNA
                         </button>
                     </div>
                 </div>
@@ -321,26 +446,26 @@ function CounselorBoardPage() {
                                         <tr>
                                             {paActiveTab === "faq" ? (
                                                 <>
-                                                    <th>번호</th>
-                                                    <th>유형</th>
-                                                    <th>제목</th>
-                                                    <th>작성자</th>
+                                                    <th style={{ width: "10%" }}>번호</th>
+                                                    <th style={{ width: "30%" }}>유형</th>
+                                                    <th style={{ width: "40%" }}>제목</th>
+                                                    <th style={{ width: "20%" }}>작성자</th>
                                                 </>
                                             ) : paActiveTab === "qna" ? (
                                                 <>
-                                                    <th>번호</th>
-                                                    <th>제목</th>
-                                                    <th>작성자</th>
-                                                    <th>답변상태</th>
-                                                    <th>작성일</th>
+                                                    <th style={{ width: "10%" }}>번호</th>
+                                                    <th style={{ width: "40%" }}>제목</th>
+                                                    <th style={{ width: "20%" }}>작성자</th>
+                                                    <th style={{ width: "10%" }}>답변상태</th>
+                                                    <th style={{ width: "20%" }}>작성일</th>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <th>번호</th>
-                                                    <th>제목</th>
-                                                    <th>작성자</th>
-                                                    <th>조회수</th>
-                                                    <th>작성일</th>
+                                                    <th style={{ width: "10%" }}>번호</th>
+                                                    <th style={{ width: "40%" }}>제목</th>
+                                                    <th style={{ width: "20%" }}>작성자</th>
+                                                    <th style={{ width: "10%" }}>조회수</th>
+                                                    <th style={{ width: "20%" }}>작성일</th>
                                                 </>
                                             )}
                                         </tr>

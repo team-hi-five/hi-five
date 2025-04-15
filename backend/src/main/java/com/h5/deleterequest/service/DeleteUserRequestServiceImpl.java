@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,19 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
         ParentUserEntity parentUserEntity = parentUserRepository.findByEmailAndDeleteDttmIsNull(parentEmail)
                 .orElseThrow(UserNotFoundException::new);
 
+        // 이미 삭제 요청이 존재하는지 체크 (예: P(진행중) 상태라면 중복 요청으로 판단)
+        Optional<DeleteUserRequestEntity> existingRequest =
+                deleteUserRequestRepository.findByParentUser_IdAndStatus(parentUserEntity.getId(), DeleteUserRequestEntity.Status.P);
+
+        if (existingRequest.isPresent()) {
+            return DeleteRequestResponseDto.builder()
+                    .deleteRequestId(existingRequest.get().getId())
+                    .status(existingRequest.get().getStatus())
+                    .deleteRequestDttm(existingRequest.get().getDeleteRequestDttm())
+                    .duplicate(true)
+                    .build();
+        }
+
         DeleteUserRequestEntity deleteUserRequest = deleteUserRequestRepository.save(
                 DeleteUserRequestEntity.builder()
                         .status(DeleteUserRequestEntity.Status.P)
@@ -65,8 +79,8 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
                 .deleteRequestId(deleteUserRequest.getId())
                 .status(deleteUserRequest.getStatus())
                 .deleteRequestDttm(deleteUserRequest.getDeleteRequestDttm())
+                .duplicate(false)
                 .build();
-
     }
 
     @Transactional
@@ -171,6 +185,6 @@ public class DeleteUserRequestServiceImpl implements DeleteUserRequestService {
     }
 
     private String getFileUrl(int tblId) {
-        return !fileService.getFileUrl(FileEntity.TblType.P, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl() : "Default Image";
+        return !fileService.getFileUrl(FileEntity.TblType.PCD, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.PCD, tblId).get(0).getUrl() : "Default Image";
     }
 }

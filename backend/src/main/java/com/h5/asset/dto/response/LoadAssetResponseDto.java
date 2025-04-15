@@ -14,4 +14,7 @@ public class LoadAssetResponseDto {
     private String[] options;
     private String[] optionImages;
     private String situation;
+    private int answer;
+    private String cardFront;
+    private String cardBack;
 }

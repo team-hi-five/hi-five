@@ -2,12 +2,14 @@ package com.h5.game.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "ai_log")
 public class AiLogEntity {
 
@@ -67,7 +69,7 @@ public class AiLogEntity {
 
     @NotNull
     @Lob
-    @Column(name = "ai_analyze", nullable = false)
+    @Column(name = "ai_analyze")
     private String aiAnalyze;
 
 }

@@ -4,14 +4,16 @@ import com.h5.asset.entity.GameStageEntity;
 import com.h5.child.entity.ChildUserEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Table(name = "game_log")
 public class GameLogEntity {
 
@@ -24,6 +26,7 @@ public class GameLogEntity {
     @Column(name = "selected_opt", nullable = false)
     private Integer selectedOpt;
 
+    @Builder.Default
     @NotNull
     @Column(name = "corrected", nullable = false)
     private Boolean corrected = false;
@@ -32,6 +35,7 @@ public class GameLogEntity {
     @Column(name = "submit_dttm", nullable = false)
     private LocalDateTime submitDttm;
 
+    @Builder.Default
     @NotNull
     @Column(name = "consulted", nullable = false)
     private Boolean consulted = false;

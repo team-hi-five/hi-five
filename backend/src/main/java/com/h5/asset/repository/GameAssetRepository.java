@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -19,4 +20,6 @@ public interface GameAssetRepository extends JpaRepository<GameAssetEntity, Inte
     """)
     Optional<GameAssetEntity> findGameAssetByChapterAndStage(@Param("chapter") int chapter,
                                                             @Param("stage") int stage);
+
+    List<GameAssetEntity> findByIdBetween(Integer idBefore, Integer IdAfter);
 }

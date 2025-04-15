@@ -38,17 +38,10 @@ public class FaqServiceImpl implements FaqService {
     public FaqSaveResponseDto createFaq(FaqCreateRequestDto faqCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
 
-        if(!"ROLE_CONSULTANT".equals(role)) {
-            throw new BoardAccessDeniedException("faq");
-        }
 
         FaqEntity faqEntity = FaqEntity.builder()
                 .title(faqCreateRequestDto.getTitle())

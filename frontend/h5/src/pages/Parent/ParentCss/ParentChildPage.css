@@ -5,6 +5,15 @@
   padding-top: 90px;
 }
 
+.pa-card-right p {
+  padding-left: 10px;
+  padding-right: 10px;
+  margin-top: 45px;
+  margin-bottom: 50px;
+  font-size: 1.2rem;
+  letter-spacing: 0.15rem;
+}
+
 /* 컨테이너 */
 .pa-container {
   width: 70%;
@@ -167,8 +176,15 @@
 .pa-videos-calendar {
   margin-top: 30px;
   display: flex;
-  gap: 20px;  
   justify-content: center;
+}
+
+.video-calendar-left {
+  width: 50%;
+}
+
+.video-calendar-right {
+  width: 50%;
 }
 
 /* 달력 자체 스타일 */
@@ -185,7 +201,7 @@
 
 /* 달력 내부 여백(기존 30px -> 20px) */
 .pa-videos-calendar .p-datepicker {
-  padding: 20px !important;
+  padding: 40px !important;
 }
 
 /* 버튼 컨테이너 */
@@ -219,4 +235,21 @@
   font-size: 1.2rem;
   color: #999;
   text-align: center;
+}
+
+/* 📌 상담 예약된 날짜 스타일 */
+.highlight-circle {
+  position: relative;
+}
+
+.highlight-circle::before {
+  content: "";
+  position: absolute;
+  width: 95%;
+  height: 95%;
+  background-color: rgba(255, 107, 107, 0.3); /* 반투명 파란색 */
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

@@ -1,35 +1,37 @@
-.my-swal-container {
-  z-index: 100000 !important; /* 모달의 z-index보다 높게 설정 */
+/* DoubleButtonAlert.css */
+.swal2-popup.my-swal-popup {
+  border-radius: 20px !important;
+  padding: 10px 15px !important;
+  border: 1px solid black !important;
+  width: 400px !important;
+  z-index: 100001 !important;
 }
 
-.my-swal-popup {
-    border-radius: 20px;
-    padding: 10px 20px;
-    border: 1px solid black;
-    width: 400px;
-    z-index: 100001 !important;
-  }
-  
-  .my-swal-title {
-    font-size: 26px;
-    color: #1A2A4D;
-    padding: 0 0 5px 0;
-    border-bottom: 1px solid black;
-  }
+.swal2-title.my-swal-title {
+  font-size: 28px !important;
+  color: #1A2A4D !important;
+  padding: 0 0 10px 0 !important;
+  border-bottom: 1px solid black !important;
+}
 
-  .swal-text {
-    font-size: 1.2em;
-    font-weight: 700;
-    margin: 10px 0 5px 0;
-  }
-  
-  .my-swal-confirm-button, .my-swal-cancel-button {
-    background-color: #3A5E8D !important;
-    color: white;
-    font-size: 16px;
-    border-radius: 10px;
-    padding: 8px 20px;
-    margin: 0 5px;
-    border: none;
-    cursor: pointer;
-  }
+.swal2-html-container {
+  margin: 25px 5px 5px 5px !important;
+}
+
+.swal2-html-container .swal-text {
+  font-size: 1.2em !important;
+  font-weight: 900 !important;
+  margin: 5px 0 2px 0 !important;
+}
+
+.swal2-confirm.my-swal-confirm-button,
+.swal2-cancel.my-swal-cancel-button {
+  background-color: #3A5E8D !important;
+  color: white !important;
+  font-size: 18px !important;
+  border-radius: 10px !important;
+  padding: 8px 20px !important;
+  margin: 5px !important;
+  border: none !important;
+  cursor: pointer !important;
+}

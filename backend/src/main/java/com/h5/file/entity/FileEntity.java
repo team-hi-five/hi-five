@@ -43,12 +43,12 @@ public class FileEntity {
     private String deleteDttm;
 
     public enum TblType {
-        P, N, Q, G, QA
+        PCD, PCT, NE, NF, QE, QF, FE, FF, G
     }
 
     @NotNull
-    @Lob
     @Column(name = "tbl_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     private TblType tblType;
 
     @NotNull

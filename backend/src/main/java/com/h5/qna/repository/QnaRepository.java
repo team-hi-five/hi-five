@@ -8,15 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
 public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
     //r
     //전체 목록
     @Query("SELECT q FROM QnaEntity q " +
-            "WHERE (:role = 'ROLE_PARENT' AND q.parentUser.id = :parentUserId) " +
-            "OR (:role = 'ROLE_CONSULTANT' AND q.parentUser.consultantUserEntity.id = :consultantUserId) " +
+            "WHERE ((:role = 'ROLE_PARENT' AND q.parentUser.id = :parentUserId) " +
+            "OR (:role = 'ROLE_CONSULTANT' AND q.parentUser.consultantUserEntity.id = :consultantUserId)) " +
             "AND q.deleteDttm IS NULL")
     Page<QnaEntity> findAll(
             @Param("role") String role,
@@ -52,9 +50,5 @@ public interface QnaRepository extends JpaRepository<QnaEntity, Integer> {
             @Param("writer") String writer,
             Pageable pageable
     );
-
-
-    //상세정보 조회
-    Optional<QnaEntity> findById(int qnaId);
 
 }

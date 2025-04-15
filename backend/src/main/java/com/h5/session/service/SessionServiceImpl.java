@@ -14,8 +14,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SessionServiceImpl implements SessionService {
     private final GameMeetingScheduleRepository gameMeetingScheduleRepository;
     private final OpenViduServiceImpl openViduServiceImpl;
@@ -24,15 +29,12 @@ public class SessionServiceImpl implements SessionService {
     private final OpenViduService openViduService;
     private final ConsultSessionRepository consultSessionRepository;
 
-    public String startMeeting(String type, int scheduleId) {
+    private String startMeeting(String type, int scheduleId) {
 
         if("game".equals(type)){
             GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findById(scheduleId)
                     .orElseThrow(ScheduleNotFoundException::new);
 
-            if(gameMeetingScheduleEntity.getSessionId() != null) {
-                throw new IllegalArgumentException("Meeting already started");
-            }
             if(gameMeetingScheduleEntity.getDeleteDttm() != null){
                 throw new IllegalArgumentException("Meeting already ended");
             }
@@ -65,12 +67,15 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public String joinMeeting(JoinSessionRequestDto joinSessionRequestDto) {
+        int childId = joinSessionRequestDto.getChildId();
         String type = joinSessionRequestDto.getType();
-        int scheduleId = joinSessionRequestDto.getScheduleId();
+
+        LocalDateTime currentDttm = LocalDateTime.now();
 
         if ("game".equals(type)) {
-            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findById(scheduleId)
+            GameMeetingScheduleEntity gameMeetingScheduleEntity = gameMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
                     .orElseThrow(ScheduleNotFoundException::new);
+            int scheduleId = gameMeetingScheduleEntity.getId();
 
             String sessionId;
             if(gameMeetingScheduleEntity.getSessionId() == null) {
@@ -82,8 +87,9 @@ public class SessionServiceImpl implements SessionService {
             return openViduService.createConnection(sessionId);
 
         }else if("consult".equals(type)) {
-            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findById(scheduleId)
+            ConsultMeetingScheduleEntity consultMeetingScheduleEntity = consultMeetingScheduleRepository.findNowSchedulesByChildId(childId, currentDttm)
                     .orElseThrow(ScheduleNotFoundException::new);
+            int scheduleId = consultMeetingScheduleEntity.getId();
 
             String sessionId;
             if(consultMeetingScheduleEntity.getSessionId() == null) {
@@ -100,7 +106,6 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Transactional
     public void endMeeting(CloseSessionRequestDto closeSessionRequestDto) {
         String type = closeSessionRequestDto.getType();
         int schdlId = closeSessionRequestDto.getSchdlId();
@@ -134,10 +139,16 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public void processControlMessage(ControlRequest controlRequest) {
-        String sessionId = controlRequest.getSessionId();
-        String action = controlRequest.getAction();
-
-        //gameService.handleGameAction(sessionId, action);
+//        switch (controlRequest.getAction()) {
+//            case "NEXT_STAGE":
+//
+//                break;
+//            case "PAUSE_VIDEO":
+//                break;
+//            // 필요에 따라 다른 명령도 추가
+//            default:
+//                throw new IllegalArgumentException("Unknown control action: " + controlRequest.getAction());
+//        }
     }
 
 }

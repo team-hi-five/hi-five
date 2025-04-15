@@ -1,11 +1,11 @@
 import ParentHeader from "../../../components/Parent/ParentHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import "/src/pages/Parent/ParentCss/ParentMyPage.css";
 import PasswordChangeModal from "/src/components/modals/PasswordChangeModal";
 import DoubleButtonAlert from "/src/components/common/DoubleButtonAlert";
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import { useState, useEffect } from "react";
-import { getParentMyPage, requestParentAccountDeletion } from "/src/api//userParent";
+import { getParentMyPage, requestParentAccountDeletion } from "/src/api/userParent";
 
 function ParentMyPage() {
   const [childrenData, setChildrenData] = useState([]);
@@ -38,13 +38,22 @@ function ParentMyPage() {
         try {
             const response = await requestParentAccountDeletion();
             console.log("✅ 탈퇴 요청 성공:", response);
-
-            await SingleButtonAlert("탈퇴 요청이 완료되었습니다.");
+            if (response.duplicate) {
+              await SingleButtonAlert("이미 탈퇴 요청한 계정입니다. <br> 상담사의 승인 혹은 거절을 기다리세요.");
+            } else {
+              await SingleButtonAlert("탈퇴 요청이 완료되었습니다.");
+            }
         } catch (error) {
             console.error("❌ 탈퇴 요청 실패:", error);
             await SingleButtonAlert("탈퇴 요청 중 오류가 발생했습니다.");
         }
     }
+};
+
+// 전화번호 형식 변환 함수 추가
+const formatPhoneNumber = (phone) => {
+  if (!phone) return '';
+  return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
 };
 
 
@@ -53,8 +62,6 @@ function ParentMyPage() {
       <div className="mypage">
         <ParentHeader />
         <div className="mypage-container">
-          <h2>마이 페이지</h2>
-
           <div className="mypage-info-container">
             <div className="mypage-card">
               <h3>아이 정보</h3>
@@ -62,7 +69,7 @@ function ParentMyPage() {
                 <img src={currentChild.profileImgUrl} alt="아동 사진" className="child-profile" />
                 <div className="child-info">
                   <p>
-                    <b>이름:</b>{" "}
+                    <b>이름</b>{" "}
                     <select
                       value={selectedChildIndex}
                       onChange={(e) => setSelectedChildIndex(Number(e.target.value))}
@@ -75,10 +82,10 @@ function ParentMyPage() {
                     </select>
                   </p>
                   <p>
-                    <b>연령:</b> {currentChild.age}세
+                    <b>연령</b> {currentChild.age}세
                   </p>
                   <p>
-                    <b>성별:</b> {currentChild.gender}
+                    <b>성별</b> {currentChild.gender}
                   </p>
                 </div>
               </div>
@@ -88,13 +95,13 @@ function ParentMyPage() {
               <h3>학부모 정보</h3>
               <div className="mypage-info">
                 <p>
-                  <b>이름:</b> {parentData?.name}
+                  <b>이름</b> {parentData?.name}
                 </p>
                 <p>
-                  <b>휴대폰 번호:</b> {parentData?.phone}
+                  <b>휴대폰 번호</b> {formatPhoneNumber(parentData?.phone)}
                 </p>
                 <p>
-                  <b>이메일:</b> {parentData?.email}
+                  <b>이메일</b> {parentData?.email}
                 </p>
               </div>
             </div>
@@ -103,16 +110,16 @@ function ParentMyPage() {
               <h3>상담사 정보</h3>
               <div className="mypage-info">
                 <p>
-                  <b>이름:</b> {counselorData?.consultantName}
+                  <b>이름</b> {counselorData?.consultantName}
                 </p>
                 <p>
-                  <b>휴대폰 번호:</b> {counselorData?.consultantPhone}
+                  <b>휴대폰 번호</b> {formatPhoneNumber(counselorData?.consultantPhone)}
                 </p>
                 <p>
-                  <b>이메일:</b> {counselorData?.consultantEmail}
+                  <b>이메일</b> {counselorData?.consultantEmail}
                 </p>
                 <p>
-                  <b>상담기관명:</b> {counselorData?.centerName}
+                  <b>상담기관명</b> {counselorData?.centerName}
                 </p>
               </div>
             </div>

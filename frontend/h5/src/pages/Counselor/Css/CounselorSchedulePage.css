@@ -25,7 +25,7 @@
     width: 100%;
     max-width: 600px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    min-height: 525.43px;
+    min-height: 525px;
     /* min-width: 600px; */
 }
 
@@ -47,10 +47,19 @@
 .co-schedule-section {
     flex: 1;
     background-color: white;
-    padding: 10px 30px;
+    padding: 10px 30px 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 100%;
-    min-height: 460px;
+    min-height: 525px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.co-schedule-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -118,15 +127,16 @@
 
 .co-schedule-create-btn {
     padding: 8px;
-    background-color: white;
-    border: 2px solid #69A6DF;
-    color: black;
+    background-color: #3A5E8D;
+    border: none;
+    color: white;
     border-radius: 10px;
     cursor: pointer;
     font-weight: bold;
     font-size: 18px;
-    width: 150px
-    
+    width: 150px;
+    align-self: center;
+    margin-top: 20px;
 }
 
 .co-schedule-header-row {
@@ -157,6 +167,21 @@
     margin-bottom: 5px;
 }
 
+.co-search-input {
+    border-radius: 20px;
+    padding: 5px 0 5px 8px;
+    font-size: 14px;
+    width: 180px;
+    border: 2px solid #374151;  /* 기본 테두리 색상 추가 */
+    transition: border-color 0.3s ease;  /* 부드러운 색상 변화를 위한 transition */
+}
+
+.co-search-input:focus {
+    outline: none;  /* 기본 focus 효과 제거 */
+    border-color: #69A6DF;  /* focus 시 파란색 테두리 */
+    box-shadow: 0 0 0 1px #69A6DF;  /* 더 선명한 테두리를 위한 shadow 효과 */
+}
+
 .co-search-container {
     width: 160px;
     position: relative;
@@ -184,26 +209,6 @@
     z-index: 1;
 }
 
-.p-input-icon-left input.co-search-sinput {
-    padding-left: 35px; /* 아이콘을 위한 왼쪽 여백 */
-    width: 100%;
-}
-
-.co-search-sinput {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.co-search-sinput:focus {
-    outline: none;
-    border-color: #1A2A4D;
-}
-
 /* 참여완료 버튼 스타일 */
 .co-btn-completed {
     background-color: #9ca3af !important;
@@ -211,13 +216,7 @@
     cursor: not-allowed !important;
 }
 
-/* 검색 결과 없음 메시지 스타일 */
-/* .co-no-schedules {
-    text-align: center;
-    padding: 18px;
-    color: #1A2A4D;
-    border-radius: 4px;
-} */
+
 
 /* PrimeReact Calendar 커스터마이징 */
 :root {
@@ -423,7 +422,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 999;
 }
 
 .loading-spinner {
@@ -443,4 +442,63 @@
 .co-btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+/* 검색 컨테이너 */
+.co-search-container {
+    width: 180px;
+    position: relative;
+}
+
+
+/* 검색 드롭다운 스타일 */
+.co-search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 10;
+    padding: 6px 4px;
+    margin: 0;
+}
+
+/* 드롭다운 내부 아이템 */
+.co-search-dropdown-item {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.co-search-dropdown-item:hover {
+    background-color: #f3f4f6;
+}
+
+/* 스크롤바 숨기기 (크로스 브라우징) */
+.co-search-dropdown::-webkit-scrollbar {
+    display: none;
+}
+
+.co-search-dropdown {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+/* CounselorSchedulePage.css */
+.highlight-circle {
+    background-color: #f9c74f !important; /* 배경색 강조 */
+    border-radius: 50%; /* 원형 강조 */
+    color: white !important;
+    font-weight: bold;
+
+    display: inline-block;
+    width: 2rem;       /* 날짜 셀 크기에 맞게 조정 */
+    height: 2rem;      /* 날짜 셀 크기에 맞게 조정 */
+    line-height: 2rem; /* 수직 중앙 정렬 */
+    text-align: center;
 }

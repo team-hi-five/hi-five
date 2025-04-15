@@ -5,10 +5,7 @@ import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.file.dto.response.GetFileUrlResponseDto;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.service.FileService;
-import com.h5.global.exception.BoardAccessDeniedException;
-import com.h5.global.exception.BoardNotFoundException;
-import com.h5.global.exception.UserAccessDeniedException;
-import com.h5.global.exception.UserNotFoundException;
+import com.h5.global.exception.*;
 import com.h5.parent.entity.ParentUserEntity;
 import com.h5.parent.repository.ParentUserRepository;
 import com.h5.qna.dto.request.*;
@@ -47,14 +44,6 @@ public class QnaServiceImpl implements QnaService {
     public QnaSaveResponseDto createQna(QnaCreateRequestDto qnaCreateRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
-
-        if(!"ROLE_PARENT".equals(role)){
-            throw new BoardAccessDeniedException("qna");
-        }
 
         ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
@@ -186,7 +175,7 @@ public class QnaServiceImpl implements QnaService {
 
         List<QnaAnswerResponseDto> qnaAnswerResponseList = qnaAnswerEntityList.stream()
                 .map(answer -> {
-                    List<GetFileUrlResponseDto> profileImages = fileService.getFileUrl(FileEntity.TblType.P, answer.getConsultantUser().getId());
+                    List<GetFileUrlResponseDto> profileImages = fileService.getFileUrl(FileEntity.TblType.PCT, answer.getConsultantUser().getId());
 
                     String profileImageUrl = profileImages.isEmpty() ? null : profileImages.get(0).getUrl();
 
@@ -207,6 +196,7 @@ public class QnaServiceImpl implements QnaService {
                 .name(qnaEntity.getParentUser().getName())
                 .createDttm(qnaEntity.getCreateDttm().toString())
                 .answerCnt(qnaAnswerRepository.countByQnaEntity_Id(qnaEntity.getId()))
+                .DeleteDttm(qnaEntity.getDeleteDttm().toString())
                 .qnaAnswerResponseList(qnaAnswerResponseList)
                 .build();
     }
@@ -238,19 +228,33 @@ public class QnaServiceImpl implements QnaService {
     public QnaSaveResponseDto deleteQna(int qnaId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
+        String role = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse(null);
 
-        ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
-                .orElseThrow(UserNotFoundException::new);
+        QnaEntity qnaEntity = qnaRepository.findById(qnaId).orElseThrow(() -> new BoardNotFoundException("qna"));
 
-        QnaEntity qnaEntity = qnaRepository.findById(qnaId)
-                .orElseThrow(() -> new BoardNotFoundException("qna"));
+        if("ROLE_PARENT".equals(role)) {
+            ParentUserEntity parentUserEntity = parentUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+            if(qnaEntity.getParentUser().getId().equals(parentUserEntity.getId())) {
+                qnaEntity.setDeleteDttm(LocalDateTime.now());
+                qnaRepository.save(qnaEntity);
 
-        if( !Objects.equals(parentUser.getId(), qnaEntity.getParentUser().getId())) {
-            throw new BoardAccessDeniedException("qna");
+                return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
+            }
+
+        }else if("ROLE_CONSULTANT".equals(role)) {
+            ConsultantUserEntity consultantUserEntity = consultantUserRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+            if(qnaEntity.getParentUser().getConsultantUserEntity().getId().equals(consultantUserEntity.getId())) {
+                qnaEntity.setDeleteDttm(LocalDateTime.now());
+                qnaRepository.save(qnaEntity);
+
+                return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
+            }
         }
 
-        qnaRepository.delete(qnaEntity);
-        return QnaSaveResponseDto.builder().qnaId(qnaEntity.getId()).build();
+        throw new InvalidUserException("role");
     }
 
     @Override
@@ -260,14 +264,6 @@ public class QnaServiceImpl implements QnaService {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
-        String role = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElse(null);
-
-        if(!"ROLE_CONSULTANT".equals(role)) {
-            throw new UserAccessDeniedException();
-        }
 
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);

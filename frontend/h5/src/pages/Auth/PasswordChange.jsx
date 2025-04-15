@@ -3,34 +3,51 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '/logo.png'
+import logo from '/logo.png';
 import SingleButtonAlert from '../../components/common/SingleButtonAlert';
+import { changeParentPassword } from '/src/api/userParent';
 import './PasswordChange.css';
 
-function PasswordSearch() {
-    const navigate = useNavigate();
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+function PasswordChange() {
+  const navigate = useNavigate();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-    const handlePasswordChange = async () => {
-        // 여기에 실제 비밀번호 변경 로직을 구현하세요
-        // API 호출 등의 작업 수행
+  const handlePasswordChange = async () => {
+    // ✅ 비밀번호 유효성 검사
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      await SingleButtonAlert('모든 필드를 입력해주세요.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      await SingleButtonAlert('새 비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      await SingleButtonAlert('비밀번호는 최소 8자리 이상이어야 합니다.');
+      return;
+    }
 
-        // 비밀번호 변경 성공 시 알림창 표시
-    const result = await SingleButtonAlert('비밀번호가 변경되었습니다.');
+    try {
+      // ✅ 비밀번호 변경 API 호출
+      await changeParentPassword(currentPassword, newPassword);
+      
+      // ✅ 성공 시 알림 후 로그인 페이지로 이동
+      const result = await SingleButtonAlert('비밀번호가 변경되었습니다.');
+      if (result.isConfirmed) {
+        navigate('/');
+      }
 
-        // 알림창의 확인 버튼을 눌렀을 때
-        if (result.isConfirmed) {
-            // 로그인 페이지로 이동
-            navigate('/');
-        }
-        
-        // 입력 필드 초기화
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-    };
+      // 입력 필드 초기화
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      console.error('❌ 비밀번호 변경 실패:', error.response ? error.response.data : error.message);
+      await SingleButtonAlert('비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.');
+    }
+  };
 
   return (
     <div className="app-container">
@@ -43,27 +60,30 @@ function PasswordSearch() {
           <p>현재 비밀번호</p>
           <InputText 
             className="input-field" 
+            type="password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="임시 비밀번호를 입력해주세요." 
+            placeholder="현재 비밀번호를 입력해주세요." 
           />
         </div>
         <div className="input-container">
           <p>새 비밀번호</p>
           <InputText 
             className="input-field" 
+            type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="비밀번호를 입력해주세요." 
+            placeholder="새 비밀번호를 입력해주세요." 
           />
         </div>
         <div className="input-container">
           <p>새 비밀번호 확인</p>
           <InputText 
             className="input-field" 
+            type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="비밀번호를 한번 더 입력해주세요." 
+            placeholder="새 비밀번호를 한번 더 입력해주세요." 
           />
         </div>
         <div className="p_button-container">
@@ -78,4 +98,4 @@ function PasswordSearch() {
   );
 }
 
-export default PasswordSearch;
+export default PasswordChange;

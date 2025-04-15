@@ -25,22 +25,25 @@
     gap: 20px;
     width: 95%;
     height: calc(100vh - 140px);
-    margin-top: 60px;
+    margin-top: 50px;
+    margin-bottom: 15px;
     padding: 0 20px;
     align-items: center;
+    justify-content: center;
   }
   
   /* 메인 비디오 */
   .pa-main-video {
-    flex: 0.9;
+    flex: 0.8;
     position: relative;
     width: 100%;
     aspect-ratio: 14 / 9;
     border-radius: 20px;
     overflow: hidden;
     background: black;
-    margin-left: 40px;
+    /* margin-left: 40px; */
     margin-right: 20px;
+    height: 80%;
   }
   
   .pa-main-video-feed {
@@ -58,12 +61,12 @@
     flex-direction: column;
     justify-content: center;
     gap: 40px;
-    width: 280px;
-    padding: 20px 0;
+    width: 30%;
+    /* padding: 10px 0; */
   }
   
   .pa-participant {
-    width: 120%;
+    width: 100%;
     aspect-ratio: 13 / 9;
     background: black;
     border-radius: 20px;

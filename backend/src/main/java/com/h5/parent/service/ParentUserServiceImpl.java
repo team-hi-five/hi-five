@@ -89,14 +89,14 @@ public class ParentUserServiceImpl implements ParentUserService {
     }
 
     private List<MyChildInfo> buildMyChildInfos(int parentId) {
-        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentId)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNull(parentId)
                 .orElseThrow(UserNotFoundException::new);
 
         List<MyChildInfo> myChildInfos = new ArrayList<>();
         for (ChildUserEntity child : childUserEntities) {
             int age = Period.between(child.getBirth(), LocalDate.now()).getYears();
 
-            String profileImgUrl = !fileService.getFileUrl(FileEntity.TblType.P, child.getId()).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, child.getId()).get(0).getUrl() : "Default Image";
+            String profileImgUrl = !fileService.getFileUrl(FileEntity.TblType.PCD, child.getId()).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.PCD, child.getId()).get(0).getUrl() : "Default Image";
 
             myChildInfos.add(MyChildInfo.builder()
                     .childId(child.getId())
@@ -164,7 +164,7 @@ public class ParentUserServiceImpl implements ParentUserService {
         String parentEmail = authentication.getName();
 
         ParentUserEntity parentUserEntity = findParentByEmail(parentEmail);
-        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_Id(parentUserEntity.getId())
+        List<ChildUserEntity> myChildren = childUserRepository.findAllByParentUserEntity_IdAndDeleteDttmIsNull(parentUserEntity.getId())
                 .orElseThrow(UserNotFoundException::new);
 
         return myChildren.stream()

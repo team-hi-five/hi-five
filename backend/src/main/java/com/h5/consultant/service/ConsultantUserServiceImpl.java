@@ -9,7 +9,7 @@ import com.h5.consultant.entity.ConsultantUserEntity;
 import com.h5.consultant.repository.ConsultantUserRepository;
 import com.h5.file.entity.FileEntity;
 import com.h5.file.service.FileService;
-import com.h5.global.exception.ParentAccountRegistrationException;
+import com.h5.global.exception.MailSendException;
 import com.h5.global.exception.UserNotFoundException;
 import com.h5.global.util.MailUtil;
 import com.h5.global.util.PasswordUtil;
@@ -69,8 +69,8 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         return Period.between(birthLocalDate, LocalDate.now()).getYears();
     }
 
-    private String getFileUrl(int tblId) {
-        return !fileService.getFileUrl(FileEntity.TblType.P, tblId).isEmpty() ? fileService.getFileUrl(FileEntity.TblType.P, tblId).get(0).getUrl() : "Default Image";
+    private String getFileUrl(FileEntity.TblType tblType, int tblId) {
+        return !fileService.getFileUrl(tblType, tblId).isEmpty() ? fileService.getFileUrl(tblType, tblId).get(0).getUrl() : "Default Image";
     }
 
     @Override
@@ -139,7 +139,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 mailUtil.sendRegistrationEmail(registerParentAccountDto.getParentEmail(),
                         registerParentAccountDto.getParentEmail(), initPwd);
             } catch (Exception e) {
-                throw new ParentAccountRegistrationException("Failed to send registration email", e);
+                throw new MailSendException("Failed to send registration email", e);
             }
         }
 
@@ -170,7 +170,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
                 .orElseThrow(UserNotFoundException::new);
 
-        List<ChildUserEntity> childUsers = childUserRepository.findByConsultantUserEntity_Id(consultantUser.getId())
+        List<ChildUserEntity> childUsers = childUserRepository.findByConsultantUserEntity_IdAndDeleteDttmIsNull(consultantUser.getId())
                 .orElse(new ArrayList<>());
 
         List<GetMyChildrenResponseDto> responseDtos = new ArrayList<>();
@@ -178,7 +178,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
             responseDtos.add(
                     GetMyChildrenResponseDto.builder()
                             .childUserID(child.getId())
-                            .profileImgUrl(getFileUrl(child.getId()))
+                            .profileImgUrl(getFileUrl(FileEntity.TblType.PCD, child.getId()))
                             .childName(child.getName())
                             .birth(String.valueOf(child.getBirth()))
                             .age(calculateAge(String.valueOf(child.getBirth())))
@@ -197,12 +197,12 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
         ConsultantUserEntity consultantUser = consultantUserRepository.findByEmail(consultantEmail)
                 .orElseThrow(UserNotFoundException::new);
 
-        ChildUserEntity childUser = childUserRepository.findByIdAndConsultantUserEntity_Id(childUserId, consultantUser.getId())
+        ChildUserEntity childUser = childUserRepository.findByIdAndConsultantUserEntity_IdAndDeleteDttmIsNull(childUserId, consultantUser.getId())
                 .orElseThrow(UserNotFoundException::new);
 
         return GetChildResponseDto.builder()
                 .childUserId(childUser.getId())
-                .profileImgUrl(getFileUrl(childUser.getId()))
+                .profileImgUrl(getFileUrl(FileEntity.TblType.PCD, childUser.getId()))
                 .childName(childUser.getName())
                 .age(calculateAge(String.valueOf(childUser.getBirth())))
                 .gender(childUser.getGender().equals("M") ? "남" : "여")
@@ -224,7 +224,7 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
                 .orElseThrow(UserNotFoundException::new);
 
         return MyProfileResponseDto.builder()
-                .profileImgUrl(getFileUrl(consultantUser.getId()))
+                .profileImgUrl(getFileUrl(FileEntity.TblType.PCT, consultantUser.getId()))
                 .name(consultantUser.getName())
                 .email(consultantUser.getEmail())
                 .phone(consultantUser.getPhone())
@@ -234,20 +234,35 @@ public class ConsultantUserServiceImpl implements ConsultantUserService {
     }
 
     @Override
-    public boolean emailCheck(String email) {
-        return consultantUserRepository.findByEmail(email).isPresent() || parentUserRepository.findByEmail(email).isPresent();
+    public EmailCheckResponseDto emailCheck(String email) {
+        if (parentUserRepository.findByEmail(email).isEmpty()) {
+            return EmailCheckResponseDto.builder()
+                    .alreadyAccount(false)
+                    .build();
+        }
+
+        ParentUserEntity parentUser = parentUserRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+
+        return EmailCheckResponseDto.builder()
+                .alreadyAccount(true)
+                .email(email)
+                .parentName(parentUser.getName())
+                .parentPhone(parentUser.getPhone())
+                .build();
     }
+
 
     @Transactional
     @Override
     public List<SearchChildResponseDto> searchChild(String childUserName) {
-        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByName(childUserName)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findALlByNameContainingAndDeleteDttmIsNull(childUserName)
                 .orElseThrow(UserNotFoundException::new);
 
         return childUserEntities.stream()
                 .map(child -> SearchChildResponseDto.builder()
                         .childUserId(child.getId())
-                        .childProfileUrl(getFileUrl(child.getId()))
+                        .childProfileUrl(getFileUrl(FileEntity.TblType.PCD, child.getId()))
                         .childUserName(child.getName())
                         .parentUserName(child.getParentUserEntity().getName())
                         .parentUserEmail(child.getParentUserEntity().getEmail())

@@ -1,18 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ParentHeader from "../../../components/Parent/ParentHeader";
-import Footer from "../../../components/common/footer";
-import { getQnaList } from '../../../api/boardQna';
+import Footer from "../../../components/common/Footer";
+import { getQnaList, searchQnas } from '../../../api/boardQna';
 import { getNoticePosts, searchNotices } from '../../../api/boardNotice';
-import { getFaqList } from '../../../api/boardFaq';
+import { getFaqList, searchFaqs } from '../../../api/boardFaq';
 import SingleButtonAlert from "/src/components/common/SingleButtonAlert";
 import "/src/pages/Parent/ParentCss/ParentBoardPage.css";
-
-// FAQ에서 '유형(type)' 사용 (조회수, 작성일 제외)
-const faqData = [
-  { no: 2, type: "사이트 이용", title: "자주 묻는 질문 TOP5", writer: "운영자", date: "2025-01-21" },
-  { no: 1, type: "계정", title: "계정 관련 FAQ", writer: "운영자", date: "2025-01-08" },
-];
 
 
 function ParentBoardPage() {
@@ -37,45 +31,88 @@ function ParentBoardPage() {
 
   const navigate = useNavigate();
 
-  // 검색 API 호출 함수 추가
-  const handleSearch = async () => {
-    if (!paSearchTerm.trim()) {
+  // 검색 버튼 클릭 시 실행되는 함수
+const handleSearch = async () => {
+  if (!paSearchTerm.trim()) {
       await SingleButtonAlert('검색어를 입력해주세요.');
       return;
-    }
+  }
 
-    try {
-      setNoticeLoading(true);
+  try {
       setIsSearching(true);
-
       const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
-      const response = await searchNotices(
-        paSearchTerm,
-        searchType,
-        paCurrentPage - 1,
-        paItemsPerPage
-      );
+      
+      if (paActiveTab === "notice") {
+          setNoticeLoading(true);
+          const response = await searchNotices(
+              paSearchTerm,
+              searchType,
+              paCurrentPage - 1,
+              paItemsPerPage
+          );
+          
+          const formattedData = response.notices.map((item, index) => ({
+              no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+              id: item.id,
+              title: item.title,
+              writer: item.name || "운영자",
+              views: item.viewCnt || 0,
+              date: new Date(item.createDttm).toISOString().split('T')[0]
+          }));
 
-      const formattedData = response.notices.map(item => ({
-        no: item.id || "9999",
-        title: item.title,
-        writer: item.name || "운영자",
-        views: item.viewCnt || 0,
-        date: new Date(item.createDttm).toISOString().split('T')[0]
-      }));
+          setNoticeData(formattedData);
+          setTotalPages(response.pagination.totalPages);
+          setNoticeLoading(false);
+      } else if (paActiveTab === "faq") {
+          setFaqLoading(true);
+          // setIsSearching(true);
+          const response = await searchFaqs(
+              paSearchTerm,
+              searchType,
+              paCurrentPage - 1,
+              paItemsPerPage
+          );
+          
+          const formattedData = response.faqs.map((item, index) => ({
+              no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+              id: item.id,
+              type: item.type || "기타",
+              title: item.title,
+              writer: item.name || "운영자"
+          }));
 
-      setNoticeData(formattedData);
-      setTotalPages(response.pagination.totalPages);
+          setFaqData(formattedData);
+          setTotalPages(response.pagination.totalPages);
+          setFaqLoading(false);
+      } else if (paActiveTab === "qna") {
+          setQnaLoading(true);
+          const response = await searchQnas(
+              paSearchTerm,
+              searchType,
+              paCurrentPage - 1,
+              paItemsPerPage
+          );
 
-    } catch (error) {
+          const formattedData = response.qnaList.map((item, index) => ({
+              no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+              id: item.id,
+              title: item.title,
+              writer: item.name || "익명",
+              status: item.answerCnt > 0 ? "답변완료" : "미답변",
+              date: new Date(item.createDttm).toISOString().split('T')[0]
+          }));
+
+          setQnaData(formattedData);
+          setTotalPages(response.pagination.totalPages);
+          setQnaLoading(false);
+      }
+  } catch (error) {
       console.error("검색 에러:", error);
       await SingleButtonAlert(
-        error.response?.data?.message || '검색 중 오류가 발생했습니다.'
+          error.response?.data?.message || '검색 중 오류가 발생했습니다.'
       );
-    } finally {
-      setNoticeLoading(false);
-    }
-  };
+  }
+};
 
   // 공지사항 데이터 fetch 함수
 const fetchNoticeData = async () => {
@@ -88,8 +125,9 @@ const fetchNoticeData = async () => {
       paItemsPerPage
     );
     
-    const formattedData = response.notices.map(item => ({
-      no: item.id || "9999",
+    const formattedData = response.notices.map((item, index) => ({
+      no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+      id: item.id, // 실제 데이터베이스 ID
       title: item.title,
       writer: item.name || "운영자",
       views: item.viewCnt || 0,
@@ -115,8 +153,9 @@ const fetchFaqData = async () => {
     setFaqLoading(true);
     const response = await getFaqList(paCurrentPage - 1, paItemsPerPage);
     
-    const formattedData = response.faqs.map(item => ({
-      no: item.id,
+    const formattedData = response.faqs.map((item, index) => ({
+      no:response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+      id: item.id, // 실제 데이터베이스 ID
       type: item.type || "일반",
       title: item.title,
       writer: item.name,
@@ -139,13 +178,16 @@ const fetchFaqData = async () => {
 const fetchQnaData = async () => {
   try {
     setQnaLoading(true);
-    
+    setIsSearching(false);  // 검색 모드 해제
+
     const response = await getQnaList(paCurrentPage - 1, paItemsPerPage);
-    const formattedData = response.qnaList.map(item => ({
-      no: item.id,
+
+    const formattedData = response.qnaList.map((item, index) => ({
+      no: response.pagination.totalElements - (paCurrentPage - 1) * paItemsPerPage - index,
+      id: item.id, 
       title: item.title,
       writer: item.name,
-      status: item.answerYn ? "답변완료" : "미답변",  
+      status: item.answerCnt > 0 ? "답변완료" : "미답변",  
       date: new Date(item.createDttm).toISOString().split('T')[0]
     }));
     
@@ -162,14 +204,24 @@ const fetchQnaData = async () => {
   }
 };
 
-// 페이지 변경 시 데이터 fetch
+  // Notice useEffect
 useEffect(() => {
   if (paActiveTab === "notice" && !isSearching) {
-    fetchNoticeData();
-  } else if (paActiveTab === "qna" && !isSearching) { 
-    fetchQnaData();
-  } else if (paActiveTab === "faq" && !isSearching) {
-    fetchFaqData();
+      fetchNoticeData();
+  }
+}, [paCurrentPage, paActiveTab, isSearching]);
+
+// FAQ useEffect
+useEffect(() => {
+  if (paActiveTab === "faq" && !isSearching) {
+      fetchFaqData();
+  }
+}, [paCurrentPage, paActiveTab, isSearching]);
+
+// QnA useEffect
+useEffect(() => {
+  if (paActiveTab === "qna" && !isSearching) {
+      fetchQnaData();
   }
 }, [paCurrentPage, paActiveTab, isSearching]);
 
@@ -195,38 +247,134 @@ useEffect(() => {
     paTitle = "질문";
   }
 
-  // 검색 필터
-  const paFilteredData = paBoardData.filter((item) =>
-    item[paSearchCategory]?.toLowerCase().includes(paSearchTerm.toLowerCase())
-  );
-
   // 페이지네이션 계산
-  const paTotalItems = paFilteredData.length;
-  const paTotalPages = Math.ceil(paTotalItems / paItemsPerPage);
-  const paStartIndex = (paCurrentPage - 1) * paItemsPerPage;
-  const paEndIndex = paStartIndex + paItemsPerPage;
-  const paPageData = paFilteredData.slice(paStartIndex, paEndIndex);
-
-  // "빈 행" 개수 (테이블 높이를 7행으로 고정하기 위해)
-  const emptyRowsCount = paItemsPerPage - paPageData.length;
+  // paFilteredData 수정
+  // const paFilteredData = (paActiveTab === "notice" || paActiveTab === "faq" || paActiveTab === "qna")
+  // ? paBoardData
+  // : paBoardData;
+  
+    const paPageData = paBoardData;
+    const emptyRowsCount = paItemsPerPage - paPageData.length;
 
   // 이벤트 핸들러들
   const handleTabClick = (tabName) => {
     setPaActiveTab(tabName);
     setPaSearchTerm("");
+    setPaSearchCategory("title");
     setPaCurrentPage(1);
+    setIsSearching(false);
+};
+
+const handleSearchChange = (e) => {
+      setPaSearchTerm(e.target.value);
+      setPaCurrentPage(1);
+  
+  // 검색어가 비어있으면 전체 목록을 보여줌
+  if (!e.target.value.trim()) {
+      setIsSearching(false);
+      // setNoticeLoading(false);
+      // setFaqLoading(false);
+      // setQnaLoading(false);
+      if (paActiveTab === "notice") {
+          fetchNoticeData();
+      } else if (paActiveTab === "faq") {
+          fetchFaqData();
+      } else if (paActiveTab === "qna") {
+          fetchQnaData();
+      }
+      return;
+  }
+  
+  // 검색 실행
+    const searchType = paSearchCategory === 'writer' ? 'writer' : 'title';
+    setIsSearching(true);
+  
+    const timer = setTimeout(async () => {
+        try {
+            if (paActiveTab === "notice") {
+                setNoticeLoading(true);
+                const response = await searchNotices(
+                    e.target.value,
+                    searchType,
+                    paCurrentPage - 1,
+                    paItemsPerPage
+                );
+  
+                const formattedData = response.notices.map((item, index) => ({
+                    no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                    id: item.id,
+                    title: item.title,
+                    writer: item.name || "운영자",
+                    views: item.viewCnt || 0,
+                    date: new Date(item.createDttm).toISOString().split('T')[0]
+                }));
+  
+                setNoticeData(formattedData);
+                setTotalPages(response.pagination.totalPages);
+                setNoticeLoading(false);
+            } else if (paActiveTab === "faq") {
+                setFaqLoading(true);
+                const response = await searchFaqs(
+                  e.target.value,
+                  searchType,
+                  paCurrentPage - 1,
+                  paItemsPerPage
+              );
+              // console.log("paren + faq" , response);
+  
+                const formattedData = response.faqs.map((item, index) => ({
+                    no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                    id: item.id,
+                    type: item.type || "기타",
+                    title: item.title,
+                    writer: item.name || "운영자"
+                }));
+  
+                setFaqData(formattedData);
+                setTotalPages(response.pagination.totalPages);
+                setFaqLoading(false);
+            } else if (paActiveTab === "qna") {
+                setQnaLoading(true);
+                const response = await searchQnas(
+                  e.target.value,
+                  searchType,
+                  paCurrentPage - 1,
+                  paItemsPerPage
+              );
+              // console.log("paren + qna" , response);
+  
+                const formattedData = response.qnaList.map((item, index) => ({
+                    no: response.pagination.totalElements - ((paCurrentPage - 1) * paItemsPerPage + index),
+                    id: item.id,
+                    title: item.title,
+                    writer: item.name || "익명",
+                    status: item.answerCnt > 0 ? "답변완료" : "미답변",
+                    date: new Date(item.createDttm).toISOString().split('T')[0]
+                }));
+  
+                setQnaData(formattedData);
+                setTotalPages(response.pagination.totalPages);
+                setQnaLoading(false);
+            }
+        } catch (error) {
+            console.error("검색 에러:", error);
+            // setNoticeLoading(false);
+            // setFaqLoading(false);
+            // setQnaLoading(false);
+        }
+    }, 300);
+  
+    return () => clearTimeout(timer);
   };
 
-  const handleSearchChange = (e) => {
-    setPaSearchTerm(e.target.value);
-    setPaCurrentPage(1);
-  };
 
   const handleCategoryClick = (category) => {
-    setPaSearchCategory(category); // "title" or "writer"
-    setPaSearchTerm("");
-    setPaCurrentPage(1);
-  };
+    setPaSearchCategory(category);
+    // 현재 검색어가 있을 경우 해당 검색어로 다시 검색 실행
+    if (paSearchTerm.trim()) {
+      handleSearch();
+  }
+};
 
   const handlePageChange = (pageNumber) => {
     setPaCurrentPage(pageNumber);
@@ -237,7 +385,7 @@ useEffect(() => {
   };
 
   const handleNextPage = () => {
-    setPaCurrentPage((prev) => Math.min(prev + 1, paTotalPages));
+    setPaCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
   const handleWriteClick = () => {
@@ -247,14 +395,14 @@ useEffect(() => {
   // 테이블 행 클릭 -> 상세 페이지로 이동 (예시: /board/{tab}/{글번호})
   const handleRowClick = (type, item) => {
     // 이동: /board/notice/11 or /board/faq/2 or /board/qna/3 ...
-    navigate(`/parent/board/${type}/${item.no}`);
+    navigate(`/parent/board/${type}/${item.id}`);
   };
 
   // 탭별 열 수(FAQ=4, QnA=5, Notice=5)
   const colSpan = paActiveTab === "faq" ? 4 : paActiveTab === "qna" ? 5 : 5;
 
   return (
-    <div>
+    <div >
       <ParentHeader />
       <div className='pa-board-page'>
         <div className="pa-board-top-wrapper">
@@ -275,7 +423,7 @@ useEffect(() => {
               className={`pa-board-tab ${paActiveTab === "qna" ? "pa-active-tab" : ""}`}
               onClick={() => handleTabClick("qna")}
             >
-              질문
+              QNA
             </button>
           </div>
         </div>
@@ -333,27 +481,27 @@ useEffect(() => {
                   {/* 탭별로 컬럼 구성 분기 */}
                   {paActiveTab === "faq" ? (
                     <>
-                      <th>번호</th>
-                      <th>유형</th>
-                      <th>제목</th>
-                      <th>작성자</th>
+                      <th style={{ width: "10%" }}>번호</th>
+                      <th style={{ width: "30%" }}>유형</th>
+                      <th style={{ width: "40%" }}>제목</th>
+                      <th style={{ width: "20%" }}>작성자</th>
                     </>
                   ) : paActiveTab === "qna" ? (
                     <>
-                      <th>번호</th>
-                      <th>제목</th>
-                      <th>작성자</th>
-                      <th>답변상태</th>
-                      <th>작성일</th>
+                      <th style={{ width: "10%" }}>번호</th>
+                      <th style={{ width: "40%" }}>제목</th>
+                      <th style={{ width: "20%" }}>작성자</th>
+                      <th style={{ width: "10%" }}>답변상태</th>
+                      <th style={{ width: "20%" }}>작성일</th>
                     </>
                   ) : (
                     // 공지사항
                     <>
-                      <th>번호</th>
-                      <th>제목</th>
-                      <th>작성자</th>
-                      <th>조회수</th>
-                      <th>작성일</th>
+                      <th style={{ width: "10%" }}>번호</th>
+                      <th style={{ width: "40%" }}>제목</th>
+                      <th style={{ width: "20%" }}>작성자</th>
+                      <th style={{ width: "10%" }}>조회수</th>
+                      <th style={{ width: "20%" }}>작성일</th>
                     </>
                   )}
                 </tr>
@@ -442,26 +590,26 @@ useEffect(() => {
             </table>
 
             {/* 페이지네이션 */}
-            {paTotalItems > 0 && (
+            {totalPages > 0 && (
               <div className="pa-board-pagination">
                 <button onClick={handlePrevPage} disabled={paCurrentPage === 1}>
                   이전
                 </button>
-                {Array.from({ length: paTotalPages }).map((_, idx) => {
-                  const pageNum = idx + 1;
-                  return (
-                    <button
-                      key={pageNum}
-                      className={paCurrentPage === pageNum ? "pa-active-page" : ""}
-                      onClick={() => handlePageChange(pageNum)}
-                    >
-                      {pageNum}
-                    </button>
-                  );
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                    const pageNum = idx + 1;
+                    return (
+                        <button
+                            key={pageNum}
+                            className={paCurrentPage === pageNum ? "pa-active-page" : ""}
+                            onClick={() => handlePageChange(pageNum)}
+                        >
+                            {pageNum}
+                        </button>
+                    );
                 })}
                 <button
-                  onClick={handleNextPage}
-                  disabled={paCurrentPage === paTotalPages}
+                    onClick={handleNextPage}
+                    disabled={paCurrentPage === totalPages}
                 >
                   다음
                 </button>

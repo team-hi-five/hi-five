@@ -12,7 +12,7 @@ export const createNotice = async (title, content) => {
 
         const response = await api.post("/notice/write", {
             title: title,
-            content: content
+            content: content,
         });
 
         console.log("✅ 공지사항 작성 성공:", response.data);

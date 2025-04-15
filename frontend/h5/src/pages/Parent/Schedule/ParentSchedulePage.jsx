@@ -1,12 +1,12 @@
 import ParentHeader from "../../../components/Parent/ParentHeader";
-import Footer from "../../../components/common/footer";
+import Footer from "../../../components/common/Footer";
 import { Calendar } from 'primereact/calendar';
 import { useState, useEffect } from 'react';
 import { addLocale } from 'primereact/api';
 import 'primereact/resources/themes/saga-blue/theme.css';
 import 'primereact/resources/primereact.min.css';
-import '../Parentcss/ParentSchedulePage.css';
-import { getScheduledDatesByParent } from "/src/api/schedule";
+import '../ParentCss/ParentSchedulePage.css';
+import { getScheduledDatesByParent, getParentScheduleList } from "/src/api/schedule";
 
 addLocale('ko', {
     firstDayOfWeek: 0,
@@ -26,106 +26,109 @@ function ParentSchedulePage() {
     const [searchTerm] = useState('');
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [scheduledDates, setScheduledDates] = useState([]);
+    const [scheduleList, setScheduleList] = useState([]); // 🔹 부모 상담 리스트 상태 추가
+
 
     useEffect(() => {
         async function fetchScheduledDates() {
             try {
-                const dates = await getScheduledDatesByParent();
-                setScheduledDates(dates.map(date => new Date(date))); // 문자열 날짜를 Date 객체로 변환
+                const selectedYear = currentMonth.getFullYear(); // ✅ 정확한 값 설정
+                const selectedMonth = currentMonth.getMonth() + 1;
+
+                console.log(`📢 상담 일정 요청 (Year: ${selectedYear}, Month: ${selectedMonth})`);
+
+                const dates = await getScheduledDatesByParent(selectedYear, selectedMonth);
+                console.log("✅ 상담 예약 날짜 응답 확인:", dates);
+
+                setScheduledDates(dates.map(date => formatDateToString(new Date(date))));
             } catch (error) {
-                console.error("상담 일정 날짜를 불러오는 데 실패했습니다.", error);
+                console.error("❌ 상담 일정 날짜를 불러오는 데 실패했습니다.", error);
             }
         }
-        fetchScheduledDates();
-    }, []);
+
+        if (currentMonth) { // ✅ currentMonth가 존재할 때만 실행
+            fetchScheduledDates();
+        }
+    }, [currentMonth]); // ✅ 년도, 월이 바뀔 때만 실행
 
 
-    const [schedules] = useState([
-        {
-            time: "11:00 ~ 12:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-30",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "11:00 ~ 12:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-29",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "14:00 ~ 15:00",
-            counselor: "박성원",
-            counsultation_target: "김현수",
-            counsultation_type: "게임",
-            date: "2025-01-31",
-            isLoading: false,
-            isCompleted: false
-        },
-        {
-            time: "15:00 ~ 16:00",
-            counselor: "박성원",
-            counsultation_target: "김도로롱",
-            counsultation_type: "아동학습현황상담",
-            date: "2025-02-15",
-            isLoading: false,
-            isCompleted: false
-        },
-    ].sort((a, b) => {
-        const timeA = a.time.split('~')[0].trim();
-        const timeB = b.time.split('~')[0].trim();
-        return timeA.localeCompare(timeB);
-      })); // 시간순으로 나열해주는 로직
+    useEffect(() => {
+        setTimeout(() => {
+            highlightScheduledDatesInDOM();
+        }, 500); // 달력 렌더링 후 실행
+    },);
+
+    useEffect(() => {
+        async function fetchScheduleList() {
+            try {
+                const formattedDate = formatDateToString(date); // YYYY-MM-DD 변환
+                console.log("📅 요청할 날짜:", formattedDate); // ✅ 날짜 확인
+
+                const data = await getParentScheduleList(formattedDate);
+
+                console.log("✅ API에서 받은 schedules:", data); // ✅ 응답 확인
+
+                setScheduleList(data);
+            } catch (error) {
+                console.error("❌ 상담 일정 불러오기 실패", error);
+            }
+        }
+
+        fetchScheduleList();
+    }, [date]);
+
+
+
 
     // 날짜를 YYYY-MM-DD 형식으로 변환하는 함수
     const formatDateToString = (date) => {
         if (!date) return null;
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     };
 
-     // 날짜 선택 핸들러
-     const handleDateSelect = (e) => {
-        setDate(e.value);
-        setCurrentMonth(e.value);
+    const formatTimeFromDateTime = (dateTime) => {
+        if (!dateTime || !Array.isArray(dateTime)) return { time: "시간 정보 없음", date: "" };
+
+        try {
+            const [, month, day, hour, minute] = dateTime;
+            const formattedTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+            const formattedDate = `${month}/${day}`; // "2/9" 형식으로 변환
+
+            return { time: formattedTime, date: formattedDate };
+        } catch (error) {
+            console.error("❌ 시간 포맷팅 실패:", error);
+            return { time: "시간 정보 없음", date: "" };
+        }
     };
 
-    // 필터링된 스케줄을 계산
-    const filteredSchedules = schedules.filter(schedule => {
-        if (searchTerm) {
-            // 검색어가 있을 때
-            const scheduleDate = new Date(schedule.date);
-            const currentMonthDate = new Date(currentMonth);
-            
-            // 연도와 월이 일치하는지 확인
-            const isSameMonth = 
-                scheduleDate.getFullYear() === currentMonthDate.getFullYear() &&
-                scheduleDate.getMonth() === currentMonthDate.getMonth();
-    
-            return schedule.counsultation_target.toLowerCase().includes(searchTerm.toLowerCase()) 
-                   && isSameMonth;
-        }
-        
-        // 검색어가 없을 때는 선택된 날짜의 상담만 보여줌
-        const selectedDate = formatDateToString(date);
-        return schedule.date === selectedDate;
-    }).sort((a, b) => {
-        // 날짜순으로 정렬 후, 같은 날짜는 시간순으로 정렬
-        if (a.date !== b.date) {
-            return new Date(a.date) - new Date(b.date);
-        }
+
+
+
+
+    // 🔹 달력이 렌더링된 후, 예약된 날짜에 스타일을 추가하는 함수
+    const highlightScheduledDatesInDOM = () => {
+        setTimeout(() => {
+            const calendarCells = document.querySelectorAll(".p-datepicker td > span");
+            calendarCells.forEach((cell) => {
+                const dateText = cell.innerText.padStart(2, "0"); // "1" -> "01" 변환
+                const selectedDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}-${dateText}`;
+                if (scheduledDates.includes(selectedDate)) {
+                    cell.classList.add("highlight-circle"); // ✅ 클래스 추가
+                }
+            });
+        }, 100);
+    };
+
+
+    const [schedules] = useState([
+        ].sort((a, b) => {
         const timeA = a.time.split('~')[0].trim();
         const timeB = b.time.split('~')[0].trim();
         return timeA.localeCompare(timeB);
-    });
+    })); // 시간순으로 나열해주는 로직
 
     // 날짜 표시 포맷 함수 (M/DD)
     const formatDisplayDate = (dateString) => {
@@ -133,13 +136,24 @@ function ParentSchedulePage() {
         return `${date.getMonth() + 1}/${date.getDate()}`;
     };
 
-    const handleJoin = () => {
-      window.open(
-        '/parent/schedule/call',
-        '_blank',
-        'left=0,top=0,width=' + screen.width + ',height=' + screen.height
-      );
-  };
+    const handleJoin = (schedule) => {
+        const childId = schedule.childUserId;
+        const type = schedule.type;
+        if(type === "consult"){
+            window.open(
+                `/parent/schedule/call?childId=${childId}&type=${type}&role=parent`,
+                '_blank',
+                'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+            );
+        }else if(type === "game"){
+            window.open(
+                `/child/${childId}`,
+                'ChildMainPage',
+                'left=0,top=0,width=' + screen.width + ',height=' + screen.height
+            );
+        }
+
+    };
 
     return (
         <>
@@ -150,19 +164,22 @@ function ParentSchedulePage() {
                     <div className="pa-calendar-section">
                         <h2 className="pa-select-date">날짜를 선택해주세요.</h2>
                         <div className="pa-calendar-wrapper">
-                            <Calendar 
-                                value={date} 
-                                onChange={handleDateSelect}
-                                onViewDateChange={(e) => setCurrentMonth(e.value)}
-                                inline 
-                                dateFormat="yy년 mm월"
-                                locale="ko"
-                                view="date"
-                                monthNavigator
-                                yearNavigator
-                                yearRange="2000:2040"
-                                disabledDates={scheduledDates} // 📌 예약된 날짜 비활성화
-                            />
+                        <Calendar
+                            value={date}
+                            onChange={(e) => setDate(e.value)}
+                            onViewDateChange={(e) => {
+                                setCurrentMonth(e.value);
+                                setDate(e.value); // 🔹 달력에서 년/월 변경 시에도 반영되도록 수정
+                            }}
+                            inline
+                            dateFormat="yy년 mm월"
+                            locale="ko"
+                            view="date"
+                            monthNavigator
+                            yearNavigator
+                            yearRange="2000:2040"
+                        />
+
                         </div>
                     </div>
                     <div className="pa-notcalendar">
@@ -178,47 +195,32 @@ function ParentSchedulePage() {
                                 </h2>
                             </div>
                             <div className="pa-schedule-list">
-                                {filteredSchedules.length > 0 ? (
-                                    filteredSchedules.map((schedule, index) => (
+                                {scheduleList
+                                    .filter((schedule) => formatTimeFromDateTime(schedule.schdlDttm).date === formatDisplayDate(date)) // 날짜 필터링
+                                    .map((schedule, index) => (
                                         <div key={index} className="pa-schedule-item">
                                             <div className="pa-schedule-info">
-                                                {searchTerm && (
-                                                    <div className="pa-schedule-header-row">
-                                                        <div className="pa-schedule-date">
-                                                            {formatDisplayDate(schedule.date)}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                <p>상담 시간 : {schedule.time}</p>
-                                                <p>상담유형 : {schedule.counsultation_type}</p>
-                                                <p>상담대상(이름) : {schedule.counsultation_target}</p>
+                                                <p>상담 시간 : {formatTimeFromDateTime(schedule.schdlDttm).time}</p>
+                                                <p>상담유형 : {schedule.type === "game" ? "게임 상담" : "일반 상담"}</p>
+                                                <p>상담대상(이름) : {schedule.childName}</p>
+                                                <p>담당 상담사 : {schedule.consultantName}</p>
                                             </div>
                                             <div className="pa-button-group">
-                                                {!schedule.isCompleted ? (
-                                                    <>
-                                                        <button 
-                                                            className="pa-btn pa-btn-join"
-                                                            onClick={() => handleJoin(index)}
-                                                        >
-                                                            참여
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <button className="pa-btn pa-btn-completed" disabled>
-                                                        참여완료
-                                                    </button>
-                                                )}
+                                                <button className="pa-btn pa-btn-join" onClick={() => handleJoin(schedule)}>
+                                                    참여
+                                                </button>
                                             </div>
                                         </div>
                                     ))
-                                ) : (
+                                }
+
+                                {scheduleList.filter((schedule) => formatTimeFromDateTime(schedule.schdlDttm).date === formatDisplayDate(date)).length === 0 && (
                                     <div className="pa-no-schedules">
-                                        <p>
-                                            {searchTerm ? '해당 아동의 상담내역이 없습니다!' : '상담 일정이 없습니다!'}
-                                        </p>
+                                        <p>선택한 날짜에 상담 일정이 없습니다!</p>
                                     </div>
                                 )}
                             </div>
+
                         </div>
                     </div>
                 </div>

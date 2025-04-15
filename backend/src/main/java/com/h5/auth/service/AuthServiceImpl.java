@@ -1,6 +1,7 @@
 package com.h5.auth.service;
 
 import com.h5.auth.dto.request.LoginRequestDto;
+import com.h5.auth.dto.response.GetUserInfoResponseDto;
 import com.h5.auth.dto.response.LoginResponseDto;
 import com.h5.auth.dto.response.RefreshAccessTokenResponseDto;
 import com.h5.consultant.entity.ConsultantUserEntity;
@@ -14,11 +15,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -133,8 +136,6 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        System.out.println(email);
-
         String storedRefreshToken = (String) redisTemplate.opsForValue().get(email);
 
         if (storedRefreshToken == null) {
@@ -154,6 +155,35 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(newAccessToken)
                 .build();
     }
+
+    @Override
+    public GetUserInfoResponseDto getUserInfo() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        String role = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElse(null);
+
+        String name = findUserNameByEmail(email);
+
+        return GetUserInfoResponseDto.builder()
+                .name(name)
+                .role(role)
+                .build();
+    }
+
+    private String findUserNameByEmail(String email) {
+        Optional<ConsultantUserEntity> consultantUser = consultantUserRepository.findByEmail(email);
+        if (consultantUser.isPresent()) {
+            return consultantUser.get().getName();
+        }
+
+        Optional<ParentUserEntity> parentUser = parentUserRepository.findByEmail(email);
+        return parentUser.map(ParentUserEntity::getName).orElseThrow(UserNotFoundException::new);
+    }
+
 
     private void refreshTokenIfNeeded(String refreshToken, UserDetails userDetails, String email) {
         if (jwtUtil.isTokenNearExpiry(refreshToken)) {

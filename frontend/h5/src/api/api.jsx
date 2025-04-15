@@ -1,78 +1,134 @@
 import axios from "axios";
 
-// 환경 변수에서 서버 URL 불러오기
-const API_URL = import.meta.env.VITE_SERVER_API_URL || "https://i12c205.p.ssafy.io:8443";
+const API_URL = import.meta.env.VITE_SERVER_API_URL;
 
-// ✅ 토큰 갱신이 필요 없는 API 엔드포인트 목록
 const noAuthEndpoints = [
   "/auth/login",
-  "/auth/logout",
   "/auth/parent/find-id",
   "/user/parent/temp-pwd",
   "/user/consultant/find-id",
   "/user/consultant/temp-pwd",
 ];
 
-// Axios 인스턴스 생성
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// ✅ 토큰 재발급 API 요청 함수
+let refreshingToken = false;
+let failedRequestsQueue = [];
+
+// 토큰 재발급 API 요청 함수
 export const refreshToken = async () => {
   try {
     console.log("📢 토큰 재발급 요청");
+    
+    const refreshTokenValue = sessionStorage.getItem("refresh_token");
+    if (!refreshTokenValue) {
+      throw new Error("Refresh token not found");
+    }
 
-    const response = await api.post("/auth/refresh");
+    const response = await api.post("/auth/refresh", null, {
+      headers: {
+        Authorization: `Bearer ${refreshTokenValue}`,
+      },
+    });
 
     console.log("✅ 토큰 재발급 성공:", response.data);
+
+    // 새로운 토큰으로 세션스토리지 업데이트
     sessionStorage.setItem("access_token", response.data.accessToken);
+    if (response.data.refreshToken) {
+      sessionStorage.setItem("refresh_token", response.data.refreshToken);
+    }
+
+    // 대기 중인 요청들을 재시도
+    failedRequestsQueue.forEach((callback) => callback(response.data.accessToken));
+    failedRequestsQueue = [];
 
     return response.data.accessToken;
   } catch (error) {
-    console.error("❌ 토큰 재발급 실패:", error.response ? error.response.data : error.message);
+    console.error(
+      "❌ 토큰 재발급 실패:",
+      error.response ? error.response.data : error.message
+    );
+
+    // refresh 토큰 요청에 401 에러가 발생하면 로그아웃 처리
+    if (error.response && error.response.status === 401) {
+      sessionStorage.removeItem("access_token");
+      sessionStorage.removeItem("refresh_token");
+      window.location.href = "/"; // 로그아웃 후 로그인 페이지로 리다이렉트
+    }
+
+    // 실패한 요청들 처리
+    failedRequestsQueue.forEach((callback) => callback(null));
+    failedRequestsQueue = [];
+
     throw error;
+  } finally {
+    refreshingToken = false;
   }
 };
 
-// 요청 인터셉터 (Access Token 자동 포함)
+// 요청 인터셉터: access 토큰 자동 삽입
 api.interceptors.request.use((config) => {
-  const accessToken = sessionStorage.getItem("access_token");
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
+  // 인증 없이 접근 가능한 엔드포인트는 그대로 사용
+  if (noAuthEndpoints.some((endpoint) => config.url.includes(endpoint))) {
+    return config;
   }
+
+  const accessToken = sessionStorage.getItem("access_token");
+  if (!accessToken) {
+    window.location.href = "/";
+    return Promise.reject(new Error("로그인이 필요합니다."));
+  }
+
+  config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 });
 
-// 응답 인터셉터 (Access Token 만료 시 자동 갱신, 특정 API는 예외 처리)
+// 응답 인터셉터: 401 발생 시 토큰 재발급 처리
 api.interceptors.response.use(
-  (response) => response, // 정상 응답 시 그대로 반환
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    console.error("응답 인터셉터 에러:", error);
 
-    // ✅ 예외 처리: 로그인, 로그아웃, 부모 계정 아이디 찾기는 refreshToken 호출 X
-    if (noAuthEndpoints.some(endpoint => originalRequest.url.includes(endpoint))) {
-      console.warn(`🔹 예외 처리된 요청 (${originalRequest.url})`);
+    // 인증 없이 접근 가능한 엔드포인트면 그대로 에러 반환
+    if (noAuthEndpoints.some((endpoint) => originalRequest.url.includes(endpoint))) {
       return Promise.reject(error);
     }
 
-    if (error.response?.status === 413 && !originalRequest._retry) {
-      originalRequest._retry = true; // 무한 루프 방지
+    // 401 에러 처리 (access 토큰 만료)
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
 
-      try {
-        // ✅ 기존 refreshToken 함수 사용하여 새 Access Token 요청
-        const newAccessToken = await refreshToken();
-
-        // ✅ 새 Access Token을 저장하고, 원래 요청을 재시도
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return axios(originalRequest);
-      } catch (err) {
-        console.error("❌ 토큰 갱신 실패. 재로그인 필요");
-        sessionStorage.removeItem("access_token");
-        sessionStorage.removeItem("refresh_token"); // 혹시 사용하고 있다면 삭제
-        window.location.href = "/login"; // 로그인 페이지로 이동
-        return Promise.reject(err);
+      if (!refreshingToken) {
+        refreshingToken = true;
+        try {
+          const newAccessToken = await refreshToken();
+          if (newAccessToken) {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            return api(originalRequest);
+          }
+        } catch (refreshError) {
+          return Promise.reject(refreshError);
+        }
+      } else {
+        // 토큰 재발급 진행 중이면 대기열에 추가
+        return new Promise((resolve, reject) => {
+          failedRequestsQueue.push((newToken) => {
+            if (newToken) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              resolve(api(originalRequest));
+            } else {
+              reject(error);
+            }
+          });
+        });
       }
     }
 

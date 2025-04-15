@@ -72,9 +72,11 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .scheduleId(consult.getId())
                         .schdlDttm(consult.getSchdlDttm())
                         .type("consult")
+                        .childUserId(consult.getChildUserEntity().getId())
                         .consultantName(consult.getHost().getName())
                         .childName(consult.getChildUserEntity().getName())
                         .parentName(consult.getParentUserEntity().getName())
+                        .parentEmail(consult.getParentUserEntity().getEmail())
                         .status(consult.getStatus())
                         .build()
         ));
@@ -84,9 +86,11 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .scheduleId(game.getId())
                         .schdlDttm(game.getSchdlDttm())
                         .type("game")
+                        .childUserId(game.getChildUserEntity().getId())
                         .consultantName(game.getHost().getName())
                         .childName(game.getChildUserEntity().getName())
-                        .parentName(null)
+                        .parentName(game.getChildUserEntity().getParentUserEntity().getName())
+                        .parentEmail(game.getChildUserEntity().getParentUserEntity().getEmail())
                         .status(game.getStatus())
                         .build()
         ));
@@ -110,10 +114,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         int childUserId = scheduleSearchByChildRequestDto.getChildId();
+        int year = scheduleSearchByChildRequestDto.getYear();
+        int month = scheduleSearchByChildRequestDto.getMonth();
 
-        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserId(childUserId);
+        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserIdAndYearMonth(childUserId, year, month);
 
-        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserId(childUserId);
+        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserIdAndYearMonth(childUserId, year, month);
 
         return Stream.concat(consultDates.stream(), gameDates.stream())
                 .distinct()
@@ -134,10 +140,12 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
 
         int childUserId = scheduleSearchByChildRequestDto.getChildId();
+        int year = scheduleSearchByChildRequestDto.getYear();
+        int month = scheduleSearchByChildRequestDto.getMonth();
 
-        List<ConsultMeetingScheduleEntity> consultMeetings = consultMeetingScheduleRepository.findByChildUserId(childUserId);
+        List<ConsultMeetingScheduleEntity> consultMeetings = consultMeetingScheduleRepository.findByChildUserIdAndYearMonth(childUserId,year, month);
 
-        List<GameMeetingScheduleEntity> gameMeetings = gameMeetingScheduleRepository.findByChildUserId(childUserId);
+        List<GameMeetingScheduleEntity> gameMeetings = gameMeetingScheduleRepository.findByChildUserIdAndYearMonth(childUserId,year, month);
 
         List<ScheduleResponseDto> schedules = new ArrayList<>();
 
@@ -147,8 +155,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .schdlDttm(consult.getSchdlDttm())
                         .type("consult")
                         .consultantName(consult.getHost().getName())
+                        .childUserId(consult.getChildUserEntity().getId())
                         .childName(consult.getChildUserEntity().getName())
                         .parentName(consult.getParentUserEntity().getName())
+                        .parentEmail(consult.getParentUserEntity().getEmail())
                         .status(consult.getStatus())
                         .build()
         ));
@@ -159,8 +169,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .schdlDttm(game.getSchdlDttm())
                         .type("game")
                         .consultantName(game.getHost().getName())
+                        .childUserId(game.getChildUserEntity().getId())
                         .childName(game.getChildUserEntity().getName())
-                        .parentName(null)
+                        .parentName(game.getChildUserEntity().getParentUserEntity().getName())
+                        .parentEmail(game.getChildUserEntity().getParentUserEntity().getEmail())
                         .status(game.getStatus())
                         .build()
         ));
@@ -173,7 +185,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public List<String> getAvailableTimes(ScheduleAvailableTimeRequestDto scheduleAvailableTimeRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getPrincipal().toString();
+        String email = authentication.getName();
         String role = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
@@ -235,19 +247,17 @@ public class ScheduleServiceImpl implements ScheduleService {
             throw new ScheduleConflictException();
         }
 
-        int parentUserId = scheduleCreateRequestDto.getParentUserId();
-
-        ParentUserEntity parentUserEntity = parentUserRepository.findById(parentUserId)
-                .orElseThrow(UserNotFoundException::new);
-
         if ("consult".equals(type)) {
+            ChildUserEntity childUserEntity = childUserRepository.findById(childUserId).orElseThrow(UserNotFoundException::new);
+            ParentUserEntity parentUserEntity = childUserEntity.getParentUserEntity();
+
             ConsultMeetingScheduleEntity consultSchedule = ConsultMeetingScheduleEntity.builder()
                     .host(consultantUserRepository.findById(consultantUserId)
                             .orElseThrow(UserNotFoundException::new))
                     .childUserEntity(childUserRepository.findById(childUserId)
                             .orElseThrow(UserNotFoundException::new))
+                    .schdlDttm(schdlDttm)
                     .parentUserEntity(parentUserEntity)
-                    .schdlDttm(schdlDttm)  // LocalDateTime 직접 사용
                     .status("P")
                     .build();
             consultMeetingScheduleRepository.save(consultSchedule);
@@ -375,9 +385,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElseThrow(UserNotFoundException::new)
                 .getId();
 
-        LocalDate date = scheduleSearchByParentRequestDto.getDate();
+        int year = scheduleSearchByParentRequestDto.getYear();
+        int month = scheduleSearchByParentRequestDto.getMonth();
 
-        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentUserId)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNull(parentUserId)
                 .orElseThrow(UserNotFoundException::new);
         List<Integer> childUserIds = childUserEntities.stream().map(ChildUserEntity::getId).toList();
 
@@ -386,8 +397,8 @@ public class ScheduleServiceImpl implements ScheduleService {
         }
         List<ScheduleResponseDto> schedules = new ArrayList<>();
 
-        List<ConsultMeetingScheduleEntity> consultSchedules = consultMeetingScheduleRepository.findByChildUserIdsAndDate(childUserIds, date);
-        List<GameMeetingScheduleEntity> gameSchedules = gameMeetingScheduleRepository.findByChildUserIdsAndDate(childUserIds, date);
+        List<ConsultMeetingScheduleEntity> consultSchedules = consultMeetingScheduleRepository.findByChildUserIdsAndYearMonth(childUserIds, year, month);
+        List<GameMeetingScheduleEntity> gameSchedules = gameMeetingScheduleRepository.findByChildUserIdsAndYearMonth(childUserIds, year, month);
 
         consultSchedules.forEach(consult -> schedules.add(
                 ScheduleResponseDto.builder()
@@ -395,8 +406,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .schdlDttm(consult.getSchdlDttm())
                         .type("consult")
                         .consultantName(consult.getHost().getName())
+                        .childUserId(consult.getChildUserEntity().getId())
                         .childName(consult.getChildUserEntity().getName())
                         .parentName(consult.getParentUserEntity().getName())
+                        .parentEmail(consult.getParentUserEntity().getEmail())
                         .status(consult.getStatus())
                         .build()
         ));
@@ -407,8 +420,10 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .schdlDttm(game.getSchdlDttm())
                         .type("game")
                         .consultantName(game.getHost().getName())
+                        .childUserId(game.getChildUserEntity().getId())
                         .childName(game.getChildUserEntity().getName())
-                        .parentName(null)
+                        .parentName(game.getChildUserEntity().getParentUserEntity().getName())
+                        .parentEmail(game.getChildUserEntity().getParentUserEntity().getEmail())
                         .status(game.getStatus())
                         .build()
         ));
@@ -419,7 +434,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public List<String> getScheduleDatesByParentUserId() {
+    public List<String> getScheduleDatesByParentUserId(ScheduleSearchByParentRequestDto scheduleSearchByParentRequestDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String parentEmail = authentication.getName();
         String role = authentication.getAuthorities().stream()
@@ -435,7 +450,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .orElseThrow(UserNotFoundException::new)
                 .getId();
 
-        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_Id(parentUserId)
+        List<ChildUserEntity> childUserEntities = childUserRepository.findByParentUserEntity_IdAndDeleteDttmIsNull(parentUserId)
                 .orElseThrow(UserNotFoundException::new);
         List<Integer> childUserIds = childUserEntities.stream().map(ChildUserEntity::getId).toList();
 
@@ -443,8 +458,11 @@ public class ScheduleServiceImpl implements ScheduleService {
             return List.of();
         }
 
-        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserIds(childUserIds);
-        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserIds(childUserIds);
+        int year = scheduleSearchByParentRequestDto.getYear();
+        int month = scheduleSearchByParentRequestDto.getMonth();
+
+        List<String> consultDates = consultMeetingScheduleRepository.findDatesByChildUserIdsAndYearMonth(childUserIds, year, month);
+        List<String> gameDates = gameMeetingScheduleRepository.findDatesByChildUserIdsAndYearMonth(childUserIds, year, month);
 
         return Stream.concat(consultDates.stream(), gameDates.stream())
                 .distinct()

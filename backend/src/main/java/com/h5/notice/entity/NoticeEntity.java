@@ -28,6 +28,7 @@ public class NoticeEntity {
     private String title;
 
     @NotNull
+    @Builder.Default
     @Column(name = "view_cnt", nullable = false)
     private Integer viewCnt = 0;
 

@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface GameStageRepository extends JpaRepository<GameStageEntity, Integer> {
+
+
 }
