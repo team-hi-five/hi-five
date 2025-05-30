@@ -1,7 +1,7 @@
 package com.h5.global.config;
 
-import com.h5.auth.service.ConsultantCustomUserDetailService;
-import com.h5.auth.service.ParentCustomUserDetailService;
+import com.h5.domain.auth.service.ConsultantCustomUserDetailService;
+import com.h5.domain.auth.service.ParentCustomUserDetailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

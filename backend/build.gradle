@@ -50,6 +50,7 @@ dependencies {
 	testImplementation 'org.mockito:mockito-core:5.7.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+	implementation 'io.github.hyeonjaez:spring-api-common:0.0.1'
 }
 
 tasks.named('test') {

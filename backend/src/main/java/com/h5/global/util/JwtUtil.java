@@ -68,27 +68,17 @@ public class JwtUtil {
         }
     }
 
-    public String getEmailFromExpiredToken(String token) {
+    public long getRemainExpiredTime(String token) {
         try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
-                    .parseClaimsJws(token)
-                    .getBody();
-            return claims.getSubject();
-        } catch (ExpiredJwtException e) {
-            return e.getClaims().getSubject();
-        }
-    }
+            Claims claims = getClaimsFromToken(token);
 
-    public String getRoleFromExpiredToken(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
-                    .parseClaimsJws(token)
-                    .getBody();
-            return claims.get("role", String.class);
+            long expirationTime = claims.getExpiration().getTime();
+            long currentTime = System.currentTimeMillis();
+            return Math.max(expirationTime - currentTime, 0);
         } catch (ExpiredJwtException e) {
-            return e.getClaims().get("role", String.class);
+            return 0;
+        } catch (Exception e) {
+            return -1;
         }
     }
 
