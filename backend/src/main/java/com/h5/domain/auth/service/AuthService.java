@@ -22,6 +22,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -36,10 +37,10 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final ConsultantCustomUserDetailService consultantUserDetails;
     private final ParentCustomUserDetailService parentUserDetails;
-    private final ConsultantUserRepository consultantRepo;
-    private final ParentUserRepository parentRepo;
+    private final ConsultantUserRepository consultantUserRepository;
+    private final ParentUserRepository parentUserRepository;
 
-
+    @Transactional(readOnly = true)
     public LoginResponseDto authenticateAndGenerateToken(LoginRequestDto dto) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPwd())
@@ -49,12 +50,12 @@ public class AuthService {
         String name;
         boolean isTempPwd;
         if ("ROLE_CONSULTANT".equals(dto.getRole())) {
-            ConsultantUserEntity user = consultantRepo.findByEmailAndDeleteDttmIsNull(dto.getEmail())
+            ConsultantUserEntity user = consultantUserRepository.findByEmailAndDeleteDttmIsNull(dto.getEmail())
                     .orElseThrow(UserNotFoundException::new);
             name = user.getName();
             isTempPwd = user.isTempPwd();
         } else {
-            ParentUserEntity user = parentRepo.findByEmailAndDeleteDttmIsNull(dto.getEmail())
+            ParentUserEntity user = parentUserRepository.findByEmailAndDeleteDttmIsNull(dto.getEmail())
                     .orElseThrow(UserNotFoundException::new);
             name = user.getName();
             isTempPwd = user.isTempPwd();
@@ -118,9 +119,9 @@ public class AuthService {
                 .map(GrantedAuthority::getAuthority)
                 .findFirst().orElse(null);
 
-        String name = consultantRepo.findByEmail(email)
+        String name = consultantUserRepository.findByEmail(email)
                 .map(ConsultantUserEntity::getName)
-                .orElseGet(() -> parentRepo.findByEmail(email)
+                .orElseGet(() -> parentUserRepository.findByEmail(email)
                         .map(ParentUserEntity::getName)
                         .orElseThrow(UserNotFoundException::new));
 
@@ -131,7 +132,7 @@ public class AuthService {
     }
 
     private UserDetails loadUserByEmail(String email) {
-        boolean isConsultant = consultantRepo.existsByEmail(email);
+        boolean isConsultant = consultantUserRepository.existsByEmail(email);
         return isConsultant
                 ? consultantUserDetails.loadUserByUsername(email)
                 : parentUserDetails.loadUserByUsername(email);
