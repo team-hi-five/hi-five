@@ -10,8 +10,6 @@ import com.h5.domain.qna.dto.response.*;
 import com.h5.global.exception.*;
 import com.h5.domain.parent.entity.ParentUserEntity;
 import com.h5.domain.parent.repository.ParentUserRepository;
-import com.h5.qna.dto.request.*;
-import com.h5.qna.dto.response.*;
 import com.h5.domain.qna.entity.QnaAnswerEntity;
 import com.h5.domain.qna.entity.QnaEntity;
 import com.h5.domain.qna.repository.QnaAnswerRepository;

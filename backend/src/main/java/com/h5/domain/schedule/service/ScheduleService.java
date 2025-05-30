@@ -1,7 +1,6 @@
 package com.h5.domain.schedule.service;
 
 import com.h5.domain.schedule.dto.request.*;
-import com.h5.schedule.dto.request.*;
 import com.h5.domain.schedule.dto.response.ScheduleResponseDto;
 import java.util.List;
 

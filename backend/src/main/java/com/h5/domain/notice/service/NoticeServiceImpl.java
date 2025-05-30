@@ -7,8 +7,6 @@ import com.h5.domain.notice.dto.request.NoticeSearchRequestDto;
 import com.h5.domain.notice.dto.request.NoticeUpdateRequestDto;
 import com.h5.domain.notice.dto.response.*;
 import com.h5.global.exception.*;
-import com.h5.notice.dto.request.*;
-import com.h5.notice.dto.response.*;
 import com.h5.domain.notice.entity.NoticeEntity;
 import com.h5.domain.notice.repository.NoticeRepository;
 import com.h5.domain.parent.entity.ParentUserEntity;

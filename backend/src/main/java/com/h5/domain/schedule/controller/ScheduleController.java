@@ -1,7 +1,6 @@
 package com.h5.domain.schedule.controller;
 
 import com.h5.domain.schedule.dto.request.*;
-import com.h5.schedule.dto.request.*;
 import com.h5.domain.schedule.dto.response.ScheduleResponseDto;
 import com.h5.domain.schedule.service.ScheduleService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -8,7 +8,6 @@ import com.h5.domain.schedule.dto.request.*;
 import com.h5.global.exception.*;
 import com.h5.domain.parent.entity.ParentUserEntity;
 import com.h5.domain.parent.repository.ParentUserRepository;
-import com.h5.schedule.dto.request.*;
 import com.h5.domain.schedule.dto.response.ScheduleResponseDto;
 import com.h5.domain.schedule.entity.ConsultMeetingScheduleEntity;
 import com.h5.domain.schedule.entity.GameMeetingScheduleEntity;

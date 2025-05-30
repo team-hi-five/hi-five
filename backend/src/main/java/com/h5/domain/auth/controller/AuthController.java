@@ -6,7 +6,6 @@ import com.h5.domain.auth.service.AuthService;
 import com.h5.global.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 

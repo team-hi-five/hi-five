@@ -6,7 +6,6 @@ import com.h5.domain.faq.dto.request.FaqCreateRequestDto;
 import com.h5.domain.faq.dto.request.FaqSearchRequestDto;
 import com.h5.domain.faq.dto.request.FaqUpdateRequestDto;
 import com.h5.domain.faq.dto.response.*;
-import com.h5.faq.dto.response.*;
 import com.h5.domain.faq.entity.FaqEntity;
 import com.h5.domain.faq.repository.FaqRepository;
 import com.h5.global.exception.*;

@@ -1,7 +1,6 @@
 package com.h5.domain.qna.service;
 
 import com.h5.domain.qna.dto.request.*;
-import com.h5.qna.dto.request.*;
 import com.h5.domain.qna.dto.response.QnaCommentResponseDto;
 import com.h5.domain.qna.dto.response.QnaDetailResponseDto;
 import com.h5.domain.qna.dto.response.QnaListResponseDto;

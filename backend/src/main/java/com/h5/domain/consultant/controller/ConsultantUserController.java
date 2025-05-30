@@ -1,6 +1,5 @@
 package com.h5.domain.consultant.controller;
 
-import com.h5.consultant.dto.request.*;
 import com.h5.domain.consultant.dto.request.*;
 import com.h5.domain.consultant.service.ConsultantUserService;
 import jakarta.validation.Valid;

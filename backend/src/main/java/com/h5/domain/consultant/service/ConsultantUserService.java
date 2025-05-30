@@ -2,7 +2,6 @@ package com.h5.domain.consultant.service;
 
 import com.h5.domain.consultant.dto.request.ModifyChildRequestDto;
 import com.h5.domain.consultant.dto.request.RegisterParentAccountDto;
-import com.h5.consultant.dto.response.*;
 import com.h5.domain.consultant.dto.response.*;
 import com.h5.domain.consultant.entity.ConsultantUserEntity;
 

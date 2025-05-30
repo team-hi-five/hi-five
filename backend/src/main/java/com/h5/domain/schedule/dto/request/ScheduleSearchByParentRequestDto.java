@@ -3,7 +3,6 @@ package com.h5.domain.schedule.dto.request;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.YearMonth;
 
 @Getter

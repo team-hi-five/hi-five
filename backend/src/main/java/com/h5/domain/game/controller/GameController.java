@@ -1,7 +1,6 @@
 package com.h5.domain.game.controller;
 
 import com.h5.domain.game.dto.request.*;
-import com.h5.game.dto.request.*;
 import com.h5.domain.game.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
