@@ -35,7 +35,4 @@ public class ParentCustomUserDetails implements UserDetails {
         return email;
     }
 
-    public boolean getIsTempPwd() {
-        return isTempPwd;
-    }
 }

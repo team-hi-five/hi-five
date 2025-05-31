@@ -35,7 +35,4 @@ public class ConsultantCustomUserDetails implements UserDetails {
         return email;
     }
 
-    public boolean getIsTempPwd() {
-        return isTempPwd;
-    }
 }
